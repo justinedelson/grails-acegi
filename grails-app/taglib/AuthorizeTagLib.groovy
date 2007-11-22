@@ -64,10 +64,25 @@ class AuthorizeTagLib  {
 	/**
 	 * 
 	 */
-	def loggedInUserInfo = {attrs->
-		def authPrincipal = SCH.context.authentication.principal
+	def loggedInUserInfo = {attrs,body->
+		def authPrincipal = SCH?.context?.authentication?.principal
 		if( authPrincipal!=null && authPrincipal!="anonymousUser"){
 			out << authPrincipal?.domainClass?."${attrs.field}"
+		}else{
+			out << body()
 		}
 	}
+	def isLoggedIn = {attrs, body ->
+		def authPrincipal = SCH?.context?.authentication?.principal
+		if( authPrincipal!=null && authPrincipal!="anonymousUser"){
+			out << body()
+		}
+	}
+	def isNotLoggedIn = {attrs, body ->
+		def authPrincipal = SCH?.context?.authentication?.principal
+		if( authPrincipal==null || authPrincipal=="anonymousUser"){
+			out << body()
+		}
+	}
+
 }

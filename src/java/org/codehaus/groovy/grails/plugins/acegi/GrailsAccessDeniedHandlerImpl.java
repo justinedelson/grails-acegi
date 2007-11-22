@@ -1,11 +1,12 @@
-/* Copyright 2007 the original author or authors.
- * 
+/*
+ * Copyright 2007 the original author or authors.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -38,30 +39,42 @@ import org.acegisecurity.util.PortResolverImpl;
  */
 public class GrailsAccessDeniedHandlerImpl implements AccessDeniedHandler {
 	protected static final Log logger = LogFactory.getLog(GrailsAccessDeniedHandlerImpl.class);
+	public static final String AJAX_HEADER = "X-Requested-With";
+
 	private String errorPage;
+	private String ajaxErrorPage;
+	private String ajaxHeader=AJAX_HEADER;
 	private PortResolver portResolver = new PortResolverImpl();
 
 	public void handle(ServletRequest request, ServletResponse response, AccessDeniedException accessDeniedException)
 		throws IOException, ServletException {
-		if (errorPage != null) {
-			HttpServletRequest req = (HttpServletRequest) request;
+		HttpServletRequest req = (HttpServletRequest) request;
+
+		if (errorPage != null || (ajaxErrorPage!=null && req.getHeader(ajaxHeader)!=null) ) {
 			boolean includePort = true;
 			String scheme = request.getScheme();
 			String serverName = request.getServerName();
 			int serverPort = portResolver.getServerPort(request);
 			String contextPath = req.getContextPath();
-			//String redirectUrl = "http://127.0.0.1:8080/simpletest/login/denied";
 			boolean inHttp = "http".equals(scheme.toLowerCase());
 			boolean inHttps = "https".equals(scheme.toLowerCase());
 			
 			if (inHttp && (serverPort == 80)) {
 				includePort = false;
-			}
-			else if (inHttps && (serverPort == 443)) {
+			}else if (inHttps && (serverPort == 443)) {
 				includePort = false;
 			}
 			
-			String redirectUrl = scheme + "://" + serverName + ((includePort) ? (":" + serverPort) : "") + contextPath + errorPage;
+			String commonRedirectUrl = scheme + "://" + serverName + ((includePort) ? (":" + serverPort) : "") + contextPath;
+			String redirectUrl = commonRedirectUrl+"";
+			if(ajaxErrorPage!=null && req.getHeader(ajaxHeader)!=null){
+				redirectUrl = commonRedirectUrl + ajaxErrorPage;
+			}else if(errorPage != null){
+				redirectUrl = commonRedirectUrl + errorPage;
+			}else{
+				((HttpServletResponse) response).sendError(HttpServletResponse.SC_FORBIDDEN, accessDeniedException.getMessage());
+			}
+
 			((HttpServletResponse) response).sendRedirect(((HttpServletResponse) response).encodeRedirectURL(redirectUrl));
 		}
 
@@ -76,5 +89,14 @@ public class GrailsAccessDeniedHandlerImpl implements AccessDeniedHandler {
 			throw new IllegalArgumentException("ErrorPage must begin with '/'");
 		}
 		this.errorPage = errorPage;
+	}
+	public void setAjaxErrorPage(String ajaxErrorPage) {
+		if ((ajaxErrorPage != null) && !ajaxErrorPage.startsWith("/")) {
+			throw new IllegalArgumentException("ErrorPage must begin with '/'");
+		}
+		this.ajaxErrorPage = ajaxErrorPage;
+	}
+	public void setAjaxHeader(String ajaxHeader) {
+		this.ajaxHeader = ajaxHeader;
 	}
 }

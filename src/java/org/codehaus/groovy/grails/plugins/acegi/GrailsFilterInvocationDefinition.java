@@ -27,14 +27,15 @@ import org.acegisecurity.intercept.web.FilterInvocation;
 import org.acegisecurity.intercept.web.FilterInvocationDefinitionSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.codehaus.groovy.grails.commons.GrailsControllerClass;
+import org.codehaus.groovy.grails.commons.GrailsDomainClass;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 import org.springframework.util.StringUtils;
+import org.hibernate.collection.PersistentSet;
 
 /**
- * TODO refactor
+ * 
  * GrailsFilterInvocationDefinition
  * @author  T.Yamamoto
  */
@@ -48,8 +49,6 @@ public class GrailsFilterInvocationDefinition extends
 	private PathMatcher pathMatcher = new AntPathMatcher();
 	private boolean convertUrlToLowercaseBeforeComparison = false;
 	
-	private String loginControllerName;
-	private String loginControllerRequestMapMethod;
 	private String requestMapClass;
 	private String requestMapPathFieldMethod;
 	private String requestMapConfigAttributeFieldMethod;
@@ -58,10 +57,6 @@ public class GrailsFilterInvocationDefinition extends
 	
 	public ConfigAttributeDefinition lookupAttributes(String url) {
 		setUpSession();
-		
-//		GrailsControllerClass controllerClass = getGrailsApplication().getController(loginControllerName);
-		GrailsControllerClass controllerClass = (GrailsControllerClass)getGrailsApplication().getArtefact("Controller",loginControllerName);
-		Object controller = controllerClass.newInstance();
 		
 		//set LowerCase compulsorily
 		url = url.toLowerCase();
@@ -73,19 +68,26 @@ public class GrailsFilterInvocationDefinition extends
 
 		//TODO more better way
 		//create query
-		StringTokenizer stn = new StringTokenizer(url,"/");
-		String hql="from "+requestMapClass+" where "+requestMapPathFieldName+" = '/**' ";
-		String path="/";
-		while (stn.hasMoreTokens()) {
-			String element = (String) stn.nextToken();
-			path+=element+"/";
-			hql+="or "+requestMapPathFieldName+" ='"+path+"**' ";
-		}
-		hql+="order by length("+requestMapPathFieldName+") desc";
+		url=url.replaceAll("\"","");
+		url=url.replaceAll("'","");
 
 		//TODO more better way
 		if (!url.contains(".") || url.indexOf(".gsp")>-1 || url.indexOf(".jsp")>-1) {
-			List reqMap = (List) InvokerHelper.invokeMethod(controller, loginControllerRequestMapMethod,hql);
+			StringTokenizer stn = new StringTokenizer(url,"/");
+			String hql="from "+requestMapClass+" where "+requestMapPathFieldName+" = '/**' ";
+			String path="/";
+			while (stn.hasMoreTokens()) {
+				String element = (String) stn.nextToken();
+				path+=element+"/";
+				hql+="or "+requestMapPathFieldName+" ='"+path+"**' ";
+			}
+			hql+="order by length("+requestMapPathFieldName+") desc";
+			
+			//find requestMap from DB by using GORM static method.
+			GrailsDomainClass requestMapDomainClass = (GrailsDomainClass)getGrailsApplication().getArtefact("Domain", requestMapClass);
+			List reqMap= 
+				(List)InvokerHelper.invokeStaticMethod(requestMapDomainClass.getClazz(),"findAll", hql);
+
 			if (reqMap != null) {
 				Iterator iter = reqMap.iterator();
 				while (iter.hasNext()) {
@@ -102,18 +104,15 @@ public class GrailsFilterInvocationDefinition extends
 							String configAttribute = configAttrs[i];
 							cad.addConfigAttribute(new SecurityConfig(configAttribute));
 						}
-						
 						releaseSession();
 						return cad;
 					}
 				}
-
 			}
 		}
 		
 		releaseSession();
-        return null;
-		
+		return null;
 	}
 
 	//@SuppressWarnings("unchecked")//comment out for 1.4
@@ -125,42 +124,41 @@ public class GrailsFilterInvocationDefinition extends
 			ConfigAttributeDefinition cad = new ConfigAttributeDefinition();
 			cad.addConfigAttribute(new SecurityConfig("IS_AUTHENTICATED_ANONYMOUSLY"));
 			defaultRequestMap.add(new EntryHolder("/*", cad));
-	        Iterator iter = defaultRequestMap.iterator();
-	        while (iter.hasNext()) {
-	            EntryHolder entryHolder = (EntryHolder) iter.next();
-	            set.add(entryHolder.getConfigAttributeDefinition());
-	        }	
+			Iterator iter = defaultRequestMap.iterator();
+			while (iter.hasNext()) {
+				EntryHolder entryHolder = (EntryHolder) iter.next();
+				set.add(entryHolder.getConfigAttributeDefinition());
+			}	
 		}else{
-	        Iterator iter = requestMap.iterator();
-	        while (iter.hasNext()) {
-	            EntryHolder entryHolder = (EntryHolder) iter.next();
-	            set.add(entryHolder.getConfigAttributeDefinition());
-	        }
+			Iterator iter = requestMap.iterator();
+			while (iter.hasNext()) {
+				EntryHolder entryHolder = (EntryHolder) iter.next();
+				set.add(entryHolder.getConfigAttributeDefinition());
+			}
 		}
-        return set.iterator();
+		return set.iterator();
 	}
 
 
 
-    public ConfigAttributeDefinition getAttributes(Object object) throws IllegalArgumentException {
-        if ((object == null) || !this.supports(object.getClass())) {
-        	logger.error("Object must be a FilterInvocation");
-            throw new IllegalArgumentException("Object must be a FilterInvocation");
-        }
+	public ConfigAttributeDefinition getAttributes(Object object) throws IllegalArgumentException {
+		if ((object == null) || !this.supports(object.getClass())) {
+			logger.error("Object must be a FilterInvocation");
+			throw new IllegalArgumentException("Object must be a FilterInvocation");
+		}
 
-        String url = ((FilterInvocation) object).getRequestUrl();
+		String url = ((FilterInvocation) object).getRequestUrl();
 
-        return this.lookupAttributes(url);
+		return this.lookupAttributes(url);
 	}
 
 	public boolean supports(Class clazz) {
-        if (FilterInvocation.class.isAssignableFrom(clazz)) {
-            return true;
-        } else {
-            return false;
-        }
+		if (FilterInvocation.class.isAssignableFrom(clazz)) {
+			return true;
+		} else {
+			return false;
+		}
 	}
-	
 
 	public boolean isConvertUrlToLowercaseBeforeComparison() {
 		return convertUrlToLowercaseBeforeComparison;
@@ -169,23 +167,6 @@ public class GrailsFilterInvocationDefinition extends
 	public void setConvertUrlToLowercaseBeforeComparison(
 			boolean convertUrlToLowercaseBeforeComparison) {
 		this.convertUrlToLowercaseBeforeComparison = convertUrlToLowercaseBeforeComparison;
-	}
-
-	public String getLoginControllerName() {
-		return loginControllerName;
-	}
-
-	public void setLoginControllerName(String loginControllerName) {
-		this.loginControllerName = loginControllerName;
-	}
-
-	public String getLoginControllerRequestMapMethod() {
-		return loginControllerRequestMapMethod;
-	}
-
-	public void setLoginControllerRequestMapMethod(
-			String loginControllerRequestMapMethod) {
-		this.loginControllerRequestMapMethod = loginControllerRequestMapMethod;
 	}
 
 	public String getRequestMapClass() {
@@ -222,33 +203,33 @@ public class GrailsFilterInvocationDefinition extends
 	}
 
 	protected class EntryHolder {
-        private ConfigAttributeDefinition configAttributeDefinition;
-        private String antPath;
+		private ConfigAttributeDefinition configAttributeDefinition;
+		private String antPath;
 
-        public EntryHolder(String antPath, ConfigAttributeDefinition attr) {
-            this.antPath = antPath;
-            this.configAttributeDefinition = attr;
-        }
+		public EntryHolder(String antPath, ConfigAttributeDefinition attr) {
+			this.antPath = antPath;
+			this.configAttributeDefinition = attr;
+		}
 
-        protected EntryHolder() {
-            throw new IllegalArgumentException("Cannot use default constructor");
-        }
+		protected EntryHolder() {
+			throw new IllegalArgumentException("Cannot use default constructor");
+		}
 
-        /**
+		/**
 		 * @return  antPath
 		 * @uml.property  name="antPath"
-		 */
-        public String getAntPath() {
-            return antPath;
-        }
+		*/
+		public String getAntPath() {
+			return antPath;
+		}
 
-        /**
+		/**
 		 * @return  configAttributeDefinition
 		 * @uml.property  name="configAttributeDefinition"
-		 */
-        public ConfigAttributeDefinition getConfigAttributeDefinition() {
-            return configAttributeDefinition;
-        }
-    }
+		*/
+		public ConfigAttributeDefinition getConfigAttributeDefinition() {
+			return configAttributeDefinition;
+		}
+	}
 
 }

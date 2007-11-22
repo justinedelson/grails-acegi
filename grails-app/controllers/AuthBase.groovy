@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import org.springframework.web.servlet.support.RequestContextUtils as RCU;
+import org.springframework.web.servlet.support.RequestContextUtils as RCU
 import org.springframework.web.servlet.i18n.CookieLocaleResolver 
 import org.acegisecurity.context.SecurityContextHolder as SCH
-import java.util.Locale;
+import java.util.Locale
 
 /**
- * Controllers Base class for to use Acegi ( authentication and authorization ) 
+ * [Example] Controllers Base class for to use Acegi ( authentication and authorization ) 
  * useage: class SomeController extends AuthBase { }
  * @author T.Yamamoto
  */
@@ -43,6 +43,7 @@ class AuthBase {
 		if( requestAllowed!=null && !authenticateService.ifAnyGranted(requestAllowed) ){
 			println "request not allowed: " +requestAllowed
 			redirect(uri:"/")
+			return
 		}
 		
 		authPrincipal = SCH?.context?.authentication?.principal

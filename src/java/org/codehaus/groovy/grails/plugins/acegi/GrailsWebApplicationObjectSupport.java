@@ -57,14 +57,13 @@ abstract class GrailsWebApplicationObjectSupport extends WebApplicationObjectSup
 		try {
 			sessionFactory = (SessionFactory)getWebApplicationContext().getBean("sessionFactory");
 			session = SessionFactoryUtils.getSession(sessionFactory, true);
-//			session = ((SessionHolder)TransactionSynchronizationManager.getResource(sessionFactory)).getSession();
 			
 			SessionHolder sessionHolder = new SessionHolder(session);
-            if(TransactionSynchronizationManager.hasResource(sessionFactory)) {
-                this.session = ((SessionHolder)TransactionSynchronizationManager.getResource(sessionFactory)).getSession();
-            }else{
-            	TransactionSynchronizationManager.bindResource(sessionFactory, sessionHolder); 
-            }
+			if(TransactionSynchronizationManager.hasResource(sessionFactory)) {
+				this.session = ((SessionHolder)TransactionSynchronizationManager.getResource(sessionFactory)).getSession();
+			}else{
+				TransactionSynchronizationManager.bindResource(sessionFactory, sessionHolder); 
+			}
 			
 		} catch (Exception e) {
 			logger.error(e.getMessage());

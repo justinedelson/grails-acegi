@@ -63,7 +63,6 @@ public class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements 
 
 		// get LoginUser
 		//LoginUser Domain Class
-//		GrailsDomainClass userdc = getGrailsApplication().getDomainClass(loginUserDomainClass);
 		GrailsDomainClass userdc = (GrailsDomainClass)getGrailsApplication().getArtefact("Domain", loginUserDomainClass);
 		//find user from DB by using GORM static method.
 		GroovyObject user= 
@@ -72,6 +71,7 @@ public class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements 
 		
 		if(user!=null){
 			logger.debug("User found: "+user); 
+			
 			
 			String _userName=(String)InvokerHelper.invokeMethod(user, "get"+userName, null);
 			String _password=(String)InvokerHelper.invokeMethod(user, password, null);
@@ -105,7 +105,7 @@ public class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements 
 		}else{
 			logger.error("User not found: " + arg0);
 			releaseSession();
-			throw new UsernameNotFoundException("User not found.");
+			throw new UsernameNotFoundException("User not found.",arg0);
 		}
 		
 		releaseSession();

@@ -11,10 +11,10 @@
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="4"/>
 </listAttribute>
-<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="grails-acegi"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="acegi"/>
 <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dbase.dir=${project_loc} -Dserver.port=8080 -Dgrails.env=development"/>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-<listEntry value="/grails-acegi"/>
+<listEntry value="/acegi"/>
 </listAttribute>
 <booleanAttribute key="org.eclipse.debug.core.appendEnvironmentVariables" value="true"/>
 </launchConfiguration>

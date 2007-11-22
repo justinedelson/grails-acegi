@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 
-import org.acegisecurity.GrantedAuthorityImpl;
+import org.acegisecurity.GrantedAuthorityImpl
 import org.acegisecurity.context.SecurityContextHolder as SCH
 import org.springframework.util.StringUtils as STU
-import org.springframework.web.servlet.support.RequestContextUtils as RCU;
+import org.springframework.web.servlet.support.RequestContextUtils as RCU
+import org.apache.commons.codec.digest.DigestUtils as DU
 
 /**
  * rewrote to the Groovy from Java source of
@@ -28,6 +29,7 @@ import org.springframework.web.servlet.support.RequestContextUtils as RCU;
 class AuthenticateService {
 	
 	boolean transactional = true
+	def acegiConfig=null
 	
 	def ifAllGranted(role) {
 		def granted = getPrincipalAuthorities()
@@ -111,5 +113,51 @@ class AuthenticateService {
 		}
 		return target;
 	}
+	
+  def principal(){
+    return SCH?.context?.authentication?.principal
+  }
+
+  def userDomain(){
+    def principal = principal()
+    def loginUser = null
+    if( principal!=null && principal!="anonymousUser"){
+      loginUser = principal?.domainClass
+    }
+    return loginUser
+  }
+
+  def getAcegiConfig(){
+    if(this.acegiConfig==null){
+      ClassLoader parent = getClass().getClassLoader()
+      GroovyClassLoader loader = new GroovyClassLoader(parent)
+      def ac = loader.loadClass("AcegiConfig")
+      def dac = loader.loadClass("DefaultAcegiConfig")
+      def _user_config = new ConfigSlurper().parse(ac)
+      def _default_config = new ConfigSlurper().parse(dac)
+      this.acegiConfig = _default_config.merge(_user_config)
+    }
+    return this.acegiConfig
+  }
+
+  /**
+   * returns a MessageDigest password. 
+   * (changes algorithm method dynamically by param of config)
+   */
+  def passwordEncoder(String passwd){
+    def acegiConfig = getAcegiConfig()
+
+    def algorithm = acegiConfig.acegi.algorithm
+    def encodeHashAsBase64 = acegiConfig.acegi.encodeHashAsBase64
+    def algorithmMethod = acegiConfig.algorithmMethods."${algorithm}"
+    def pazzwd
+
+    if(encodeHashAsBase64){
+      pazzwd = DU."${algorithmMethod}"(passwd).getBytes().encodeBase64()
+    }else{
+      pazzwd = DU."${algorithmMethod}"(passwd)
+    }
+    return pazzwd
+  }
 }
 
