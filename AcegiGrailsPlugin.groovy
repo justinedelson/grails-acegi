@@ -37,16 +37,21 @@ class AcegiGrailsPlugin {
 
 	def doWithSpring = {
 
+    ClassLoader parent = getClass().getClassLoader()
+    GroovyClassLoader loader = new GroovyClassLoader(parent)
+    def ac = loader.loadClass("AcegiConfig")
+    def dac = loader.loadClass("DefaultAcegiConfig")
+    def _user_config = new ConfigSlurper().parse(ac)
+    def _default_config = new ConfigSlurper().parse(dac)
+    
+
 		def config
-		//AcegiConfig is loaded with type class groovy.lang.Script
-		if(application.getClassForName("AcegiConfig")){
+		if(_user_config){
 			log.info("using user AcegiConfig")
-			def _user_config = new ConfigSlurper().parse(AcegiConfig)
-			def _default_config = new ConfigSlurper().parse(DefaultAcegiConfig)
 			config = _default_config.merge(_user_config)
 		}else{
 			log.info("using DefaultAcegiConfig")
-			config = new ConfigSlurper().parse(DefaultAcegiConfig)
+			config = _default_config
 		}
 
 		def conf = config.acegi
@@ -286,21 +291,25 @@ class AcegiGrailsPlugin {
   }
   def doWithWebDescriptor = { xml ->
 
+    ClassLoader parent = getClass().getClassLoader()
+    GroovyClassLoader loader = new GroovyClassLoader(parent)
     def config
     def _user_config
     try {
-      _user_config = new ConfigSlurper().parse(AcegiConfig)
+      def ac = loader.loadClass("AcegiConfig")
+      _user_config = new ConfigSlurper().parse(ac)
     }catch(Exception e) {
       println "AcegiConfig not found"
     }
-
+    
+    def dac = loader.loadClass("DefaultAcegiConfig")
     if(_user_config){
       log.info("using user AcegiConfig")
-      def _default_config = new ConfigSlurper().parse(DefaultAcegiConfig)
+      def _default_config = new ConfigSlurper().parse(dac)
       config = _default_config.merge(_user_config)
     }else{
       log.info("using DefaultAcegiConfig")
-      config = new ConfigSlurper().parse(DefaultAcegiConfig)
+      config = new ConfigSlurper().parse(dac)
     }
 
     def conf = config.acegi
