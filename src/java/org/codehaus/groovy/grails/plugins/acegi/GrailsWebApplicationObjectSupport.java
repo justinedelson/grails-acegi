@@ -30,11 +30,13 @@ import org.springframework.web.context.support.WebApplicationObjectSupport;
  * Grails Web Application Object Support
  * @author T.Yamamoto
  */
-abstract class GrailsWebApplicationObjectSupport extends WebApplicationObjectSupport {
+public abstract class GrailsWebApplicationObjectSupport extends WebApplicationObjectSupport {
 
 	private static final Log logger = LogFactory.getLog(GrailsWebApplicationObjectSupport.class);
 	protected SessionFactory sessionFactory;
 	protected Session session;
+	private boolean containerManagedSession = false;
+	
 	/**
 	 * Returns GrailsApplication from context
 	 * @return GrailsApplication
@@ -55,28 +57,35 @@ abstract class GrailsWebApplicationObjectSupport extends WebApplicationObjectSup
 	 */
 	protected void setUpSession() {
 		try {
-			sessionFactory = (SessionFactory)getWebApplicationContext().getBean("sessionFactory");
-			session = SessionFactoryUtils.getSession(sessionFactory, true);
-			
-			SessionHolder sessionHolder = new SessionHolder(session);
-			if(TransactionSynchronizationManager.hasResource(sessionFactory)) {
-				this.session = ((SessionHolder)TransactionSynchronizationManager.getResource(sessionFactory)).getSession();
-			}else{
-				TransactionSynchronizationManager.bindResource(sessionFactory, sessionHolder); 
+			sessionFactory = (SessionFactory) getWebApplicationContext().getBean("sessionFactory");
+
+			if (TransactionSynchronizationManager.hasResource(sessionFactory)) {
+				if (logger.isDebugEnabled()) logger.debug("Session already has transaction attached");
+				containerManagedSession = true;
+				this.session = ((SessionHolder) TransactionSynchronizationManager.getResource(sessionFactory)).getSession();
+			} else {
+				if (logger.isDebugEnabled()) logger.debug("Session does not have transaction attached... Creating new one");
+				containerManagedSession = false;
+				session = SessionFactoryUtils.getSession(sessionFactory, true);
+				SessionHolder sessionHolder = new SessionHolder(session);
+				TransactionSynchronizationManager.bindResource(sessionFactory, sessionHolder);
 			}
-			
+
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			e.printStackTrace();
 		}
 	}
+
 	/**
 	 * Release Session
 	 */
 	protected void releaseSession() {
-		  SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.unbindResource(sessionFactory);
-		  SessionFactoryUtils.releaseSession(sessionHolder.getSession(), sessionFactory); 
-		  logger.debug("Session released");
+		if (!containerManagedSession) {
+			SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.unbindResource(sessionFactory);
+			SessionFactoryUtils.releaseSession(sessionHolder.getSession(), sessionFactory);
+			logger.debug("Session released");
+		}
 	}
 	
 }
