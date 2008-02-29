@@ -12,6 +12,9 @@ acegi {
   password="passwd"
   enabled="enabled"
   relationalAuthorities = "authorities"
+  /* you can specify method for to retrieve the roles. (you need to set relationalAuthorities=null)
+  */
+  //getAuthoritiesMethod=null //"getMoreAuthorities"
 
   /**
    * Authority domain class authority field name 
@@ -26,6 +29,8 @@ acegi {
   requestMapClass="${requestmapDomain}"
   requestMapPathField="url"
   requestMapConfigAttributeField="configAttribute"
+
+	
 
  /** 
   * if useRequestMapDomainClass is false, set request map pattern in string
@@ -59,4 +64,9 @@ acegi {
   
   /** default user's role for user registration */
   defaultRole="ROLE_USER"
+  
+  /** use basicProcessingFilter */
+  basicProcessingFilter=false
+  /** use switchUserProcessingFilter */
+  switchUserProcessingFilter=false
 }

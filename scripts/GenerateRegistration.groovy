@@ -23,19 +23,22 @@
 import org.codehaus.groovy.grails.commons.GrailsClassUtils as GCU
 
 grailsHome = Ant.project.properties."environment.GRAILS_HOME"
-pluginVersion="0.2"
 
 includeTargets << new File ( "${grailsHome}/scripts/Init.groovy" )  
-includeTargets << new File ( "${basedir}/plugins/acegi-${pluginVersion}/scripts/AcegiInit.groovy" )  
 
-pluginTemplatePath = "plugins/acegi-${pluginVersion}/src/templates/manager"
+
+personDomainClassName="Person"
+authorityDomainClassName="Authority"
+requestmapDomainClassName="Requestmap"
+
+pluginTemplatePath="${acegiPluginDir}/src/templates/manager"
 
 overwrite = false
 
 target('default': "generate user registration views and controllers") {
   ClassLoader parent = getClass().getClassLoader()
   GroovyClassLoader loader = new GroovyClassLoader(parent)
-  Class clazz = loader.parseClass(new File("${basedir}/${confPath}/AcegiConfig.groovy"))
+  Class clazz = loader.parseClass(new File("${basedir}/grails-app/conf/AcegiConfig.groovy"))
   def acegiConfig = new ConfigSlurper().parse(clazz)
   println "Login user domain class: ${acegiConfig.acegi.loginUserDomainClass}"
   println "Authority domain class: ${acegiConfig.acegi.authorityDomainClass}"
@@ -66,7 +69,7 @@ target('default': "generate user registration views and controllers") {
 generateRegistration = {name ->
   def uname = name[0].toUpperCase() + name.substring(1)
 
-  def outFile = new File("${basedir}/${controllerPath}/${uname}Controller.groovy")
+  def outFile = new File("${basedir}/grails-app/controllers/${uname}Controller.groovy")
 
   if (outFile.exists()) {
     Ant.input(addProperty: "overwrite", message: "Do you want to overwrite? y/n")
@@ -85,35 +88,35 @@ generateRegistration = {name ->
           requestmapDomain: "$requestmapDomainClassName"]
 
   //copy the CaptchaController
-  println "copying CaptchaController.groovy to - ${basedir}/${controllerPath}/CaptchaController.groovy "
+  println "copying CaptchaController.groovy to - ${basedir}/grails-app/controllers/CaptchaController.groovy "
   Ant.copy(
-          file: "${basedir}/${pluginTemplatePath}/controllers/_CaptchaController.groovy",
-          tofile: "${basedir}/${controllerPath}/CaptchaController.groovy", overwrite: overwrite)
+          file: "${pluginTemplatePath}/controllers/_CaptchaController.groovy",
+          tofile: "${basedir}/grails-app/controllers/CaptchaController.groovy", overwrite: overwrite)
 
   //copy the EmailerService
-  println "copying EmailerService.groovy to - ${basedir}/${servicePath}/EmailerService.groovy "
+  println "copying EmailerService.groovy to - ${basedir}/grails-app/services/EmailerService.groovy "
   Ant.copy(
-          file: "${basedir}/${pluginTemplatePath}/services/_EmailerService.groovy",
-          tofile: "${basedir}/${servicePath}/EmailerService.groovy", overwrite: overwrite)
+          file: "${pluginTemplatePath}/services/_EmailerService.groovy",
+          tofile: "${basedir}/grails-app/services/EmailerService.groovy", overwrite: overwrite)
   //generate RegisterController.groovy
-  println "generating file ${basedir}/${controllerPath}/${uname}Controller.groovy"
+  println "generating file ${basedir}/grails-app/controllers/${uname}Controller.groovy"
   generateFile(
-          "${basedir}/${pluginTemplatePath}/controllers/_${uname}Controller.groovy",
+          "${pluginTemplatePath}/controllers/_${uname}Controller.groovy",
           bind,
-          "${basedir}/${controllerPath}/${uname}Controller.groovy")
+          "${basedir}/grails-app/controllers/${uname}Controller.groovy")
 
   //generate views for RegisterController
-  println "copying view files to - ${basedir}/${viewPath}/${name}/* "
-  Ant.mkdir(dir: "${basedir}/${viewPath}/${name}")
+  println "copying view files to - ${basedir}/grails-app/views/${name}/* "
+  Ant.mkdir(dir: "${basedir}/grails-app/views/${name}")
   Ant.copy(
-          file:"${basedir}/${pluginTemplatePath}/views/${name}/edit.gsp",
-          tofile:"${basedir}/${viewPath}/${name}/edit.gsp", overwrite: overwrite)
+          file:"${pluginTemplatePath}/views/${name}/edit.gsp",
+          tofile:"${basedir}/grails-app/views/${name}/edit.gsp", overwrite: overwrite)
   Ant.copy(
-          file:"${basedir}/${pluginTemplatePath}/views/${name}/index.gsp",
-          tofile:"${basedir}/${viewPath}/${name}/index.gsp", overwrite: overwrite)
+          file:"${pluginTemplatePath}/views/${name}/index.gsp",
+          tofile:"${basedir}/grails-app/views/${name}/index.gsp", overwrite: overwrite)
   Ant.copy(
-          file:"${basedir}/${pluginTemplatePath}/views/${name}/show.gsp",
-          tofile:"${basedir}/${viewPath}/${name}/show.gsp", overwrite: overwrite)
+          file:"${pluginTemplatePath}/views/${name}/show.gsp",
+          tofile:"${basedir}/grails-app/views/${name}/show.gsp", overwrite: overwrite)
 }
 
 generateFile = {templateFile, binding, outputPath ->

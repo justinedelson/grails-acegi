@@ -23,10 +23,13 @@
 import org.codehaus.groovy.grails.commons.GrailsClassUtils as GCU
 
 grailsHome = Ant.project.properties."environment.GRAILS_HOME"
-pluginVersion="0.2"
 
-includeTargets << new File ( "${grailsHome}/scripts/Init.groovy" )  
-includeTargets << new File ( "${basedir}/plugins/acegi-${pluginVersion}/scripts/AcegiInit.groovy" )  
+
+includeTargets << new File ( "${grailsHome}/scripts/Init.groovy" )
+
+personDomainClassName="Person"
+authorityDomainClassName="Authority"
+requestmapDomainClassName="Requestmap"
 
 
 target("default":"create domain classes for acegi-plugin") {
@@ -78,36 +81,36 @@ target(createDomains:""){
     authorityDomain:"$authorityDomainClassName",requestmapDomain:"$requestmapDomainClassName"]
   //create Person domain class
   generateFile(bind,
-    "${basedir}/${pluginTemplatePath}/_Person.groovy",
-    "${basedir}/${domainClassPath}/${personDomainClassName}.groovy")
+    "${acegiPluginDir}/src/templates/_Person.groovy",
+    "${basedir}/grails-app/domain/${personDomainClassName}.groovy")
   //create Authority domain class
   generateFile(bind,
-    "${basedir}/${pluginTemplatePath}/_Authority.groovy",
-    "${basedir}/${domainClassPath}/${authorityDomainClassName}.groovy")
+    "${acegiPluginDir}/src/templates/_Authority.groovy",
+    "${basedir}/grails-app/domain/${authorityDomainClassName}.groovy")
   //copy Requestmap domain class
   println "copying Requestmap domain class. "
   Ant.copy(
-    file:"${basedir}/${pluginTemplatePath}/_Requestmap.groovy",
-    tofile:"${basedir}/${domainClassPath}/Requestmap.groovy",overwrite:true)
+    file:"${acegiPluginDir}/src/templates/_Requestmap.groovy",
+    tofile:"${basedir}/grails-app/domain/Requestmap.groovy",overwrite:true)
   //create AcegiConfig
   generateFile(bind,
-    "${basedir}/${pluginTemplatePath}/_AcegiConfig.groovy",
-    "${basedir}/${confPath}/AcegiConfig.groovy")
+    "${acegiPluginDir}/src/templates/_AcegiConfig.groovy",
+    "${basedir}/grails-app/conf/AcegiConfig.groovy")
 }
 
 target(copyViewAndControlls:""){
   //copy login.gsp and Login/Logout Controller example.
   println "copying login.gsp and Login/Logout Controller example. "
-  Ant.mkdir(dir: "${basedir}/${viewPath}/login")
+  Ant.mkdir(dir: "${basedir}/grails-app/views/login")
   Ant.copy(
-    file:"${basedir}/${pluginTemplatePath}/views/login/auth.gsp",
-    tofile:"${basedir}/${viewPath}/login/auth.gsp",overwrite:true)
+    file:"${acegiPluginDir}/src/templates/views/login/auth.gsp",
+    tofile:"${basedir}/grails-app/views/login/auth.gsp",overwrite:true)
   Ant.copy(
-    file:"${basedir}/${pluginTemplatePath}/controllers/LoginController.groovy",
-    tofile:"${basedir}/${controllerPath}/LoginController.groovy",overwrite:true)
+    file:"${acegiPluginDir}/src/templates/controllers/LoginController.groovy",
+    tofile:"${basedir}/grails-app/controllers/LoginController.groovy",overwrite:true)
   Ant.copy(
-    file:"${basedir}/${pluginTemplatePath}/controllers/LogoutController.groovy",
-    tofile:"${basedir}/${controllerPath}/LogoutController.groovy",overwrite:true)
+    file:"${acegiPluginDir}/src/templates/controllers/LogoutController.groovy",
+    tofile:"${basedir}/grails-app/controllers/LogoutController.groovy",overwrite:true)
   
     //log4j.logger.org.acegisecurity="off,stdout"
     Ant.input(addProperty:"addLogConfig",message:"Do you want add log config to Config.groovy? y/n")

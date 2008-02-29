@@ -19,6 +19,8 @@ import org.springframework.util.StringUtils as STU
 import org.springframework.web.servlet.support.RequestContextUtils as RCU
 import org.apache.commons.codec.digest.DigestUtils as DU
 
+import org.codehaus.groovy.grails.plugins.acegi.AuthorizeTools
+
 /**
  * rewrote to the Groovy from Java source of
  * org.acegisecurity.taglibs.authz.AuthorizeTag
@@ -26,94 +28,49 @@ import org.apache.commons.codec.digest.DigestUtils as DU
  * 
  * @author T.Yamamoto
  */
-class AuthenticateService {
-	
-	boolean transactional = true
-	def acegiConfig=null
-	
-	def ifAllGranted(role) {
-		def granted = getPrincipalAuthorities()
-		if (!granted.containsAll(parseAuthoritiesString(role))) {
-			return false
-		}else{
-			return true
-		}
-	}
-	
-	def ifNotGranted(role) {
-		def granted = getPrincipalAuthorities()
-		Set grantedCopy = retainAll(granted, parseAuthoritiesString(role));
-		if (!grantedCopy.isEmpty()) {
-			return false
-		}else{
-			return true
-		}
-	}
-	
-	def ifAnyGranted(role) {
-		def granted = getPrincipalAuthorities()
-		Set grantedCopy = retainAll(granted, parseAuthoritiesString(role));
-		if (grantedCopy.isEmpty()) {
-			return false
-		}else{
-			return true
-		}
-	}
+class AuthenticateService extends AuthorizeTools {
+  
+  boolean transactional = false
+  def acegiConfig=null
+  
+  /**
+   * @deprecated You can invoke tags from controllers (since grails-0.6)
+   */
+  def ifAllGranted(role) {
+    def granted = getPrincipalAuthorities()
+    if (!granted.containsAll(parseAuthoritiesString(role))) {
+      return false
+    }else{
+      return true
+    }
+  }
 
-	def authoritiesToRoles(def c) {
-		Set target = new HashSet()
-		c.each {authority->
-			if (null == authority.getAuthority()) {
-				throw new IllegalArgumentException(
-					"Cannot process GrantedAuthority objects which return null from getAuthority() - attempting to process "
-						+ authority)
-			}
-			target.add(authority.authority)
-		}
-		return target;
-	}
+  /**
+   * @deprecated You can invoke tags from controllers (since grails-0.6)
+   */
+  def ifNotGranted(role) {
+    def granted = getPrincipalAuthorities()
+    Set grantedCopy = retainAll(granted, parseAuthoritiesString(role));
+    if (!grantedCopy.isEmpty()) {
+      return false
+    }else{
+      return true
+    }
+  }
+  
+  /**
+   * @deprecated You can invoke tags from controllers (since grails-0.6)
+   */
+  def ifAnyGranted(role) {
+    def granted = getPrincipalAuthorities()
+    Set grantedCopy = retainAll(granted, parseAuthoritiesString(role));
+    if (grantedCopy.isEmpty()) {
+      return false
+    }else{
+      return true
+    }
+  }
 
-	def getPrincipalAuthorities() {
-		def currentUser = SCH.context.authentication
-		if (null == currentUser) {
-			return Collections.EMPTY_LIST;
-		}
-		if ((null == currentUser.authorities) || (currentUser.authorities.length < 1)) {
-			return Collections.EMPTY_LIST;
-		}
-		def granted = Arrays.asList(currentUser.authorities);
-
-		return granted;
-	}
-
-	def parseAuthoritiesString(def authorizationsString) {
-		def requiredAuthorities = new HashSet()
-		def authorities = STU.commaDelimitedListToStringArray(authorizationsString)
-		authorities.each {auth->
-			requiredAuthorities.add(new GrantedAuthorityImpl(auth))
-		}
-		return requiredAuthorities
-	}
-
-	def retainAll(def granted, def required) {
-		def grantedRoles = authoritiesToRoles(granted);
-		def requiredRoles = authoritiesToRoles(required);
-		grantedRoles.retainAll(requiredRoles);
-
-		return rolesToAuthorities(grantedRoles, granted);
-	}
-
-	def rolesToAuthorities(def grantedRoles, def granted) {
-		def target = new HashSet()
-		grantedRoles.each {role->
-			def auth = granted.find{authority->authority.authority==role}
-			if(auth!=null){
-				target.add(auth.authority)
-			}
-		}
-		return target;
-	}
-	
   def principal(){
     return SCH?.context?.authentication?.principal
   }

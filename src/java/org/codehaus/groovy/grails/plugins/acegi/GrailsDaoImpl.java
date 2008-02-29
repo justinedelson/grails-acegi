@@ -18,6 +18,8 @@ package org.codehaus.groovy.grails.plugins.acegi;
 import groovy.lang.GroovyObject;
 
 import java.util.Iterator;
+import java.util.Set;
+import java.util.List;
 
 import org.acegisecurity.GrantedAuthority;
 import org.acegisecurity.GrantedAuthorityImpl;
@@ -52,6 +54,8 @@ public class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements 
 	private String relationalAuthorities;
 	/** authority field name */
 	private String authority;
+	/** for customise authorities */
+	private String authoritiesMethod;
 	
 	/**
 	 * Load login user by Username
@@ -76,25 +80,46 @@ public class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements 
 			String _userName=(String)InvokerHelper.invokeMethod(user, "get"+userName, null);
 			String _password=(String)InvokerHelper.invokeMethod(user, password, null);
 			Boolean _enabled=(Boolean)InvokerHelper.invokeMethod(user, enabled, null);
-			
-			//TODO if authority is single String field in LoginUser class
-			// if(relationalAuthorities==null){}
-			
-			//get authorities from LoginUser [LoginUser]--N:N--[Authority]
-			PersistentSet authorities = 
-				(PersistentSet)InvokerHelper.invokeMethod(user, relationalAuthorities, null);
-			if ( authorities==null || (authorities!=null && authorities.size() == 0) ) {
-				logger.error("User ["+_userName+"] has no GrantedAuthority");
-				throw new UsernameNotFoundException("User has no GrantedAuthority");
-			}
-			GrantedAuthority[] _authorities=new GrantedAuthorityImpl[authorities.size()];
-			int num=0;
-			for (Iterator iter = authorities.iterator(); iter.hasNext();) {
-				GroovyObject item = (GroovyObject) iter.next();
-				String _authority = (String)InvokerHelper.invokeMethod(item, authority, null);
-				_authorities[num]=new GrantedAuthorityImpl(_authority);
-				num++;
-			}
+
+      GrantedAuthority[] _authorities=null;
+      if(relationalAuthorities!=null){
+        //get authorities from LoginUser [LoginUser]--N:N--[Authority]
+        Set authorities = 
+          (Set)InvokerHelper.invokeMethod(user, relationalAuthorities, null);
+        if ( authorities==null || (authorities!=null && authorities.size() == 0) ) {
+          logger.error("User ["+_userName+"] has no GrantedAuthority");
+          throw new UsernameNotFoundException("User has no GrantedAuthority");
+        }
+        _authorities=new GrantedAuthorityImpl[authorities.size()];
+        int num=0;
+        for (Iterator iter = authorities.iterator(); iter.hasNext();) {
+          GroovyObject item = (GroovyObject) iter.next();
+          String _authority = (String)InvokerHelper.invokeMethod(item, authority, null);
+          _authorities[num]=new GrantedAuthorityImpl(_authority);
+          num++;
+        }
+      }else if(relationalAuthorities==null && authoritiesMethod!=null){
+        List authorities = (List)InvokerHelper.invokeMethod(user, authoritiesMethod, null);
+        if ( authorities==null || (authorities!=null && authorities.size() == 0) ) {
+          logger.error("User ["+_userName+"] has no GrantedAuthority");
+          throw new UsernameNotFoundException("User has no GrantedAuthority");
+        }
+        _authorities=new GrantedAuthorityImpl[authorities.size()];
+        int num=0;
+        for (Iterator iter = authorities.iterator(); iter.hasNext();) {
+          String _authority = (String) iter.next();
+          _authorities[num]=new GrantedAuthorityImpl(_authority);
+          num++;
+        }
+      }else{
+        logger.error("User ["+_userName+"] has no GrantedAuthority");
+        throw new UsernameNotFoundException("User has no GrantedAuthority");
+      }
+
+      if ( _authorities==null ) {
+        logger.error("User ["+_userName+"] has no GrantedAuthority");
+        throw new UsernameNotFoundException("User has no GrantedAuthority");
+      }
 			
 			//set properties to GrailsUser extends org.acegisecurity.userdetails.User
 			grailsUser = new GrailsUser(_userName, _password, _enabled
@@ -162,5 +187,14 @@ public class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements 
 	public void setRelationalAuthorities(String relationalAuthorities) {
 		this.relationalAuthorities = relationalAuthorities;
 	}
+
+	public String getAuthoritiesMethod() {
+		return authoritiesMethod;
+	}
+
+	public void setAuthoritiesMethod(String authoritiesMethod) {
+		this.authoritiesMethod = authoritiesMethod;
+	}
+
 
 }

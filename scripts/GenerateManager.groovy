@@ -23,19 +23,22 @@
 import org.codehaus.groovy.grails.commons.GrailsClassUtils as GCU
 
 grailsHome = Ant.project.properties."environment.GRAILS_HOME"
-pluginVersion="0.2"
+
 
 includeTargets << new File ( "${grailsHome}/scripts/Init.groovy" )  
-includeTargets << new File ( "${basedir}/plugins/acegi-${pluginVersion}/scripts/AcegiInit.groovy" )  
 
-pluginTemplatePath="plugins/acegi-${pluginVersion}/src/templates/manager"
+personDomainClassName="Person"
+authorityDomainClassName="Authority"
+requestmapDomainClassName="Requestmap"
+
+pluginTemplatePath="${acegiPluginDir}/src/templates/manager"
 
 overwrite=false
 
 target('default': "generate view and controller for acegi user manage") {
 	ClassLoader parent = getClass().getClassLoader()
 	GroovyClassLoader loader = new GroovyClassLoader(parent)
-	Class clazz = loader.parseClass(new File("${basedir}/${confPath}/AcegiConfig.groovy"))
+	Class clazz = loader.parseClass(new File("${basedir}/grails-app/conf/AcegiConfig.groovy"))
 	def acegiConfig = new ConfigSlurper().parse(clazz)
 	println "Login user domain class: ${acegiConfig.acegi.loginUserDomainClass}"
 	println "Authority domain class: ${acegiConfig.acegi.authorityDomainClass}"
@@ -51,7 +54,7 @@ target('default': "generate view and controller for acegi user manage") {
 generateManager = {name->
 	def uname = name[0].toUpperCase() + name.substring(1)
 	
-	def outFile = new File("${basedir}/${controllerPath}/${uname}Controller.groovy")
+	def outFile = new File("${basedir}/grails-app/controllers/${uname}Controller.groovy")
 
 	if(outFile.exists()){
 		Ant.input(addProperty:"overwrite",message:"Do you want to overwrite? y/n")
@@ -70,31 +73,31 @@ generateManager = {name->
 		requestmapDomain:"$requestmapDomainClassName"]
 
 	//generate UserController.groovy
-	println "generating file ${basedir}/${controllerPath}/${uname}Controller.groovy"
+	println "generating file ${basedir}/grails-app/controllers/${uname}Controller.groovy"
 	generateFile(
-		"${basedir}/${pluginTemplatePath}/controllers/_${uname}Controller.groovy",
+		"${pluginTemplatePath}/controllers/_${uname}Controller.groovy",
 		bind,
-		"${basedir}/${controllerPath}/${uname}Controller.groovy")
+		"${basedir}/grails-app/controllers/${uname}Controller.groovy")
 
 	//generate views for UserController
-	println "generating view files - ${basedir}/${viewPath}/${name}/* "
-	Ant.mkdir(dir:"${basedir}/${viewPath}/${name}")
+	println "generating view files - ${basedir}/grails-app/views/${name}/* "
+	Ant.mkdir(dir:"${basedir}/grails-app/views/${name}")
 	generateFile(
-		"${basedir}/${pluginTemplatePath}/views/${name}/list.gsp",
+		"${pluginTemplatePath}/views/${name}/list.gsp",
 		bind,
-		"${basedir}/${viewPath}/${name}/list.gsp")
+		"${basedir}/grails-app/views/${name}/list.gsp")
 	generateFile(
-		"${basedir}/${pluginTemplatePath}/views/${name}/edit.gsp",
+		"${pluginTemplatePath}/views/${name}/edit.gsp",
 		bind,
-		"${basedir}/${viewPath}/${name}/edit.gsp")
+		"${basedir}/grails-app/views/${name}/edit.gsp")
 	generateFile(
-		"${basedir}/${pluginTemplatePath}/views/${name}/create.gsp",
+		"${pluginTemplatePath}/views/${name}/create.gsp",
 		bind,
-		"${basedir}/${viewPath}/${name}/create.gsp")
+		"${basedir}/grails-app/views/${name}/create.gsp")
 	generateFile(
-		"${basedir}/${pluginTemplatePath}/views/${name}/show.gsp",
+		"${pluginTemplatePath}/views/${name}/show.gsp",
 		bind,
-		"${basedir}/${viewPath}/${name}/show.gsp")
+		"${basedir}/grails-app/views/${name}/show.gsp")
 }
 
 generateFile={templateFile,binding,outputPath->

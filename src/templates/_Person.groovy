@@ -20,7 +20,7 @@ class ${personDomain} {
 	boolean email_show = false
 
 	/** description */
-	String description
+	String description=""
 
 	/** plain password to create a MD5 password */
 	String pass="[secret]"

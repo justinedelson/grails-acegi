@@ -8,6 +8,8 @@ acegi {
 	password="passwd"
 	enabled="enabled"
 	relationalAuthorities = "authorities"
+	//you can specify method for to retrieve the roles. (you need to set relationalAuthorities=null)
+  getAuthoritiesMethod=null//"getMoreAuthorities"
 
 	/**
 	 * Authority domain class authority field name 
@@ -80,6 +82,10 @@ acegi {
 	/**=IS_AUTHENTICATED_ANONYMOUSLY
 	"""
 
+  /** use basicProcessingFilter */
+  basicProcessingFilter=false
+  /** use switchUserProcessingFilter */
+  switchUserProcessingFilter=false
 
   /**use email notification while registration*/
   useMail = false

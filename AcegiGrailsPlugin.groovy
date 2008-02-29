@@ -16,6 +16,9 @@ import org.springframework.core.annotation.AnnotationUtils
 import org.acegisecurity.annotation.Secured
 import org.acegisecurity.annotation.SecurityAnnotationAttributes
 import org.acegisecurity.intercept.method.MethodDefinitionAttributes
+import org.codehaus.groovy.grails.plugins.acegi.gv.*
+import org.codehaus.groovy.grails.commons.*
+
 //import org.codehaus.groovy.grails.plugins.acegi.QuietMethodSecurityInterceptor
 
 /**
@@ -32,48 +35,56 @@ class AcegiGrailsPlugin {
 	def description = '''Plugin to use grails domain class from the Spring Security(Acegi Security) and secure your applications with Spring Security(Acegi Security) filters.
 	'''
 	def documentation ="http://docs.codehaus.org/display/GRAILS/AcegiSecurity+Plugin"
+  def observe = ['controllers']
+	def watchedResources = ""
 
-	def watchedResources = "**/grails-app/conf/AcegiConfig.groovy"
+  def getAcegiConfig(){
+    def conf
+    try {
+       ClassLoader parent = getClass().getClassLoader()
+       GroovyClassLoader loader = new GroovyClassLoader(parent)
+       def ac = loader.loadClass("AcegiConfig")
+       def dac = loader.loadClass("DefaultAcegiConfig")
+       def _user_config = new ConfigSlurper().parse(ac)
+       def _default_config = new ConfigSlurper().parse(dac)
 
-	def doWithSpring = {
+       def config
+       if(_user_config){
+         config = _default_config.merge(_user_config)
+       }else{
+         config = _default_config
+       }
+       conf = config.acegi
+    }catch(Exception e) {
+      println '"AcegiConfig" not found'
+    }
+    return conf
+  }
 
-    ClassLoader parent = getClass().getClassLoader()
-    GroovyClassLoader loader = new GroovyClassLoader(parent)
-    def ac = loader.loadClass("AcegiConfig")
-    def dac = loader.loadClass("DefaultAcegiConfig")
-    def _user_config = new ConfigSlurper().parse(ac)
-    def _default_config = new ConfigSlurper().parse(dac)
-    
+  def doWithSpring = {
+    def conf = getAcegiConfig()
 
-		def config
-		if(_user_config){
-			log.info("using user AcegiConfig")
-			config = _default_config.merge(_user_config)
-		}else{
-			log.info("using DefaultAcegiConfig")
-			config = _default_config
-		}
-
-		def conf = config.acegi
-		//println conf.loadAcegi
-		if(conf && conf.loadAcegi){
-			log.info("loading acegi config ...")
+    if(conf && conf.loadAcegi){
+      log.info("loading acegi config ...")
       def useMail = conf.useMail
 
-			def makeItGetter = { field ->
-				"get" + field[0].toUpperCase() + field.substring(1)	
-			}
-			
-			/** filter list */
-			def filters = 
-				["httpSessionContextIntegrationFilter",
-					"logoutFilter",
-					"authenticationProcessingFilter",
-					"securityContextHolderAwareRequestFilter",
-					"rememberMeProcessingFilter",
-					"anonymousProcessingFilter",
-					"exceptionTranslationFilter",
-					"filterInvocationInterceptor"]
+      def makeItGetter = { field ->
+        if(!field){return null}
+        "get" + field[0].toUpperCase() + field.substring(1)	
+      }
+
+      /** filter list */
+      def filters = []
+        filters << "httpSessionContextIntegrationFilter"
+        filters << "logoutFilter"
+        filters << "authenticationProcessingFilter"
+        if(conf.basicProcessingFilter) filters << "basicProcessingFilter"
+        filters << "securityContextHolderAwareRequestFilter"
+        filters << "rememberMeProcessingFilter"
+        filters << "anonymousProcessingFilter"
+        filters << "exceptionTranslationFilter"
+        filters << "filterInvocationInterceptor"
+        if(conf.switchUserProcessingFilter) filters << "switchUserProcessingFilter"
 
 			/** filterChainProxy */
 			filterChainProxy(org.acegisecurity.util.FilterChainProxy){
@@ -83,12 +94,12 @@ class AcegiGrailsPlugin {
 					/**=${filters.join(',')}
 					"""
 			}
-			
+
 			/** httpSessionContextIntegrationFilter */
 			httpSessionContextIntegrationFilter(org.acegisecurity.context.HttpSessionContextIntegrationFilter){}
 
 			/** logoutFilter */
-			logoutFilter(org.codehaus.groovy.grails.plugins.acegi.GrailsLogoutFilter,"/",ref("rememberMeServices")){}
+			logoutFilter(GrailsLogoutFilter,"/",ref("rememberMeServices")){}
 
 			/** authenticationProcessingFilter */
 			authenticationProcessingFilter(org.acegisecurity.ui.webapp.AuthenticationProcessingFilter){
@@ -98,7 +109,18 @@ class AcegiGrailsPlugin {
 				filterProcessesUrl = conf.filterProcessesUrl //"/j_acegi_security_check"
 				rememberMeServices = ref("rememberMeServices")
 			}
-			
+      
+      //Basic Auth
+      if(conf.basicProcessingFilter){
+        basicProcessingFilter(org.acegisecurity.ui.basicauth.BasicProcessingFilter){
+          authenticationManager=ref("authenticationManager")
+          authenticationEntryPoint=ref("basicProcessingFilterEntryPoint")
+        }
+        basicProcessingFilterEntryPoint(org.acegisecurity.ui.basicauth.BasicProcessingFilterEntryPoint){
+          realmName="Grails Realm"
+        }
+      }
+
 			/** securityContextHolderAwareRequestFilter */
 			securityContextHolderAwareRequestFilter(org.acegisecurity.wrapper.SecurityContextHolderAwareRequestFilter){}
 
@@ -107,7 +129,7 @@ class AcegiGrailsPlugin {
 				key = conf.key // "foo"
 				userAttribute = conf.userAttribute //"anonymousUser,ROLE_ANONYMOUS"
 			}
-			
+      
 			/** rememberMeProcessingFilter */
 			rememberMeProcessingFilter(org.acegisecurity.ui.rememberme.RememberMeProcessingFilter){
 				authenticationManager=ref("authenticationManager")
@@ -151,7 +173,7 @@ class AcegiGrailsPlugin {
 					objectDefinitionSource=conf.requestMapString
 				}
 			}
-			
+
 			/** accessDecisionManager */
 			accessDecisionManager(org.acegisecurity.vote.AffirmativeBased){
 				allowIfAllAbstainDecisions="false"
@@ -162,15 +184,14 @@ class AcegiGrailsPlugin {
 			roleVoter(org.acegisecurity.vote.RoleVoter){}
 			authenticatedVoter(org.acegisecurity.vote.AuthenticatedVoter){}
 
-			if( conf.useRequestMapDomainClass ){
-				/** objectDefinitionSource */
-				objectDefinitionSource(org.codehaus.groovy.grails.plugins.acegi.GrailsFilterInvocationDefinition){
-					requestMapClass= conf.requestMapClass // "Requestmap"
-					requestMapPathFieldMethod= makeItGetter(conf.requestMapPathField) // "getUrl"
-					requestMapConfigAttributeFieldMethod= makeItGetter(conf.requestMapConfigAttributeField) // "getConfig_attribute"
-					requestMapPathFieldName= conf.requestMapPathField // "url"
-				}
-			}
+      if( conf.useRequestMapDomainClass ){
+        objectDefinitionSource(GrailsFilterInvocationDefinition){
+         requestMapClass=conf.requestMapClass
+         requestMapPathFieldName=conf.requestMapPathField
+         requestMapConfigAttributeField=conf.requestMapConfigAttributeField
+         sessionFactory=ref("sessionFactory")
+        }
+      }
 
 			/** ProviderManager */
 			authenticationManager(org.acegisecurity.providers.ProviderManager){
@@ -212,17 +233,17 @@ class AcegiGrailsPlugin {
 				if(conf.encodeHashAsBase64) encodeHashAsBase64=true
 			}
 
-			/** DetailsService */
-			userDetailsService(org.codehaus.groovy.grails.plugins.acegi.GrailsDaoImpl){
-					
-				userName= conf.userName[0].toUpperCase() + conf.userName.substring(1)	// "findByUsername"
-				password= makeItGetter(conf.password) // "getPasswd"
-				enabled= makeItGetter(conf.enabled) // "getEnabled"
-
-				authority= makeItGetter(conf.authorityField) // "getAuthority"
-				loginUserDomainClass=conf.loginUserDomainClass //"Person"
-				relationalAuthorities=makeItGetter(conf.relationalAuthorities)
-			}
+      /** DetailsService */
+      userDetailsService(GrailsDaoImpl){
+        userName= conf.userName
+        password= conf.password
+        enabled= conf.enabled
+        authority= conf.authorityField
+        loginUserDomainClass=conf.loginUserDomainClass
+        relationalAuthorities=conf.relationalAuthorities
+        authoritiesMethod=conf.getAuthoritiesMethod
+        sessionFactory=ref("sessionFactory")
+      }
 
 			/** LoggerListener ( log4j.logger.org.acegisecurity=info,stdout ) */
 			if(conf.useLogger) loggerListener(org.acegisecurity.event.authentication.LoggerListener){}
@@ -269,6 +290,7 @@ class AcegiGrailsPlugin {
 					}
 				}
 			}
+
       //load simple java mail settings
       if (useMail) {
         mailSender(org.springframework.mail.javamail.JavaMailSenderImpl) {
@@ -281,9 +303,20 @@ class AcegiGrailsPlugin {
           from = conf.mailFrom
         }
       }
-		}else{
-			log.info("[loadAcegi=false] Acegi Security will not loaded")
-		}
+      
+      //Switch User 
+      if(conf.switchUserProcessingFilter){
+        switchUserProcessingFilter(org.acegisecurity.ui.switchuser.SwitchUserProcessingFilter){
+          userDetailsService=ref("userDetailsService")
+          switchUserUrl="/j_acegi_switch_user"
+          exitUserUrl="/j_acegi_exit_user"
+          targetUrl="/"
+        }
+      }
+
+    }else{
+      log.info("[loadAcegi=false] Acegi Security will not loaded")
+    }
 
 	}
   def doWithApplicationContext = { applicationContext ->
@@ -341,9 +374,44 @@ class AcegiGrailsPlugin {
   }
 
   def doWithDynamicMethods = { ctx ->
-  }	
+    for (con in application.controllerClasses) {
+      MetaClass mc = con.metaClass
+      registerControllerProps(mc)
+    }
+  }
+  
+  def registerControllerProps(MetaClass mc){
+    mc.getAuthUserDomain<<{->
+      def principal = org.acegisecurity.context.SecurityContextHolder.context?.authentication?.principal
+      if( principal!=null && principal!="anonymousUser"){
+        return principal?.domainClass
+      }else{
+        return null
+      }
+    }
+    mc.getPrincipalInfo<<{->
+      return org.acegisecurity.context.SecurityContextHolder.context?.authentication?.principal
+    }
+    mc.isUserLogon<<{->
+      def principal = org.acegisecurity.context.SecurityContextHolder.context?.authentication?.principal
+      if( principal!=null && principal!="anonymousUser"){
+        return true
+      }else{
+        return false
+      }
+    }
+  }
+  
   def onChange = { event ->
-  }                                                                                  
+    if (application.isArtefactOfType(ControllerArtefactHandler.TYPE, event.source)) {
+      boolean isNew = application.getControllerClass(event.source?.name) ? false : true
+      def controllerClass = application.addArtefact(ControllerArtefactHandler.TYPE, event.source)
+      //println controllerClass
+      MetaClass mc = controllerClass.metaClass
+      registerControllerProps(mc)
+      
+    }
+  }
   def onApplicationChange = { event ->
   }
 }

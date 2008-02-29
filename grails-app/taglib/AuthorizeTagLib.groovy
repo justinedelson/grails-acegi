@@ -13,7 +13,13 @@
  * limitations under the License.
  */
 
+import org.acegisecurity.GrantedAuthorityImpl
 import org.acegisecurity.context.SecurityContextHolder as SCH
+import org.springframework.util.StringUtils as STU
+import org.springframework.web.servlet.support.RequestContextUtils as RCU
+import org.apache.commons.codec.digest.DigestUtils as DU
+
+import org.codehaus.groovy.grails.plugins.acegi.AuthorizeTools
 
 /**
  * Authorize Taglibs
@@ -21,68 +27,79 @@ import org.acegisecurity.context.SecurityContextHolder as SCH
  * org.acegisecurity.taglibs.authz.AuthorizeTag
  * 
  * @author T.Yamamoto
- *
  */
-class AuthorizeTagLib  {
-	AuthenticateService authenticateService
-	/**
-	 * 
-	 */
-	def ifAllGranted = {attrs, body ->
-		def role = attrs['role']
-		if(!authenticateService.ifAllGranted(role)){
-			out << "";
-		}else{
-			out << body()
-		}
-	}
+class AuthorizeTagLib extends AuthorizeTools {
+  
+  /**
+   * <g:ifAllGranted role="ROLE_USER,ROLE_ADMIN,ROLE_SUPERVISOR">
+   *  All the listed roles must be granted for the tag to output its body.
+   * </g:ifAllGranted>
+   */
+  def ifAllGranted = {attrs, body ->
+    def role = attrs['role']
+    def granted = getPrincipalAuthorities()
+    
+    if(!granted.containsAll(parseAuthoritiesString(role))){
+      out << "";
+    }else{
+      out << body()
+    }
+  }
 
-	/**
-	 * 
-	 */
-	def ifNotGranted = {attrs, body ->
-		def role = attrs['role']
-		if(!authenticateService.ifNotGranted(role)){
-			out << "";
-		}else{
-			out << body()
-		}
-	}
+  /**
+   * <g:ifNotGranted role="ROLE_USER,ROLE_ADMIN,ROLE_SUPERVISOR">
+   *  None of the listed roles must be granted for the tag to output its body.
+   * </g:ifNotGranted>
+   */
+  def ifNotGranted = {attrs, body ->
+    def role = attrs['role']
+    def granted = getPrincipalAuthorities()
+    Set grantedCopy = retainAll(granted, parseAuthoritiesString(role))
+    if(!grantedCopy.isEmpty()){
+      out << "";
+    }else{
+      out << body()
+    }
+  }
 
-	/**
-	 * 
-	 */
-	def ifAnyGranted = {attrs, body ->
-		def role = attrs['role']
-		if(!authenticateService.ifAnyGranted(role)){
-			out << "";
-		}else{
-			out << body()
-		}
-	}
+  /**
+   * <g:ifAnyGranted role="ROLE_USER,ROLE_ADMIN,ROLE_SUPERVISOR">
+   *  Any of the listed roles must be granted for the tag to output its body.
+   * </g:ifAnyGranted>
+   */
+  def ifAnyGranted = {attrs, body ->
+    def role = attrs['role']
+    def granted = getPrincipalAuthorities()
+    Set grantedCopy = retainAll(granted, parseAuthoritiesString(role));
+    if(grantedCopy.isEmpty()){
+      out << "";
+    }else{
+      out << body()
+    }
+  }
 
-	/**
-	 * 
-	 */
-	def loggedInUserInfo = {attrs,body->
-		def authPrincipal = SCH?.context?.authentication?.principal
-		if( authPrincipal!=null && authPrincipal!="anonymousUser"){
-			out << authPrincipal?.domainClass?."${attrs.field}"
-		}else{
-			out << body()
-		}
-	}
-	def isLoggedIn = {attrs, body ->
-		def authPrincipal = SCH?.context?.authentication?.principal
-		if( authPrincipal!=null && authPrincipal!="anonymousUser"){
-			out << body()
-		}
-	}
-	def isNotLoggedIn = {attrs, body ->
-		def authPrincipal = SCH?.context?.authentication?.principal
-		if( authPrincipal==null || authPrincipal=="anonymousUser"){
-			out << body()
-		}
-	}
-
+  /**
+   * <g:loggedInUserInfo field="userRealName">Guest User</g:loggedInUserInfo>
+   */
+  def loggedInUserInfo = {attrs,body->
+    def authPrincipal = SCH?.context?.authentication?.principal
+    if( authPrincipal!=null && authPrincipal!="anonymousUser"){
+      out << authPrincipal?.domainClass?."${attrs.field}"
+    }else{
+      out << body()
+    }
+  }
+  def isLoggedIn = {attrs, body ->
+    def authPrincipal = SCH?.context?.authentication?.principal
+    if( authPrincipal!=null && authPrincipal!="anonymousUser"){
+      out << body()
+    }
+  }
+  def isNotLoggedIn = {attrs, body ->
+    def authPrincipal = SCH?.context?.authentication?.principal
+    if( authPrincipal==null || authPrincipal=="anonymousUser"){
+      out << body()
+    }
+  }
+  
 }
