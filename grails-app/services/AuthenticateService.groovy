@@ -30,7 +30,7 @@ import org.codehaus.groovy.grails.plugins.acegi.AuthorizeTools
  */
 class AuthenticateService extends AuthorizeTools {
   
-  boolean transactional = false
+  boolean transactional = true
   def acegiConfig=null
   
   /**

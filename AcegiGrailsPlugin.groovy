@@ -36,7 +36,9 @@ class AcegiGrailsPlugin {
 	'''
 	def documentation ="http://docs.codehaus.org/display/GRAILS/AcegiSecurity+Plugin"
   def observe = ['controllers']
-	def watchedResources = ""
+  def loadAfter=['controllers']
+  def watchedResources = ["file:./grails-app/controllers/**/*Controller.groovy",
+          "file:./plugins/*/grails-app/controllers/**/*Controller.groovy"]
 
   def getAcegiConfig(){
     def conf
@@ -404,7 +406,7 @@ class AcegiGrailsPlugin {
   
   def onChange = { event ->
     if (application.isArtefactOfType(ControllerArtefactHandler.TYPE, event.source)) {
-      boolean isNew = application.getControllerClass(event.source?.name) ? false : true
+      //boolean isNew = application.getControllerClass(event.source?.name) ? false : true
       def controllerClass = application.addArtefact(ControllerArtefactHandler.TYPE, event.source)
       //println controllerClass
       MetaClass mc = controllerClass.metaClass
