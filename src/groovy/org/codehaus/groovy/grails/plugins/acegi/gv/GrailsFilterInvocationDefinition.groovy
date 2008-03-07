@@ -15,6 +15,7 @@
  */
 package org.codehaus.groovy.grails.plugins.acegi.gv;
 
+import org.acegisecurity.ConfigAttributeDefinition
 import org.acegisecurity.SecurityConfig
 import org.acegisecurity.intercept.web.FilterInvocation
 import org.acegisecurity.intercept.web.FilterInvocationDefinitionSource
@@ -22,7 +23,6 @@ import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
 import org.springframework.util.AntPathMatcher
 import org.springframework.util.StringUtils
-import org.acegisecurity.ConfigAttributeDefinition
 
 /**
  * GrailsFilterInvocationDefinition
@@ -30,7 +30,7 @@ import org.acegisecurity.ConfigAttributeDefinition
  * @author Tsuyoshi Yamamoto
  * @since 2008/02/08 18:02:09
  */
-public class GrailsFilterInvocationDefinition implements FilterInvocationDefinitionSource {
+public class GrailsFilterInvocationDefinition extends SessionSupport implements FilterInvocationDefinitionSource {
 
   private static final Log logger = LogFactory.getLog(GrailsFilterInvocationDefinition.class)
   def sessionFactory
@@ -47,6 +47,7 @@ public class GrailsFilterInvocationDefinition implements FilterInvocationDefinit
   //}
   
   public ConfigAttributeDefinition lookupAttributes(String url){
+    setUpSession()
     //def s =System.nanoTime()
     url = url.toLowerCase()
     int pos = url.indexOf("?");
@@ -67,10 +68,8 @@ public class GrailsFilterInvocationDefinition implements FilterInvocationDefinit
         path+="/"
       }
       hql+="order by length($requestMapPathFieldName) desc"
-      //println hql
-      
-      def hsession = sessionFactory.openSession()//.getCurrentSession()
-      def query = hsession.createQuery(hql)
+      //def hsession = sessionFactory.openSession()//.getCurrentSession()
+      def query = session.createQuery(hql)
       def reqestMapList = query/*.setCacheable(true)*/.list()
       
       if(reqestMapList.size()>0){
@@ -83,14 +82,15 @@ public class GrailsFilterInvocationDefinition implements FilterInvocationDefinit
               String configAttribute = configAttrs[i]
               cad.addConfigAttribute(new SecurityConfig(configAttribute))
             }
-            //cTime(s,"lookupAttributes ")
+            //cTime(s,"lookupAttributes match ")
+            releaseSession()
             return cad
           }
         }
       }
       //cTime(s,"lookupAttributes ")
     }
-    
+    releaseSession()
     return null
   }
 
@@ -112,4 +112,5 @@ public class GrailsFilterInvocationDefinition implements FilterInvocationDefinit
       return false
     }
   }
+  
 }

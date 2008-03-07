@@ -15,13 +15,13 @@
  */
 package org.codehaus.groovy.grails.plugins.acegi.gv;
 
+import org.apache.commons.logging.Log
+import org.apache.commons.logging.LogFactory
 import org.acegisecurity.GrantedAuthority
 import org.acegisecurity.GrantedAuthorityImpl
 import org.acegisecurity.userdetails.UserDetails
 import org.acegisecurity.userdetails.UserDetailsService
 import org.acegisecurity.userdetails.UsernameNotFoundException
-import org.apache.commons.logging.Log
-import org.apache.commons.logging.LogFactory
 import org.springframework.dao.DataAccessException
 
 /**
@@ -30,7 +30,7 @@ import org.springframework.dao.DataAccessException
  * @author Tsuyoshi Yamamoto
  * @since 2008/02/08 18:04:51
  */
-public class GrailsDaoImpl implements UserDetailsService {
+public class GrailsDaoImpl extends SessionSupport implements UserDetailsService {
 
   private static final Log logger = LogFactory.getLog(GrailsDaoImpl.class)
   
@@ -55,11 +55,13 @@ public class GrailsDaoImpl implements UserDetailsService {
    * Load login user by Username
    */
   public UserDetails loadUserByUsername(String arg0) throws UsernameNotFoundException, DataAccessException {
+    setUpSession()
     def grailsUser
     def hsession = sessionFactory.openSession()//.getCurrentSession()
     def query = hsession.createQuery("from $loginUserDomainClass where $userName=:userName")
     query.setProperties([userName:arg0])
     def list = query/*.setCacheable(true)*/.list()
+    releaseSession()
     
     if(list.size()>0){
       def user = list[0]
@@ -102,4 +104,5 @@ public class GrailsDaoImpl implements UserDetailsService {
     
     return grailsUser
   }
+  
 }
