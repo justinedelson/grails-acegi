@@ -57,11 +57,11 @@ public class GrailsDaoImpl extends SessionSupport implements UserDetailsService 
   public UserDetails loadUserByUsername(String arg0) throws UsernameNotFoundException, DataAccessException {
     setUpSession()
     def grailsUser
-    def hsession = sessionFactory.openSession()//.getCurrentSession()
-    def query = hsession.createQuery("from $loginUserDomainClass where $userName=:userName")
+    //def hsession = sessionFactory.openSession()//.getCurrentSession()
+    def query = session.createQuery("from $loginUserDomainClass where $userName=:userName")
     query.setProperties([userName:arg0])
     def list = query/*.setCacheable(true)*/.list()
-    releaseSession()
+    
     
     if(list.size()>0){
       def user = list[0]
@@ -102,6 +102,7 @@ public class GrailsDaoImpl extends SessionSupport implements UserDetailsService 
       throw new UsernameNotFoundException("User not found.",arg0)
     }
     
+    releaseSession()
     return grailsUser
   }
   
