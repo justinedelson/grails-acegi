@@ -84,6 +84,18 @@ public class GrailsAccessDeniedHandlerImpl implements AccessDeniedHandler {
 		}
 	}
 
+  public String getAjaxErrorPage() {
+    return ajaxErrorPage;
+  }
+
+  public String getErrorPage() {
+    return errorPage;
+  }
+
+  public String getAjaxHeader() {
+    return ajaxHeader;
+  }
+
 	public void setErrorPage(String errorPage) {
 		if ((errorPage != null) && !errorPage.startsWith("/")) {
 			throw new IllegalArgumentException("ErrorPage must begin with '/'");

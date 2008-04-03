@@ -86,6 +86,9 @@ acegi {
   basicProcessingFilter=false
   /** use switchUserProcessingFilter */
   switchUserProcessingFilter=false
+  swswitchUserUrl="/j_acegi_switch_user"
+  swexitUserUrl="/j_acegi_exit_user"
+  swtargetUrl="/"
 
   /**use email notification while registration*/
   useMail = false

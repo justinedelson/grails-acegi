@@ -1,3 +1,7 @@
+
+import org.acegisecurity.providers.UsernamePasswordAuthenticationToken as AuthToken
+import org.acegisecurity.context.SecurityContextHolder as SCH
+
 /**
  * RegisterController.groovy 
  * Actions over ${personDomain} object.
@@ -7,6 +11,7 @@
 class RegisterController {
   EmailerService emailerService
   AuthenticateService authenticateService
+  def daoAuthenticationProvider
   
   /**
    * User Registration Top page
@@ -18,10 +23,14 @@ class RegisterController {
       redirect(action:"show")
       return
     }
-
-    def person = new ${personDomain}()
-    person.properties = params
-    return ['person': person]
+    
+    if(session.id){
+      def person = new ${personDomain}()
+      person.properties = params
+      return ['person': person]
+    }else{
+      redirect(uri:"/")
+    }
   }
 
   def allowedMethods = [save: 'POST', update: 'POST']
@@ -157,8 +166,11 @@ class RegisterController {
           }
 
           person.save(flush:true)
-          def parMap =['j_username':person.username,'j_password':params.passwd]
-          redirect(controller:'login',action:'../j_acegi_security_check',params:parMap)
+
+          def auth = new AuthToken(person.username, params.passwd)
+          def authtoken = daoAuthenticationProvider.authenticate(auth)
+          SCH.context.authentication = authtoken
+          redirect(uri:"/")
         }else {
           person.passwd = ""
           render(view: "index", model: [person: person])

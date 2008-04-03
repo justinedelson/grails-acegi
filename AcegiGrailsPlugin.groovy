@@ -103,14 +103,14 @@ class AcegiGrailsPlugin {
 			/** logoutFilter */
 			logoutFilter(GrailsLogoutFilter,"/",ref("rememberMeServices")){}
 
-			/** authenticationProcessingFilter */
-			authenticationProcessingFilter(org.acegisecurity.ui.webapp.AuthenticationProcessingFilter){
-				authenticationManager = ref("authenticationManager")
-				authenticationFailureUrl = conf.authenticationFailureUrl //"/login/authfail?login_error=1"
-				defaultTargetUrl = conf.defaultTargetUrl // "/"
-				filterProcessesUrl = conf.filterProcessesUrl //"/j_acegi_security_check"
-				rememberMeServices = ref("rememberMeServices")
-			}
+      /** authenticationProcessingFilter */
+      authenticationProcessingFilter(GrailsAuthenticationProcessingFilter){
+        authenticationManager = ref("authenticationManager")
+        authenticationFailureUrl = conf.authenticationFailureUrl //"/login/authfail?login_error=1"
+        defaultTargetUrl = conf.defaultTargetUrl // "/"
+        filterProcessesUrl = conf.filterProcessesUrl //"/j_acegi_security_check"
+        rememberMeServices = ref("rememberMeServices")
+      }
       
       //Basic Auth
       if(conf.basicProcessingFilter){
@@ -310,9 +310,9 @@ class AcegiGrailsPlugin {
       if(conf.switchUserProcessingFilter){
         switchUserProcessingFilter(org.acegisecurity.ui.switchuser.SwitchUserProcessingFilter){
           userDetailsService=ref("userDetailsService")
-          switchUserUrl="/j_acegi_switch_user"
-          exitUserUrl="/j_acegi_exit_user"
-          targetUrl="/"
+          switchUserUrl=conf.swswitchUserUrl
+          exitUserUrl=conf.swexitUserUrl
+          targetUrl=conf.swtargetUrl
         }
       }
 
@@ -406,12 +406,9 @@ class AcegiGrailsPlugin {
   
   def onChange = { event ->
     if (application.isArtefactOfType(ControllerArtefactHandler.TYPE, event.source)) {
-      //boolean isNew = application.getControllerClass(event.source?.name) ? false : true
       def controllerClass = application.addArtefact(ControllerArtefactHandler.TYPE, event.source)
-      //println controllerClass
       MetaClass mc = controllerClass.metaClass
       registerControllerProps(mc)
-      
     }
   }
   def onApplicationChange = { event ->

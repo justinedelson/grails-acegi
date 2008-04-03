@@ -47,7 +47,6 @@ public class GrailsFilterInvocationDefinition extends SessionSupport implements 
   //}
   
   public ConfigAttributeDefinition lookupAttributes(String url){
-    setUpSession()
     //def s =System.nanoTime()
     url = url.toLowerCase()
     int pos = url.indexOf("?");
@@ -59,6 +58,7 @@ public class GrailsFilterInvocationDefinition extends SessionSupport implements 
     url=url.replaceAll("//","/")
     
     if (!url.contains(".") || url.indexOf(".gsp")>-1 || url.indexOf(".jsp")>-1) {
+      setUpSession()
       def stn = new StringTokenizer(url,"/")
       def hql="from $requestMapClass where $requestMapPathFieldName = '/' or $requestMapPathFieldName = '/**' "
       def path="/"
@@ -68,7 +68,7 @@ public class GrailsFilterInvocationDefinition extends SessionSupport implements 
         path+="/"
       }
       hql+="order by length($requestMapPathFieldName) desc"
-      //def hsession = sessionFactory.openSession()//.getCurrentSession()
+
       def query = session.createQuery(hql)
       def reqestMapList = query/*.setCacheable(true)*/.list()
       
@@ -89,8 +89,8 @@ public class GrailsFilterInvocationDefinition extends SessionSupport implements 
         }
       }
       //cTime(s,"lookupAttributes ")
+      releaseSession()
     }
-    releaseSession()
     return null
   }
 
