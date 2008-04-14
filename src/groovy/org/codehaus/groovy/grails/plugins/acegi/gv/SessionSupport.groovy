@@ -36,21 +36,16 @@ public abstract class SessionSupport {
   protected Map setUpSession() {
     def session
     boolean containerManagedSession
-    try {
-      if (TransactionSynchronizationManager.hasResource(sessionFactory)) {
-        if (logger.isDebugEnabled()) logger.debug("Session already has transaction attached")
-        containerManagedSession = true
-        session = ((SessionHolder) TransactionSynchronizationManager.getResource(sessionFactory)).session
-      } else {
-        if (logger.isDebugEnabled()) logger.debug("Session does not have transaction attached... Creating new one")
-        containerManagedSession = false;
-        session = SessionFactoryUtils.getSession(sessionFactory, true);
-        SessionHolder sessionHolder = new SessionHolder(session);
-        TransactionSynchronizationManager.bindResource(sessionFactory, sessionHolder);
-      }
-    } catch (Exception e) {
-      logger.error(e.getMessage())
-      e.printStackTrace()
+    if (TransactionSynchronizationManager.hasResource(sessionFactory)) {
+      if (logger.isDebugEnabled()) logger.debug("Session already has transaction attached")
+      containerManagedSession = true
+      session = ((SessionHolder) TransactionSynchronizationManager.getResource(sessionFactory)).session
+    } else {
+      if (logger.isDebugEnabled()) logger.debug("Session does not have transaction attached... Creating new one")
+      containerManagedSession = false;
+      session = SessionFactoryUtils.getSession(sessionFactory, true);
+      SessionHolder sessionHolder = new SessionHolder(session);
+      TransactionSynchronizationManager.bindResource(sessionFactory, sessionHolder);
     }
     [session: session, containerManagedSession: containerManagedSession]
   }
