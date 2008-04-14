@@ -28,12 +28,12 @@ import org.springframework.util.StringUtils
  * GrailsFilterInvocationDefinition
  * 
  * @author Tsuyoshi Yamamoto
+ * @author Burt Beckwith
  * @since 2008/02/08 18:02:09
  */
 public class GrailsFilterInvocationDefinition extends SessionSupport implements FilterInvocationDefinitionSource {
 
   private static final Log logger = LogFactory.getLog(GrailsFilterInvocationDefinition.class)
-  def sessionFactory
   def requestMapClass//="Requestmap"
   def requestMapPathFieldName//="url"
   def requestMapConfigAttributeField//="configAttribute"
@@ -42,8 +42,8 @@ public class GrailsFilterInvocationDefinition extends SessionSupport implements 
   
   
   //def cTime(stime,name){
-  //  long etime = System.nanoTime() - stime
-  //  println "[${name}] " +(etime/1000000) +" ms "
+  // long etime = System.nanoTime() - stime
+  // println "[${name}] " +(etime/1000000) +" ms "
   //}
   
   public ConfigAttributeDefinition lookupAttributes(String url){
@@ -58,38 +58,41 @@ public class GrailsFilterInvocationDefinition extends SessionSupport implements 
     url=url.replaceAll("//","/")
     
     if (!url.contains(".") || url.indexOf(".gsp")>-1 || url.indexOf(".jsp")>-1) {
-      setUpSession()
-      def stn = new StringTokenizer(url,"/")
-      def hql="from $requestMapClass where $requestMapPathFieldName = '/' or $requestMapPathFieldName = '/**' "
-      def path="/"
-      while (stn.hasMoreTokens()) {
-        path+=stn.nextToken()
-        hql+="or lower($requestMapPathFieldName) like '$path%' "
-        path+="/"
-      }
-      hql+="order by length($requestMapPathFieldName) desc"
+      def container = setUpSession()
+      try {
+         def stn = new StringTokenizer(url,"/")
+         def hql="from $requestMapClass where $requestMapPathFieldName = '/' or $requestMapPathFieldName = '/**' "
+         def path="/"
+         while (stn.hasMoreTokens()) {
+           path+=stn.nextToken()
+           hql+="or lower($requestMapPathFieldName) like '$path%' "
+           path+="/"
+         }
+         hql+="order by length($requestMapPathFieldName) desc"
 
-      def query = session.createQuery(hql)
-      def reqestMapList = query/*.setCacheable(true)*/.list()
-      
-      if(reqestMapList.size()>0){
-        for(reqmap in reqestMapList) {
-          boolean matched = pathMatcher.match(reqmap."$requestMapPathFieldName", url)
-          if (matched) {
-            ConfigAttributeDefinition cad = new ConfigAttributeDefinition()
-            def configAttrs = StringUtils.commaDelimitedListToStringArray(reqmap."$requestMapConfigAttributeField")
-            for (int i = 0 ;i < configAttrs.length; i++) {
-              String configAttribute = configAttrs[i]
-              cad.addConfigAttribute(new SecurityConfig(configAttribute))
-            }
-            //cTime(s,"lookupAttributes match ")
-            releaseSession()
-            return cad
-          }
-        }
+         def query = container.session.createQuery(hql)
+         def reqestMapList = query/*.setCacheable(true)*/.list()
+
+         if(reqestMapList.size()>0){
+           for(reqmap in reqestMapList) {
+             boolean matched = pathMatcher.match(reqmap."$requestMapPathFieldName", url)
+             if (matched) {
+               ConfigAttributeDefinition cad = new ConfigAttributeDefinition()
+               def configAttrs = StringUtils.commaDelimitedListToStringArray(reqmap."$requestMapConfigAttributeField")
+               for (int i = 0 ;i < configAttrs.length; i++) {
+                 String configAttribute = configAttrs[i]
+                 cad.addConfigAttribute(new SecurityConfig(configAttribute))
+               }
+               //cTime(s,"lookupAttributes match ")
+               return cad
+             }
+           }
+         }
+      }
+      finally {
+        releaseSession(container)
       }
       //cTime(s,"lookupAttributes ")
-      releaseSession()
     }
     return null
   }

@@ -36,6 +36,8 @@ pluginTemplatePath="${acegiPluginDir}/src/templates/manager"
 overwrite = false
 
 target('default': "generate user registration views and controllers") {
+  depends( configureProxy )
+  
   ClassLoader parent = getClass().getClassLoader()
   GroovyClassLoader loader = new GroovyClassLoader(parent)
   Class clazz = loader.parseClass(new File("${basedir}/grails-app/conf/AcegiConfig.groovy"))

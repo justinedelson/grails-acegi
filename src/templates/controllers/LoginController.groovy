@@ -27,6 +27,20 @@ class LoginController {
     }
   }
 
+  //def simpleAjaxAuth = {
+  //  def auth
+  //  try {
+  //     auth = new org.acegisecurity.providers.UsernamePasswordAuthenticationToken(params.j_username, params.j_password)
+  //     def authtoken = daoAuthenticationProvider.authenticate(auth)
+  //     org.acegisecurity.context.SecurityContextHolder.context.authentication = authtoken
+  //     render(text:"{success:''}")
+  //  }
+  //  catch(Exception e) {
+  //    log.error("Login Fail ${params.j_username}")
+  //    render(text:"{error:'Login Fail ${params.j_username}'}")
+  //  }
+  //}
+  
   //Login page (function|json) for ajax access 
   def authAjax = {
     cache(response)
