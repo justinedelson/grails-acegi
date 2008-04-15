@@ -28,7 +28,7 @@ import org.codehaus.groovy.grails.commons.*
  * @auther Haotian Sun
  */
 class AcegiGrailsPlugin {
-	def version = "0.2.1"
+	def version = "0.3"
 	def author = "Tsuyoshi Yamamoto"
 	def authorEmail = "tyama@xmldo.jp"
 	def title = "Spring Security (Acegi Security) on Grails Plugin"
