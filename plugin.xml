@@ -1,4 +1,4 @@
-<plugin name='acegi' version='0.2'>
+<plugin name='acegi' version='0.2.1'>
   <author>Tsuyoshi Yamamoto</author>
   <authorEmail>tyama@xmldo.jp</authorEmail>
   <title>Spring Security (Acegi Security) on Grails Plugin</title>
