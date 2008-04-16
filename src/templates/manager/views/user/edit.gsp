@@ -100,11 +100,11 @@
                        
 			  <tr class='prop'>
 			    <td valign='top' class='name'>
-			      <label for='email_show'>Show Email:</label>
+			      <label for='emailShow'>Show Email:</label>
 			    </td>
 				<td valign='top' 
-				    class='value \${hasErrors(bean:person,field:'email_show','errors')}'>
-				  <g:checkBox name='email_show' value="\${person?.email_show}" >
+				    class='value \${hasErrors(bean:person,field:'emailShow','errors')}'>
+				  <g:checkBox name='emailShow' value="\${person?.emailShow}" >
 				  </g:checkBox>
 				</td>
 			  </tr>

@@ -1,416 +1,450 @@
-/* Copyright 2006-2007 the original author or authors.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-import org.springframework.core.annotation.AnnotationUtils
-import org.acegisecurity.annotation.Secured
-import org.acegisecurity.annotation.SecurityAnnotationAttributes
-import org.acegisecurity.intercept.method.MethodDefinitionAttributes
-import org.codehaus.groovy.grails.plugins.acegi.gv.*
-import org.codehaus.groovy.grails.commons.*
+import org.codehaus.groovy.grails.commons.ControllerArtefactHandler
 
-//import org.codehaus.groovy.grails.plugins.acegi.QuietMethodSecurityInterceptor
+import org.codehaus.groovy.grails.plugins.springsecurity.GrailsAccessDeniedHandlerImpl
+import org.codehaus.groovy.grails.plugins.springsecurity.GrailsAuthenticationProcessingFilter
+import org.codehaus.groovy.grails.plugins.springsecurity.GrailsDaoImpl
+import org.codehaus.groovy.grails.plugins.springsecurity.GrailsFilterInvocationDefinition
+import org.codehaus.groovy.grails.plugins.springsecurity.LogoutFilterFactoryBean
+import org.codehaus.groovy.grails.plugins.springsecurity.QuietMethodSecurityInterceptor
+import org.codehaus.groovy.grails.plugins.springsecurity.SecurityAnnotationAttributes
+import org.codehaus.groovy.grails.plugins.springsecurity.WithAjaxAuthenticationProcessingFilterEntryPoint
+
+import org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator
+import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator
+import org.springframework.beans.factory.config.RuntimeBeanReference
+import org.springframework.cache.ehcache.EhCacheFactoryBean
+import org.springframework.cache.ehcache.EhCacheManagerFactoryBean
+import org.springframework.mail.SimpleMailMessage
+import org.springframework.mail.javamail.JavaMailSenderImpl
+import org.springframework.security.annotation.Secured
+import org.springframework.security.context.HttpSessionContextIntegrationFilter
+import org.springframework.security.context.SecurityContextHolder as SCH
+import org.springframework.security.event.authentication.LoggerListener
+import org.springframework.security.intercept.method.MethodDefinitionAttributes
+import org.springframework.security.intercept.web.FilterSecurityInterceptor
+import org.springframework.security.ui.ExceptionTranslationFilter
+import org.springframework.security.ui.basicauth.BasicProcessingFilter
+import org.springframework.security.ui.basicauth.BasicProcessingFilterEntryPoint
+import org.springframework.security.ui.logout.LogoutHandler
+import org.springframework.security.ui.logout.SecurityContextLogoutHandler
+import org.springframework.security.ui.rememberme.RememberMeProcessingFilter
+import org.springframework.security.ui.rememberme.TokenBasedRememberMeServices
+import org.springframework.security.ui.switchuser.SwitchUserProcessingFilter
+import org.springframework.security.ui.webapp.AuthenticationProcessingFilter
+import org.springframework.security.providers.ProviderManager
+import org.springframework.security.providers.anonymous.AnonymousAuthenticationProvider
+import org.springframework.security.providers.anonymous.AnonymousProcessingFilter
+import org.springframework.security.providers.dao.DaoAuthenticationProvider
+import org.springframework.security.providers.dao.cache.EhCacheBasedUserCache
+import org.springframework.security.providers.encoding.MessageDigestPasswordEncoder
+import org.springframework.security.providers.rememberme.RememberMeAuthenticationProvider
+import org.springframework.security.util.FilterChainProxy
+import org.springframework.security.vote.AffirmativeBased
+import org.springframework.security.vote.AuthenticatedVoter
+import org.springframework.security.vote.RoleVoter
+import org.springframework.security.wrapper.SecurityContextHolderAwareRequestFilter
+import org.springframework.web.filter.DelegatingFilterProxy
 
 /**
- * Grails Spring Security(Acegi Security) Plugin
- * 
+ * Grails Spring Security 2.0 Plugin.
+ *
  * @author T.Yamamoto
- * @auther Haotian Sun
+ * @author Haotian Sun
+ * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
 class AcegiGrailsPlugin {
-	def version = "0.3"
-	def author = "Tsuyoshi Yamamoto"
-	def authorEmail = "tyama@xmldo.jp"
-	def title = "Spring Security (Acegi Security) on Grails Plugin"
-	def description = '''Plugin to use grails domain class from the Spring Security(Acegi Security) and secure your applications with Spring Security(Acegi Security) filters.
-	'''
-	def documentation ="http://docs.codehaus.org/display/GRAILS/AcegiSecurity+Plugin"
-  def observe = ['controllers']
-  def loadAfter=['controllers']
-  def watchedResources = ["file:./grails-app/controllers/**/*Controller.groovy",
-          "file:./plugins/*/grails-app/controllers/**/*Controller.groovy"]
 
-  def getAcegiConfig(){
-    def conf
-    try {
-       ClassLoader parent = getClass().getClassLoader()
-       GroovyClassLoader loader = new GroovyClassLoader(parent)
-       def ac = loader.loadClass("AcegiConfig")
-       def dac = loader.loadClass("DefaultAcegiConfig")
-       def _user_config = new ConfigSlurper().parse(ac)
-       def _default_config = new ConfigSlurper().parse(dac)
+	def version = '0.3-20080416-SNAPSHOT'
+	def author = 'Tsuyoshi Yamamoto'
+	def authorEmail = 'tyama@xmldo.jp'
+	def title = 'Grails Spring Security 2.0 Plugin'
+	def description = 'Plugin to use Grails domain class and secure your applications with Spring Security filters.'
+	def documentation ="http://grails.org/AcegiSecurity+Plugin"
+	def observe = ['controllers']
+	def loadAfter = ['controllers']
+	def watchedResources = [
+		'file:./grails-app/controllers/**/*Controller.groovy',
+		'file:./plugins/*/grails-app/controllers/**/*Controller.groovy'
+	]
 
-       def config
-       if(_user_config){
-         config = _default_config.merge(_user_config)
-       }else{
-         config = _default_config
-       }
-       conf = config.acegi
-    }catch(Exception e) {
-      println '"AcegiConfig" not found'
-    }
-    return conf
-  }
+	def dependsOn = [:]
 
-  def doWithSpring = {
-    def conf = getAcegiConfig()
+	def doWithSpring = {
 
-    if(conf && conf.loadAcegi){
-      log.info("loading acegi config ...")
-      def useMail = conf.useMail
+		def conf = getSecurityConfig()
+		if (!conf || !conf.active) {
+			//log.info('[active=false] Spring Security will not loaded')
+			println '[active=false] Spring Security will not loaded'
+			return
+		}
 
-      def makeItGetter = { field ->
-        if(!field){return null}
-        "get" + field[0].toUpperCase() + field.substring(1)	
-      }
+		//log.info('loading security config ...')
+		println 'loading security config ...'
+		def useMail = conf.useMail
 
-      /** filter list */
-      def filters = []
-        filters << "httpSessionContextIntegrationFilter"
-        filters << "logoutFilter"
-        filters << "authenticationProcessingFilter"
-        if(conf.basicProcessingFilter) filters << "basicProcessingFilter"
-        filters << "securityContextHolderAwareRequestFilter"
-        filters << "rememberMeProcessingFilter"
-        filters << "anonymousProcessingFilter"
-        filters << "exceptionTranslationFilter"
-        filters << "filterInvocationInterceptor"
-        if(conf.switchUserProcessingFilter) filters << "switchUserProcessingFilter"
-
-			/** filterChainProxy */
-			filterChainProxy(org.acegisecurity.util.FilterChainProxy){
-				filterInvocationDefinitionSource="""
-					CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON
-					PATTERN_TYPE_APACHE_ANT
-					/**=${filters.join(',')}
-					"""
+		def makeItGetter = { field ->
+			if (!field) {
+				return null
 			}
+			'get' + field[0].toUpperCase() + field.substring(1)	
+		}
 
-			/** httpSessionContextIntegrationFilter */
-			httpSessionContextIntegrationFilter(org.acegisecurity.context.HttpSessionContextIntegrationFilter){}
-
-			/** logoutFilter */
-			logoutFilter(GrailsLogoutFilter,"/",ref("rememberMeServices")){}
-
-      /** authenticationProcessingFilter */
-      authenticationProcessingFilter(GrailsAuthenticationProcessingFilter){
-        authenticationManager = ref("authenticationManager")
-        authenticationFailureUrl = conf.authenticationFailureUrl //"/login/authfail?login_error=1"
-        defaultTargetUrl = conf.defaultTargetUrl // "/"
-        filterProcessesUrl = conf.filterProcessesUrl //"/j_acegi_security_check"
-        rememberMeServices = ref("rememberMeServices")
-      }
-      
-      //Basic Auth
-      if(conf.basicProcessingFilter){
-        basicProcessingFilter(org.acegisecurity.ui.basicauth.BasicProcessingFilter){
-          authenticationManager=ref("authenticationManager")
-          authenticationEntryPoint=ref("basicProcessingFilterEntryPoint")
-        }
-        basicProcessingFilterEntryPoint(org.acegisecurity.ui.basicauth.BasicProcessingFilterEntryPoint){
-          realmName="Grails Realm"
-        }
-      }
-
-			/** securityContextHolderAwareRequestFilter */
-			securityContextHolderAwareRequestFilter(org.acegisecurity.wrapper.SecurityContextHolderAwareRequestFilter){}
-
-			/** anonymousProcessingFilter */
-			anonymousProcessingFilter(org.acegisecurity.providers.anonymous.AnonymousProcessingFilter){
-				key = conf.key // "foo"
-				userAttribute = conf.userAttribute //"anonymousUser,ROLE_ANONYMOUS"
+		def filterNames = conf.filterNames
+		if (!filterNames) {
+			filterNames = []
+			filterNames << 'httpSessionContextIntegrationFilter'
+			filterNames << 'logoutFilter'
+			filterNames << 'authenticationProcessingFilter'
+			if (conf.basicProcessingFilter) {
+				filterNames << 'basicProcessingFilter'
 			}
-      
-			/** rememberMeProcessingFilter */
-			rememberMeProcessingFilter(org.acegisecurity.ui.rememberme.RememberMeProcessingFilter){
-				authenticationManager=ref("authenticationManager")
-				rememberMeServices=ref("rememberMeServices")
+			filterNames << 'securityContextHolderAwareRequestFilter'
+			filterNames << 'rememberMeProcessingFilter'
+			filterNames << 'anonymousProcessingFilter'
+			filterNames << 'exceptionTranslationFilter'
+			filterNames << 'filterInvocationInterceptor'
+			if (conf.switchUserProcessingFilter) {
+				filterNames << 'switchUserProcessingFilter'
 			}
-			/** rememberMeServices */
-			rememberMeServices(org.acegisecurity.ui.rememberme.TokenBasedRememberMeServices){
-				userDetailsService=ref("userDetailsService")
-				key="grailsRocks"
-				cookieName=conf.cookieName
-				alwaysRemember=conf.alwaysRemember
-				tokenValiditySeconds=conf.tokenValiditySeconds
-				parameter=conf.parameter
-			}
+		}
 
-			/** exceptionTranslationFilter */
-			exceptionTranslationFilter(org.acegisecurity.ui.ExceptionTranslationFilter){
-				authenticationEntryPoint=ref("authenticationEntryPoint")
-				accessDeniedHandler=ref("accessDeniedHandler")
-			}
+		/** springSecurityFilterChain */
+		springSecurityFilterChain(FilterChainProxy) {
+			filterInvocationDefinitionSource = """
+				CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON
+				PATTERN_TYPE_APACHE_ANT
+				/**=${filterNames.join(',')}
+				"""
+		}
 
-			authenticationEntryPoint(org.codehaus.groovy.grails.plugins.acegi.WithAjaxAuthenticationProcessingFilterEntryPoint){
-				loginFormUrl= conf.loginFormUrl // "/login/auth"
-				forceHttps= conf.forceHttps // "false"
-				ajaxLoginFormUrl=conf.ajaxLoginFormUrl // "/login/authAjax"
-				if(conf.ajaxHeader) ajaxHeader=conf.ajaxHeader //default: X-Requested-With
-			}
-			accessDeniedHandler(org.codehaus.groovy.grails.plugins.acegi.GrailsAccessDeniedHandlerImpl){
-				errorPage= conf.errorPage=="null"?null:conf.errorPage // "/login/denied" or 403
-				ajaxErrorPage= conf.ajaxErrorPage
-				if(conf.ajaxHeader) ajaxHeader=conf.ajaxHeader //default: X-Requested-With
-			}
+		/** httpSessionContextIntegrationFilter */
+		httpSessionContextIntegrationFilter(HttpSessionContextIntegrationFilter) {}
 
-			/** filterInvocationInterceptor */
-			filterInvocationInterceptor(org.acegisecurity.intercept.web.FilterSecurityInterceptor){
-				authenticationManager=ref("authenticationManager")
-				accessDecisionManager=ref("accessDecisionManager")
-				if( conf.useRequestMapDomainClass ){
-					objectDefinitionSource=ref("objectDefinitionSource")
-				}else{
-					objectDefinitionSource=conf.requestMapString
+		securityContextLogoutHandler(SecurityContextLogoutHandler) {}
+		def logoutHandlerNames = conf.logoutHandlerNames
+		if (!logoutHandlerNames) {
+			logoutHandlerNames = ['rememberMeServices', 'securityContextLogoutHandler']
+		}
+
+		def logoutHandlers = createRefList(logoutHandlerNames)
+		def afterLogoutUrl = conf.afterLogoutUrl // '/'
+
+		/** logoutFilter */
+		logoutFilter(LogoutFilterFactoryBean) {
+			logoutSuccessUrl = afterLogoutUrl
+			handlers = logoutHandlers
+		}
+
+		/** authenticationProcessingFilter */
+		authenticationProcessingFilter(GrailsAuthenticationProcessingFilter) {
+			authenticationManager = ref('authenticationManager')
+			authenticationFailureUrl = conf.authenticationFailureUrl //'/login/authfail?login_error=1'
+			defaultTargetUrl = conf.defaultTargetUrl // '/'
+			filterProcessesUrl = conf.filterProcessesUrl // '/j_spring_security_check'
+			rememberMeServices = ref('rememberMeServices')
+		}
+
+		// Basic Auth
+		basicProcessingFilter(BasicProcessingFilter) {
+			authenticationManager = ref('authenticationManager')
+			authenticationEntryPoint = ref('basicProcessingFilterEntryPoint')
+		}
+		basicProcessingFilterEntryPoint(BasicProcessingFilterEntryPoint) {
+			realmName = conf.realmName // 'Grails Realm'
+		}
+
+		/** securityContextHolderAwareRequestFilter */
+		securityContextHolderAwareRequestFilter(SecurityContextHolderAwareRequestFilter) {}
+
+		/** rememberMeProcessingFilter */
+		rememberMeProcessingFilter(RememberMeProcessingFilter) {
+			authenticationManager = ref('authenticationManager')
+			rememberMeServices = ref('rememberMeServices')
+		}
+		/** rememberMeServices */
+		rememberMeServices(TokenBasedRememberMeServices) {
+			userDetailsService = ref('userDetailsService')
+			key = conf.rememberMeKey
+			cookieName = conf.cookieName
+			alwaysRemember = conf.alwaysRemember
+			tokenValiditySeconds = conf.tokenValiditySeconds
+			parameter = conf.parameter
+		}
+
+		/** anonymousProcessingFilter */
+		anonymousProcessingFilter(AnonymousProcessingFilter) {
+			key = conf.key // 'foo'
+			userAttribute = conf.userAttribute //'anonymousUser,ROLE_ANONYMOUS'
+		}
+
+		/** exceptionTranslationFilter */
+		exceptionTranslationFilter(ExceptionTranslationFilter) {
+			authenticationEntryPoint = ref('authenticationEntryPoint')
+			accessDeniedHandler = ref('accessDeniedHandler')
+		}
+		accessDeniedHandler(GrailsAccessDeniedHandlerImpl) {
+			errorPage = conf.errorPage == 'null' ? null : conf.errorPage // '/login/denied' or 403
+			ajaxErrorPage = conf.ajaxErrorPage
+			if (conf.ajaxHeader) {
+				ajaxHeader = conf.ajaxHeader //default: X-Requested-With
+			}
+		}
+
+		authenticationEntryPoint(WithAjaxAuthenticationProcessingFilterEntryPoint) {
+			loginFormUrl = conf.loginFormUrl // '/login/auth'
+			forceHttps = conf.forceHttps // 'false'
+			ajaxLoginFormUrl = conf.ajaxLoginFormUrl // '/login/authAjax'
+			if (conf.ajaxHeader) {
+				ajaxHeader = conf.ajaxHeader //default: X-Requested-With
+			}
+		}
+
+		roleVoter(RoleVoter) {}
+		authenticatedVoter(AuthenticatedVoter) {}
+		def decisionVoterNames = conf.decisionVoterNames
+		if (!decisionVoterNames) {
+			decisionVoterNames = ['roleVoter', 'authenticatedVoter']
+		}
+		def decisionVoterList = createRefList(decisionVoterNames)
+		/** accessDecisionManager */
+		accessDecisionManager(AffirmativeBased) {
+			allowIfAllAbstainDecisions = false
+			decisionVoters = decisionVoterList
+		}
+
+		/** filterInvocationInterceptor */
+		filterInvocationInterceptor(FilterSecurityInterceptor) {
+			authenticationManager = ref('authenticationManager')
+			accessDecisionManager = ref('accessDecisionManager')
+			if (conf.useRequestMapDomainClass) {
+				objectDefinitionSource = ref('objectDefinitionSource')
+			}
+			else {
+				objectDefinitionSource = conf.requestMapString
+			}
+		}
+		if (conf.useRequestMapDomainClass) {
+			objectDefinitionSource(GrailsFilterInvocationDefinition) {
+				requestMapClass = conf.requestMapClass
+				requestMapPathFieldName = conf.requestMapPathField
+				requestMapConfigAttributeField = conf.requestMapConfigAttributeField
+			}
+		}
+
+		/** anonymousAuthenticationProvider */
+		anonymousAuthenticationProvider(AnonymousAuthenticationProvider) {
+			key = conf.key // "foo"
+		}
+		/** rememberMeAuthenticationProvider */
+		rememberMeAuthenticationProvider(RememberMeAuthenticationProvider) {
+			key = conf.rememberMeKey
+		}
+
+		def providerNames = conf.providerNames
+		if (!providerNames) {
+			providerNames = ['daoAuthenticationProvider',
+			                 'anonymousAuthenticationProvider',
+			                 'rememberMeAuthenticationProvider']
+		}
+		def providerList = createRefList(providerNames)
+		/** authenticationManager */
+		authenticationManager(ProviderManager) {
+			providers = providerList
+		}
+
+		/** daoAuthenticationProvider */
+		daoAuthenticationProvider(DaoAuthenticationProvider) {
+			userDetailsService = ref('userDetailsService')
+			passwordEncoder = ref('passwordEncoder')
+			userCache = ref('userCache')
+		}
+
+		/** passwordEncoder */
+		passwordEncoder(MessageDigestPasswordEncoder, conf.algorithm) {
+			if (conf.encodeHashAsBase64) {
+				encodeHashAsBase64 = true
+			}
+		}
+
+		userCache(EhCacheBasedUserCache) {
+			cache = ref('securityUserCache')
+		}
+		securityUserCache(EhCacheFactoryBean) {
+			cacheManager = ref('cacheManager')
+			cacheName = 'userCache'
+		}
+		cacheManager(EhCacheManagerFactoryBean) {}
+
+		/** userDetailsService */
+		userDetailsService(GrailsDaoImpl) {
+			usernameFieldName = conf.userName
+			passwordFieldName = conf.password
+			enabledFieldName = conf.enabled
+			authorityFieldName = conf.authorityField
+			loginUserDomainClass = conf.loginUserDomainClass
+			relationalAuthoritiesField = conf.relationalAuthorities
+			authoritiesMethodName = conf.getAuthoritiesMethod
+		}
+
+		/** loggerListener ( log4j.logger.org.springframework.security=info,stdout ) */
+		if (conf.useLogger) {
+			loggerListener(LoggerListener) {}
+		}
+
+		daacc(DefaultAdvisorAutoProxyCreator) {}
+
+		// experiment on Annotation and MethodSecurityInterceptor for secure services
+		serviceSecureAnnotation(SecurityAnnotationAttributes) {}
+		serviceSecureAnnotationODS(MethodDefinitionAttributes) {
+			attributes = ref('serviceSecureAnnotation')
+		}
+		/** securityInteceptor */
+		securityInteceptor(QuietMethodSecurityInterceptor) {
+			validateConfigAttributes = false
+			authenticationManager = ref('authenticationManager')
+			accessDecisionManager = ref('accessDecisionManager')
+			objectDefinitionSource = ref('serviceSecureAnnotationODS')
+			throwException = true
+		}
+
+		//load Services which have Annotations
+		application.serviceClasses.each { serviceClass ->
+			if (hasAnnotation(serviceClass.clazz)) {
+				"${serviceClass.propertyName}Sec"(BeanNameAutoProxyCreator) {
+					beanNames = "${serviceClass.propertyName}"
+					interceptorNames = ['securityInteceptor']
+					proxyTargetClass = true
 				}
 			}
+		}
 
-			/** accessDecisionManager */
-			accessDecisionManager(org.acegisecurity.vote.AffirmativeBased){
-				allowIfAllAbstainDecisions="false"
-				decisionVoters=[
-					ref("roleVoter"),
-					ref("authenticatedVoter")]
+		//load simple java mail settings
+		if (useMail) {
+			mailSender(JavaMailSenderImpl) {
+				host = conf.mailHost
+				username = conf.mailUsername
+				password = conf.mailPassword
+				protocol = conf.mailProtocol
 			}
-			roleVoter(org.acegisecurity.vote.RoleVoter){}
-			authenticatedVoter(org.acegisecurity.vote.AuthenticatedVoter){}
+			mailMessage(SimpleMailMessage) {
+				from = conf.mailFrom
+			}
+		}
 
-      if( conf.useRequestMapDomainClass ){
-        objectDefinitionSource(GrailsFilterInvocationDefinition){
-         requestMapClass=conf.requestMapClass
-         requestMapPathFieldName=conf.requestMapPathField
-         requestMapConfigAttributeField=conf.requestMapConfigAttributeField
-         sessionFactory=ref("sessionFactory")
-        }
-      }
-
-			/** ProviderManager */
-			authenticationManager(org.acegisecurity.providers.ProviderManager){
-				providers=[
-					ref("daoAuthenticationProvider"),
-					ref("anonymousAuthenticationProvider"),
-					ref("rememberMeAuthenticationProvider")]
+		//Switch User
+		if (conf.switchUserProcessingFilter) {
+			switchUserProcessingFilter(SwitchUserProcessingFilter) {
+				userDetailsService = ref('userDetailsService')
+				switchUserUrl = conf.swswitchUserUrl
+				exitUserUrl = conf.swexitUserUrl
+				targetUrl = conf.swtargetUrl
 			}
-			
-			
-			/** daoAuthenticationProvider */
-			daoAuthenticationProvider(org.acegisecurity.providers.dao.DaoAuthenticationProvider){
-				userDetailsService=ref("userDetailsService")
-				passwordEncoder=ref("passwordEncoder")
-				userCache=ref("userCache")
-			}
-
-			/** userCache */
-			userCache(org.acegisecurity.providers.dao.cache.EhCacheBasedUserCache){
-				cache=ref("cache")
-			}
-			cache(org.springframework.cache.ehcache.EhCacheFactoryBean){
-				cacheManager=ref("cacheManager")
-				cacheName="userCache"
-			}
-			cacheManager(org.springframework.cache.ehcache.EhCacheManagerFactoryBean){}
-
-			/** anonymousAuthenticationProvider */
-			anonymousAuthenticationProvider(org.acegisecurity.providers.anonymous.AnonymousAuthenticationProvider){
-				key= conf.key // "foo"
-			}
-			/** rememberMeAuthenticationProvider */
-			rememberMeAuthenticationProvider(org.acegisecurity.providers.rememberme.RememberMeAuthenticationProvider){
-				key="grailsRocks"
-			}
-			
-			/** passwordEncoder */
-			passwordEncoder(org.acegisecurity.providers.encoding.MessageDigestPasswordEncoder,conf.algorithm){
-				if(conf.encodeHashAsBase64) encodeHashAsBase64=true
-			}
-
-      /** DetailsService */
-      userDetailsService(GrailsDaoImpl){
-        userName= conf.userName
-        password= conf.password
-        enabled= conf.enabled
-        authority= conf.authorityField
-        loginUserDomainClass=conf.loginUserDomainClass
-        relationalAuthorities=conf.relationalAuthorities
-        authoritiesMethod=conf.getAuthoritiesMethod
-        sessionFactory=ref("sessionFactory")
-      }
-
-			/** LoggerListener ( log4j.logger.org.acegisecurity=info,stdout ) */
-			if(conf.useLogger) loggerListener(org.acegisecurity.event.authentication.LoggerListener){}
-
-			/** experiment on Annotation and MethodSecurityInterceptor .
-			 *  for secure services
-			 */
-			serviceSecureAnnotation(SecurityAnnotationAttributes){}
-			serviceSecureAnnotationODS(MethodDefinitionAttributes){
-				attributes=ref("serviceSecureAnnotation")
-			}
-			/** securityInteceptor */
-			securityInteceptor(org.codehaus.groovy.grails.plugins.acegi.QuietMethodSecurityInterceptor){
-				validateConfigAttributes=false
-				authenticationManager=ref("authenticationManager")
-				accessDecisionManager=ref("accessDecisionManager")
-				objectDefinitionSource=ref("serviceSecureAnnotationODS")
-				throwException=true
-			}
-
-			/** check Annotation */
-			def checkAnnotations ={cls->
-				def result=false
-				cls.methods.each{method->
-					def annotations = method.getAnnotations()
-					if(annotations.size()>0){
-						annotations.each{annotation->
-							if(annotation instanceof Secured){
-								//println annotation
-								result=true
-							}
-						}
-					}
-				}
-				return result
-			}
-			//load Services which has Annotations
-			application.serviceClasses.each { serviceClass ->
-				if(checkAnnotations(serviceClass.clazz)){
-					"${serviceClass.propertyName}Sec"(org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator){
-						beanNames="${serviceClass.propertyName}"
-						interceptorNames=["securityInteceptor"]
-						proxyTargetClass=true
-					}
-				}
-			}
-
-      //load simple java mail settings
-      if (useMail) {
-        mailSender(org.springframework.mail.javamail.JavaMailSenderImpl) {
-          host = conf.mailHost
-          username = conf.mailUsername
-          password = conf.mailPassword
-          protocol = conf.mailProtocol
-        }
-        mailMessage(org.springframework.mail.SimpleMailMessage) {
-          from = conf.mailFrom
-        }
-      }
-      
-      //Switch User 
-      if(conf.switchUserProcessingFilter){
-        switchUserProcessingFilter(org.acegisecurity.ui.switchuser.SwitchUserProcessingFilter){
-          userDetailsService=ref("userDetailsService")
-          switchUserUrl=conf.swswitchUserUrl
-          exitUserUrl=conf.swexitUserUrl
-          targetUrl=conf.swtargetUrl
-        }
-      }
-
-    }else{
-      log.info("[loadAcegi=false] Acegi Security will not loaded")
-    }
-
+		}
 	}
-  def doWithApplicationContext = { applicationContext ->
-    // TODO Implement post initialization spring config (optional)		
-  }
-  def doWithWebDescriptor = { xml ->
 
-    ClassLoader parent = getClass().getClassLoader()
-    GroovyClassLoader loader = new GroovyClassLoader(parent)
-    def config
-    def _user_config
-    try {
-      def ac = loader.loadClass("AcegiConfig")
-      _user_config = new ConfigSlurper().parse(ac)
-    }catch(Exception e) {
-      println "AcegiConfig not found"
-    }
-    
-    def dac = loader.loadClass("DefaultAcegiConfig")
-    if(_user_config){
-      log.info("using user AcegiConfig")
-      def _default_config = new ConfigSlurper().parse(dac)
-      config = _default_config.merge(_user_config)
-    }else{
-      log.info("using DefaultAcegiConfig")
-      config = new ConfigSlurper().parse(dac)
-    }
+	def doWithApplicationContext = { applicationContext ->
+		// nothing to do		
+	}
 
-    def conf = config.acegi
-    //println "***** ${conf.loadAcegi}"
-    if(conf && conf.loadAcegi){
-      def contextParam = xml."context-param"
-      contextParam[contextParam.size()-1]+{
-        'filter' {
-          //'filter-name'('acegiAuthenticationProcessingFilter')
-          //'filter-class'('org.acegisecurity.util.FilterToBeanProxy')
-          'filter-name'('filterChainProxy')
-          'filter-class'('org.springframework.web.filter.DelegatingFilterProxy')
-          'init-param'{
-            'param-name'('targetClass')
-            'param-value'('org.acegisecurity.util.FilterChainProxy')
-          }
-        }
-      }
+	def doWithWebDescriptor = { xml ->
 
-      def filter = xml."filter"
-      filter[filter.size()-1]+{
-        'filter-mapping'{
-          //'filter-name'('acegiAuthenticationProcessingFilter')
-          'filter-name'('filterChainProxy')
-          'url-pattern'("/*")
-        }
-      }
-    }
-  }
+		def conf = getSecurityConfig()
+		if (conf && conf.active) {
+			def contextParam = xml.'context-param'
+			contextParam[contextParam.size() - 1] + {
+				'filter' {
+					'filter-name'('springSecurityFilterChain')
+					'filter-class'(DelegatingFilterProxy.name)
+				}
+			}
 
-  def doWithDynamicMethods = { ctx ->
-    for (con in application.controllerClasses) {
-      MetaClass mc = con.metaClass
-      registerControllerProps(mc)
-    }
-  }
-  
-  def registerControllerProps(MetaClass mc){
-    mc.getAuthUserDomain<<{->
-      def principal = org.acegisecurity.context.SecurityContextHolder.context?.authentication?.principal
-      if( principal!=null && principal!="anonymousUser"){
-        return principal?.domainClass
-      }else{
-        return null
-      }
-    }
-    mc.getPrincipalInfo<<{->
-      return org.acegisecurity.context.SecurityContextHolder.context?.authentication?.principal
-    }
-    mc.isUserLogon<<{->
-      def principal = org.acegisecurity.context.SecurityContextHolder.context?.authentication?.principal
-      if( principal!=null && principal!="anonymousUser"){
-        return true
-      }else{
-        return false
-      }
-    }
-  }
-  
-  def onChange = { event ->
-    if (application.isArtefactOfType(ControllerArtefactHandler.TYPE, event.source)) {
-      def controllerClass = application.addArtefact(ControllerArtefactHandler.TYPE, event.source)
-      MetaClass mc = controllerClass.metaClass
-      registerControllerProps(mc)
-    }
-  }
-  def onApplicationChange = { event ->
-  }
+			def filter = xml.'filter'
+			filter[filter.size() - 1] + {
+				'filter-mapping'{
+					'filter-name'('springSecurityFilterChain')
+					'url-pattern'('/*')
+				}
+			}
+		}
+	}
+
+	def doWithDynamicMethods = { ctx ->
+		for (controller in application.controllerClasses) {
+			registerControllerProps(controller.metaClass)
+		}
+	}
+
+	def onChange = { event ->
+		if (application.isArtefactOfType(ControllerArtefactHandler.TYPE, event.source)) {
+			def controllerClass = application.addArtefact(ControllerArtefactHandler.TYPE, event.source)
+			registerControllerProps(controllerClass.metaClass)
+		}
+	}
+
+	def onApplicationChange = { event ->
+		// nothing to do
+	}
+
+	private void registerControllerProps(MetaClass mc) {
+		mc.getAuthUserDomain = { ->
+			def principal = SCH.context?.authentication?.principal
+			if (principal != null && principal != 'anonymousUser') {
+				return principal?.domainClass
+			}
+
+			return null
+		}
+
+		mc.getPrincipalInfo = { ->
+			return SCH.context?.authentication?.principal
+		}
+
+		mc.isUserLogon = { ->
+			def principal = SCH.context?.authentication?.principal
+			return principal != null && principal != 'anonymousUser'
+		}
+	}
+
+	private ConfigObject getSecurityConfig() {
+
+		GroovyClassLoader classLoader = new GroovyClassLoader(getClass().getClassLoader())
+
+		ConfigObject userConfig
+		try {
+			userConfig = new ConfigSlurper().parse(classLoader.loadClass('SecurityConfig'))
+		}
+		catch (Exception ignored) {
+			// ignored, use defaults
+		}
+
+		ConfigObject config
+		ConfigObject defaultConfig = new ConfigSlurper().parse(classLoader.loadClass('DefaultSecurityConfig'))
+		if (userConfig) {
+			//log.info('using user SecurityConfig')
+			config = defaultConfig.merge(userConfig)
+		}
+		else {
+			//log.info('using DefaultSecurityConfig')
+			config = defaultConfig
+		}
+
+		return config.security
+	}
+
+	private boolean hasAnnotation(serviceClass) {
+		for (method in serviceClass.methods) {
+			for (annotation in method.annotations) {
+				if (annotation instanceof Secured) {
+					return true
+				}
+			}
+		}
+
+		return false
+	}
+
+	private createRefList(names) {
+		// 'ref' method isn't available in a method, so call what it calls
+		names.collect { name -> new RuntimeBeanReference(name, false) }
+	}
 }

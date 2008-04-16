@@ -1,10 +1,9 @@
 /**
- * ${personDomain} for user account
- * @author 
+ * ${personDomain} for user account.
  */
 class ${personDomain} {
-	static transients = ["pass"]
-	static hasMany=[authorities:${authorityDomain}]
+	static transients = ['pass']
+	static hasMany = [authorities: ${authorityDomain}]
 	static belongsTo = ${authorityDomain}
 
 	/** Username */
@@ -14,21 +13,21 @@ class ${personDomain} {
 	/** MD5 Password */
 	String passwd
 	/** enabled */
-	boolean enabled = false
+	boolean enabled
 
 	String email
-	boolean email_show = false
+	boolean emailShow
 
 	/** description */
-	String description=""
+	String description = ''
 
 	/** plain password to create a MD5 password */
-	String pass="[secret]"
+	String pass = '[secret]'
 
-	static def constraints = {
-		username(blank:false,unique:true)
-		userRealName(blank:false)
-		passwd(blank:false)
+	static constraints = {
+		username(blank: false, unique: true)
+		userRealName(blank: false)
+		passwd(blank: false)
 		enabled()
 	}
 }

@@ -1,41 +1,99 @@
-<project name="acegi" default="test">
+<project name='spring-security' default='test'>
 
-    <condition property="grails" value="grails.bat">
-        <os family="windows"/>
-    </condition>
-    <property name="grails" value="grails" />
+	<!-- Properties -->
 
-	<!-- ================================= 
-          target: clean              
-         ================================= -->
-    <target name="clean" description="--> Cleans a Grails application">
-		<exec executable="${grails}" failonerror="true">
-			<arg value="clean"/>
-		</exec>                               
-    </target>
+	<property file='application.properties' />
 
-	<!-- ================================= 
-          target: war              
-         ================================= -->
-    <target name="war" description="--> Creates a WAR of a Grails application">
-		<exec executable="${grails}" failonerror="true">
-			<arg value="war"/>
-		</exec>                               
-    </target>
-	
-	<!-- ================================= 
-          target: test              
-         ================================= -->
-    <target name="test" description="--> Run a Grails applications unit tests">
-		<exec executable="${grails}" failonerror="true">
-			<arg value="test-app"/>
-		</exec>                               
-    </target>
-	
-	<!-- ================================= 
-          target: deploy              
-         ================================= -->
-    <target name="deploy" depends="war" description="--> The deploy target (initially empty)">
-        <!-- TODO -->
-    </target>
+	<property environment='env'/>
+
+	<!-- optional properties file for developer overrides -->
+	<property file='build.properties' />
+
+	<property name='grails.home' value='${env.GRAILS_HOME}' />
+
+	<condition property='grails' value='grails.bat'>
+		<os family='windows'/>
+	</condition>
+	<property name='grails' value='grails' />
+
+	<condition property='grails-debug' value='grails-debug.bat'>
+		<os family='windows'/>
+	</condition>
+	<property name='grails-debug' value='grails-debug' />
+
+	<!-- Macrodefs -->
+
+	<macrodef name='newdir'>
+		<attribute name='dir' />
+		<sequential>
+			<delete dir='@{dir}' />
+			<mkdir dir='@{dir}' />
+		</sequential>
+	</macrodef>
+
+	<macrodef name='grails'>
+		<attribute name='action' />
+		<attribute name='environment' default='dev' />
+		<element name='args' optional='true' />
+		<sequential>
+			<exec executable='${grails}' failonerror='true'>
+				<args />
+				<arg value='@{environment}'/>
+				<arg value='@{action}'/>
+			</exec>
+		</sequential>
+	</macrodef>
+
+	<macrodef name='grails-debug'>
+		<attribute name='action' />
+		<attribute name='environment' default='dev' />
+		<element name='args' optional='true' />
+		<sequential>
+			<exec executable='${grails-debug}' failonerror='true'>
+				<args />
+				<arg value='@{environment}'/>
+				<arg value='@{action}'/>
+			</exec>
+		</sequential>
+	</macrodef>
+
+	<!-- Targets -->
+
+	<target name='clean' description='Cleans a Grails application'>
+		<grails action='clean' />
+		<delete><fileset dir='.' includes='*.log*' /></delete>
+	</target>
+
+	<target name='grailsDoc' description='Generates Grails docs'>
+		<grails action='doc' />
+	</target>
+
+	<target name='test' description='Run unit tests' depends='clean'>
+		<grails action='test-app' environment='test' />
+	</target>
+
+	<target name='console' description='Launch the swing console'>
+		<grails action='console' />
+	</target>
+
+	<target name='run' description='Runs the web app' depends='clean'>
+		<grails action='run-app' />
+	</target>
+
+	<target name='debug' description='Runs the web app in debug mode' depends='clean'>
+		<grails-debug action='run-app' />
+	</target>
+
+	<target name='clean-reports' description='Deletes the reports dir to keep them from polluting the plugin zip'>
+		<delete dir='test/reports' />
+	</target>
+
+	<target name='package' description='Package the plugin' depends='test,clean-reports'>
+		<grails action='package-plugin' />
+	</target>
+
+	<target name='coverage' description='Run unit tests with code coverage' depends='clean'>
+		<grails action='test-app-cobertura' environment='test' />
+	</target>
+
 </project>

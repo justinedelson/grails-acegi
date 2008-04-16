@@ -1,18 +1,17 @@
 /**
- * ${authorityDomain} class for Authority
- * @author 
+ * ${authorityDomain} class for Authority.
  */
 class ${authorityDomain} {
 
-	static hasMany=[people:${personDomain}]
+	static hasMany = [people: ${personDomain}]
 
 	/** description */
 	String description
 	/** ROLE String */
-	String authority="ROLE_"
+	String authority = 'ROLE_'
 
-	static def constraints = {
-		authority(blank:false)
+	static constraints = {
+		authority(blank: false)
 		description()
 	}
 }

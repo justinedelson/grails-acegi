@@ -50,7 +50,7 @@
             <tr class="prop">
               <td valign="top" class="name">Show Email:</td>
               <td valign="top" class="value">
-                ${person.email_show?.encodeAsHTML()}
+                ${person.emailShow?.encodeAsHTML()}
               </td>
             </tr>
                    

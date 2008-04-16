@@ -15,134 +15,98 @@
  */
 
 /**
- * Create/Copy Domains, auth.gsp, Controllers for acegi-plugin.
- * 
+ * Create/Copy Domains, auth.gsp, Controllers for security plugin.
+ *
  * @author Tsuyoshi Yamamoto
+ * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
  
-import org.codehaus.groovy.grails.commons.GrailsClassUtils as GCU
+includeTargets << new File("${acegiPluginDir}/scripts/SecurityTargets.groovy")
 
-grailsHome = Ant.project.properties."environment.GRAILS_HOME"
+target('default': 'Creates Domain classes for Spring Security plugin') {
+	parseArgs()
+	createDomains()
+	copyViewAndControllers()
+}
 
-
-includeTargets << new File ( "${grailsHome}/scripts/Init.groovy" )
-
-personDomainClassName="Person"
-authorityDomainClassName="Authority"
-requestmapDomainClassName="Requestmap"
-
-
-target("default":"create domain classes for acegi-plugin") {
-
-	def procIt = false
-	if(args){
-		def _args = args.split("\n")
-		//println _args.size()
-		if(_args.size()==1){
-			println "Login user domain class: ${_args[0]}"
-			personDomainClassName=_args[0]
+private void parseArgs() {
+	args = args ? args.split('\n') : []
+	switch (args.size()) {
+		case 0:
+			println 'Create domain classes with default name'
+			return
+		case 1:
+			personDomainClassName = args[0]
+			println "Login user domain class: ${personDomainClassName}"
 			//prompt for authority name
-			Ant.input(addProperty:"authority.name",message:"authority domain class name not specified. Please enter:")
-			def _authorityDCName = Ant.antProject.properties."authority.name"
-			if(_authorityDCName){
-				def aDC = _authorityDCName.split("\n")
-				if(aDC.size()==1){
-					authorityDomainClassName=aDC[0]
-					println "Authority domain class: ${aDC[0]}"
-				}else{usage()}
-			}else{usage()}
-			procIt=true
-		}else if(_args.size()==2){
-			println "Login user domain class: ${_args[0]}"
-			println "Authority domain class: ${_args[1]}"
-			personDomainClassName=_args[0]
-			authorityDomainClassName=_args[1]
-			procIt=true
-		}else{
-			usage()
-		}
-	}else{
-		println "Create domain classes with default name"
-		procIt=true
-	}
-	
-	if(procIt){
-		createDomains()
-		copyViewAndControlls()
-	}else{
-		usage()
+			Ant.input(addProperty: 'authority.name', message: 'authority domain class name not specified. Please enter:')
+			def authorityClassNames = Ant.antProject.properties.'authority.name'
+			if (authorityClassNames) {
+				def splitNames = authorityClassNames.split('\n')
+				if (splitNames.size() == 1) {
+					authorityDomainClassName = splitNames[0]
+					println "Authority domain class: ${authorityDomainClassName}"
+					return
+				}
+			}
+			break
+		case 2:
+			personDomainClassName = args[0]
+			authorityDomainClassName = args[1]
+			println "Login user domain class: ${personDomainClassName}"
+			println "Authority domain class: ${authorityDomainClassName}"
+			return
 	}
 
+	usage()
 }
 
-target(createDomains:""){
-
-  def bind=[personDomain:"$personDomainClassName",
-    authorityDomain:"$authorityDomainClassName",requestmapDomain:"$requestmapDomainClassName"]
-  //create Person domain class
-  generateFile(bind,
-    "${acegiPluginDir}/src/templates/_Person.groovy",
-    "${basedir}/grails-app/domain/${personDomainClassName}.groovy")
-  //create Authority domain class
-  generateFile(bind,
-    "${acegiPluginDir}/src/templates/_Authority.groovy",
-    "${basedir}/grails-app/domain/${authorityDomainClassName}.groovy")
-  //copy Requestmap domain class
-  println "copying Requestmap domain class. "
-  Ant.copy(
-    file:"${acegiPluginDir}/src/templates/_Requestmap.groovy",
-    tofile:"${basedir}/grails-app/domain/Requestmap.groovy",overwrite:true)
-  //create AcegiConfig
-  generateFile(bind,
-    "${acegiPluginDir}/src/templates/_AcegiConfig.groovy",
-    "${basedir}/grails-app/conf/AcegiConfig.groovy")
+private void usage() {
+	println 'usage: grails create-auth-domains person authority'
+	System.exit(1)
 }
 
-target(copyViewAndControlls:""){
-  //copy login.gsp and Login/Logout Controller example.
-  println "copying login.gsp and Login/Logout Controller example. "
-  Ant.mkdir(dir: "${basedir}/grails-app/views/login")
-  Ant.copy(
-    file:"${acegiPluginDir}/src/templates/views/login/auth.gsp",
-    tofile:"${basedir}/grails-app/views/login/auth.gsp",overwrite:true)
-  Ant.copy(
-    file:"${acegiPluginDir}/src/templates/controllers/LoginController.groovy",
-    tofile:"${basedir}/grails-app/controllers/LoginController.groovy",overwrite:true)
-  Ant.copy(
-    file:"${acegiPluginDir}/src/templates/controllers/LogoutController.groovy",
-    tofile:"${basedir}/grails-app/controllers/LogoutController.groovy",overwrite:true)
-  
-    //log4j.logger.org.acegisecurity="off,stdout"
-    Ant.input(addProperty:"addLogConfig",message:"Do you want add log config to Config.groovy? y/n")
-    def addC = Ant.antProject.properties."addLogConfig"
-    if(addC=="y"){
-      def configFile = new File("${basedir}/grails-app/conf/Config.groovy")
-      if(configFile.exists())configFile.append("\n\nlog4j.logger.org.acegisecurity=\"off,stdout\"")
-    }
+private void createDomains() {
+
+	def binding = [personDomain: personDomainClassName,
+	               authorityDomain: authorityDomainClassName,
+	               requestmapDomain: requestmapDomainClassName]
+
+	//create Person domain class
+	generateFile(binding,
+			"${templateDir}/_Person.groovy",
+			"${appDir}/domain/${personDomainClassName}.groovy")
+
+	//create Authority domain class
+	generateFile(binding,
+			"${templateDir}/_Authority.groovy",
+			"${appDir}/domain/${authorityDomainClassName}.groovy")
+
+	//copy Requestmap domain class
+	println 'copying Requestmap domain class.'
+	copyFile "${templateDir}/_Requestmap.groovy", "${appDir}/domain/Requestmap.groovy"
+
+	//create SecurityConfig
+	generateFile(binding,
+			"${templateDir}/_SecurityConfig.groovy",
+			"${appDir}/conf/SecurityConfig.groovy")
 }
 
-target(usage:"usage"){
-  println "usage: grails create-auth-domains person authority"
-  System.exit(1)
-}
+private void copyViewAndControllers() {
 
-generateFile={binding,templateFile,outputPath->
-  def engine = new groovy.text.SimpleTemplateEngine()
-  def templateF=new File(templateFile)
-  def templateText = templateF.getText()
-  def outFile = new File(outputPath)
-  if(templateF.exists()){
-    if(outFile.exists()){
-      println "${outFile} exists"
-    }else{
-      def template = engine.createTemplate(templateText)
-      //println template.make(binding).toString()
-      outFile.withWriter { w ->
-        template.make(binding).writeTo(w)
-      }
-      println "file generated at ${outFile.absolutePath}"
-    }
-  }else{
-    println "${templateText} not exists"
-  }
+	//copy login.gsp and Login/Logout Controller example.
+	println 'copying login.gsp and Login/Logout Controller example. '
+	Ant.mkdir(dir: "${appDir}/views/login")
+	copyFile "${templateDir}/views/login/auth.gsp",
+		"${appDir}/views/login/auth.gsp"
+	copyFile "${templateDir}/controllers/LoginController.groovy",
+		"${appDir}/controllers/LoginController.groovy"
+	copyFile "${templateDir}/controllers/LogoutController.groovy",
+		"${appDir}/controllers/LogoutController.groovy"
+
+	//log4j.logger.org.springframework.security='off,stdout'
+	def configFile = new File("${appDir}/conf/Config.groovy")
+	if (configFile.exists()) {
+		configFile.append("\n\n//log4j.logger.org.springframework.security='off,stdout'")
+	}
 }

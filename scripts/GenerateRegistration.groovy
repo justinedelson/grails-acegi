@@ -15,130 +15,81 @@
  */
 
 /**
- * 
- * @auther Haotian Sun
- * @auther Tsuyoshi Yamamoto
+ * Generates user registration views and controllers.
+ *
+ * @author Haotian Sun
+ * @author Tsuyoshi Yamamoto
+ * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
- 
-import org.codehaus.groovy.grails.commons.GrailsClassUtils as GCU
 
-grailsHome = Ant.project.properties."environment.GRAILS_HOME"
+includeTargets << new File("${acegiPluginDir}/scripts/SecurityTargets.groovy")
 
-includeTargets << new File ( "${grailsHome}/scripts/Init.groovy" )  
+pluginTemplatePath = "${templateDir}/manager"
 
+target('default': 'Generates user registration views and controllers') {
 
-personDomainClassName="Person"
-authorityDomainClassName="Authority"
-requestmapDomainClassName="Requestmap"
+	loadConfig()
 
-pluginTemplatePath="${acegiPluginDir}/src/templates/manager"
+	if (!new File("${basedir}/lib/mail-1.4.jar").exists()) {
+		println "Downloading mail-1.4 ..."
+		get(dest: "${basedir}/lib/mail-1.4.jar",
+			src: "http://repo1.maven.org/maven2/javax/mail/mail/1.4/mail-1.4.jar",
+			verbose: true,
+			usetimestamp: true)
+	}
 
-overwrite = false
+	if (!new File("${basedir}/lib/activation-1.1.jar").exists()) {
+		println "Downloading activation-1.1.jar ..."
+		get(dest: "${basedir}/lib/activation-1.1.jar",
+			src: "http://repo1.maven.org/maven2/javax/activation/activation/1.1/activation-1.1.jar",
+			verbose: true,
+			usetimestamp: true)
+	}
 
-target('default': "generate user registration views and controllers") {
-  depends( configureProxy )
-  
-  ClassLoader parent = getClass().getClassLoader()
-  GroovyClassLoader loader = new GroovyClassLoader(parent)
-  Class clazz = loader.parseClass(new File("${basedir}/grails-app/conf/AcegiConfig.groovy"))
-  def acegiConfig = new ConfigSlurper().parse(clazz)
-  println "Login user domain class: ${acegiConfig.acegi.loginUserDomainClass}"
-  println "Authority domain class: ${acegiConfig.acegi.authorityDomainClass}"
-  personDomainClassName = acegiConfig.acegi.loginUserDomainClass
-  authorityDomainClassName = acegiConfig.acegi.authorityDomainClass
-  requestmapDomainClassName = acegiConfig.acegi.requestMapClass
-  Ant.sequential {
-    def mailjar = new File("${basedir}/lib/mail-1.4.jar")
-    if(!mailjar.exists()){
-      println "Downloading mail.jar ..."
-      get(dest: "${basedir}/lib/mail-1.4.jar",
-              src: "http://repo1.maven.org/maven2/javax/mail/mail/1.4/mail-1.4.jar",
-              verbose: true,
-              usetimestamp: true)
-    }
-    def activationjar = new File("${basedir}/lib/activation-1.1.jar")
-    if(!activationjar.exists()){
-      println "Downloading activation.jar ..."
-      get(dest: "${basedir}/lib/activation-1.1.jar",
-              src: "http://repo1.maven.org/maven2/javax/activation/activation/1.1/activation-1.1.jar",
-              verbose: true,
-              usetimestamp: true)
-    }
-  }
-  generateRegistration("register")
+	generateRegistration 'register'
 }
 
-generateRegistration = {name ->
-  def uname = name[0].toUpperCase() + name.substring(1)
+private void generateRegistration(String name) {
 
-  def outFile = new File("${basedir}/grails-app/controllers/${uname}Controller.groovy")
+	def uname = name[0].toUpperCase() + name.substring(1)
+	def outFile = new File("${basedir}/grails-app/controllers/${uname}Controller.groovy")
+	if (outFile.exists()) {
+		Ant.input(addProperty: 'overwrite', message: 'Do you want to overwrite? y/n')
+		if ('y' == Ant.antProject.properties.'overwrite') {
+			overwrite = true
+		}
+	}
+	else {
+		overwrite = true
+	}
 
-  if (outFile.exists()) {
-    Ant.input(addProperty: "overwrite", message: "Do you want to overwrite? y/n")
-    def ovw = Ant.antProject.properties."overwrite"
-    if (ovw == "y") {
-      overwrite = true
-    }
-  } else {
-    overwrite = true
-  }
+	println "generating files for ${uname} ......."
+	def binding = [personDomain: personDomainClassName,
+	               authorityDomain: authorityDomainClassName,
+	               requestmapDomain: requestmapDomainClassName]
 
-  println "generating files for ${uname} ......."
-  def bind = [
-          personDomain: "$personDomainClassName",
-          authorityDomain: "$authorityDomainClassName",
-          requestmapDomain: "$requestmapDomainClassName"]
+	//copy the CaptchaController
+	String dest = "${basedir}/grails-app/controllers/CaptchaController.groovy"
+	println "copying CaptchaController.groovy to - ${dest}"
+	copyFile "${pluginTemplatePath}/controllers/_CaptchaController.groovy", "${dest}"
 
-  //copy the CaptchaController
-  println "copying CaptchaController.groovy to - ${basedir}/grails-app/controllers/CaptchaController.groovy "
-  Ant.copy(
-          file: "${pluginTemplatePath}/controllers/_CaptchaController.groovy",
-          tofile: "${basedir}/grails-app/controllers/CaptchaController.groovy", overwrite: overwrite)
+	//copy the EmailerService
+	dest = "${basedir}/grails-app/services/EmailerService.groovy"
+	println "copying EmailerService.groovy to - ${dest}"
+	copyFile "${pluginTemplatePath}/services/_EmailerService.groovy", "${dest}"
 
-  //copy the EmailerService
-  println "copying EmailerService.groovy to - ${basedir}/grails-app/services/EmailerService.groovy "
-  Ant.copy(
-          file: "${pluginTemplatePath}/services/_EmailerService.groovy",
-          tofile: "${basedir}/grails-app/services/EmailerService.groovy", overwrite: overwrite)
-  //generate RegisterController.groovy
-  println "generating file ${basedir}/grails-app/controllers/${uname}Controller.groovy"
-  generateFile(
-          "${pluginTemplatePath}/controllers/_${uname}Controller.groovy",
-          bind,
-          "${basedir}/grails-app/controllers/${uname}Controller.groovy")
+	//generate RegisterController.groovy
+	dest = "${basedir}/grails-app/controllers/${uname}Controller.groovy"
+	println "generating file ${dest}"
+	generateFile(binding,
+			"${pluginTemplatePath}/controllers/_${uname}Controller.groovy",
+			"${dest}")
 
-  //generate views for RegisterController
-  println "copying view files to - ${basedir}/grails-app/views/${name}/* "
-  Ant.mkdir(dir: "${basedir}/grails-app/views/${name}")
-  Ant.copy(
-          file:"${pluginTemplatePath}/views/${name}/edit.gsp",
-          tofile:"${basedir}/grails-app/views/${name}/edit.gsp", overwrite: overwrite)
-  Ant.copy(
-          file:"${pluginTemplatePath}/views/${name}/index.gsp",
-          tofile:"${basedir}/grails-app/views/${name}/index.gsp", overwrite: overwrite)
-  Ant.copy(
-          file:"${pluginTemplatePath}/views/${name}/show.gsp",
-          tofile:"${basedir}/grails-app/views/${name}/show.gsp", overwrite: overwrite)
-}
-
-generateFile = {templateFile, binding, outputPath ->
-  def engine = new groovy.text.SimpleTemplateEngine()
-  def templateF = new File(templateFile)
-  def templateText = templateF.getText()
-  def outFile = new File(outputPath)
-  if (templateF.exists()) {
-    if (overwrite) {
-      def template = engine.createTemplate(templateText)
-      //println template.make(binding).toString()
-      outFile.withWriter {w ->
-        template.make(binding).writeTo(w)
-      }
-      println "file generated at ${outFile.absolutePath}"
-    } else {
-      println "file *not* generated.: ${outFile.absolutePath} "
-    }
-
-  } else {
-    println "${templateF} not exists"
-  }
+	//generate views for RegisterController
+	dest = "${basedir}/grails-app/views/${name}"
+	println "copying view files to - ${dest}/*"
+	Ant.mkdir(dir: "${dest}")
+	copyFile "${pluginTemplatePath}/views/${name}/edit.gsp", "${dest}/edit.gsp"
+	copyFile "${pluginTemplatePath}/views/${name}/index.gsp", "${dest}/index.gsp"
+	copyFile "${pluginTemplatePath}/views/${name}/show.gsp", "${dest}/show.gsp"
 }
