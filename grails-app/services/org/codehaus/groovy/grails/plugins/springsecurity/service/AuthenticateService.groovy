@@ -26,7 +26,7 @@ import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
  *
  * @author T.Yamamoto
  */
-class AuthenticateService extends AuthorizeTools {
+class AuthenticateService {
 
 	boolean transactional = true
 
@@ -36,8 +36,8 @@ class AuthenticateService extends AuthorizeTools {
 	 * @deprecated You can invoke tags from controllers (since grails-0.6)
    	*/
    	def ifAllGranted(role) {
-		def granted = getPrincipalAuthorities()
-		return granted.containsAll(parseAuthoritiesString(role))
+		def granted = AuthorizeTools.getPrincipalAuthorities()
+		return granted.containsAll(AuthorizeTools.parseAuthoritiesString(role))
 	}
 
 	/**
@@ -45,8 +45,8 @@ class AuthenticateService extends AuthorizeTools {
    	 */
    	def ifNotGranted(role) {
 
-		def granted = getPrincipalAuthorities()
-		Set grantedCopy = retainAll(granted, parseAuthoritiesString(role));
+		def granted = AuthorizeTools.getPrincipalAuthorities()
+		Set grantedCopy = AuthorizeTools.retainAll(granted, AuthorizeTools.parseAuthoritiesString(role));
 		return grantedCopy.isEmpty()
 	}
 
@@ -55,15 +55,23 @@ class AuthenticateService extends AuthorizeTools {
 	 */
 	def ifAnyGranted(role) {
 
-		def granted = getPrincipalAuthorities()
-		Set grantedCopy = retainAll(granted, parseAuthoritiesString(role))
+		def granted = AuthorizeTools.getPrincipalAuthorities()
+		Set grantedCopy = AuthorizeTools.retainAll(granted, AuthorizeTools.parseAuthoritiesString(role))
 		return !grantedCopy.isEmpty()
 	}
 
+	/**
+	 * Get the currently logged in user's principal.
+	 * @return  the principal or <code>null</code> if not logged in
+	 */
 	def principal() {
 		return SCH?.context?.authentication?.principal
 	}
 
+	/**
+	 * Get the currently logged in user's domain class.
+	 * @return  the domain object or <code>null</code> if not logged in
+	 */
 	def userDomain() {
 
 		def principal = principal()

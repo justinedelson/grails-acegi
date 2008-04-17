@@ -28,7 +28,7 @@ import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
  *
  * @author T.Yamamoto
  */
-class AuthorizeTagLib extends AuthorizeTools {
+class AuthorizeTagLib {
 
 	/**
 	 * <g:ifAllGranted role="ROLE_USER,ROLE_ADMIN,ROLE_SUPERVISOR">
@@ -37,9 +37,9 @@ class AuthorizeTagLib extends AuthorizeTools {
 	 */
 	def ifAllGranted = { attrs, body ->
 		def role = attrs.role
-		def granted = getPrincipalAuthorities()
+		def granted = AuthorizeTools.getPrincipalAuthorities()
 
-		if (granted.containsAll(parseAuthoritiesString(role))) {
+		if (granted.containsAll(AuthorizeTools.parseAuthoritiesString(role))) {
 			out << body()
 		}
 	}
@@ -51,8 +51,8 @@ class AuthorizeTagLib extends AuthorizeTools {
 	 */
 	def ifNotGranted = { attrs, body ->
 		def role = attrs.role
-		def granted = getPrincipalAuthorities()
-		Set grantedCopy = retainAll(granted, parseAuthoritiesString(role))
+		def granted = AuthorizeTools.getPrincipalAuthorities()
+		Set grantedCopy = AuthorizeTools.retainAll(granted, AuthorizeTools.parseAuthoritiesString(role))
 		if (grantedCopy.empty) {
 			out << body()
 		}
@@ -66,8 +66,8 @@ class AuthorizeTagLib extends AuthorizeTools {
 	def ifAnyGranted = { attrs, body ->
 
 		def role = attrs.role
-		def granted = getPrincipalAuthorities()
-		Set grantedCopy = retainAll(granted, parseAuthoritiesString(role))
+		def granted = AuthorizeTools.getPrincipalAuthorities()
+		Set grantedCopy = AuthorizeTools.retainAll(granted, AuthorizeTools.parseAuthoritiesString(role))
 		if (!grantedCopy.empty) {
 			out << body()
 		}

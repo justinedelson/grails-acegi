@@ -15,19 +15,23 @@
  */
 package org.codehaus.groovy.grails.plugins.springsecurity
 
+import org.springframework.security.GrantedAuthority
 import org.springframework.security.GrantedAuthorityImpl
 import org.springframework.security.context.SecurityContextHolder as SCH
 import org.springframework.util.StringUtils as STU
-import org.springframework.web.servlet.support.RequestContextUtils as RCU
-import org.apache.commons.codec.digest.DigestUtils as DU
 
 /**
- * 
+ * Helper methods.
  * @author Tsuyoshi Yamamoto
  */
 class AuthorizeTools {
 
-	def authoritiesToRoles(authorities) {
+	/**
+	 * Extract the role names from authorities.
+	 * @param  authorities  the authorities
+	 * @return  the names
+	 */
+	static Set<String> authoritiesToRoles(authorities) {
 		def roles = new HashSet()
 		authorities.each { authority ->
 			if (null == authority.authority) {
@@ -41,7 +45,11 @@ class AuthorizeTools {
 		return roles
 	}
 
-	def getPrincipalAuthorities() {
+	/**
+	 * Get the current user's authorities.
+	 * @return  a list of authorities (empty if not authenticated).
+	 */
+	static def getPrincipalAuthorities() {
 		def currentUser = SCH.context.authentication
 		if (null == currentUser) {
 			return Collections.EMPTY_LIST
@@ -54,7 +62,12 @@ class AuthorizeTools {
 		return Arrays.asList(currentUser.authorities)
 	}
 
-	def parseAuthoritiesString(String authorizationsString) {
+	/**
+	 * Split the role names and create <code>GrantedAuthority</code>s for each.
+	 * @param authorizationsString  comma-delimited role names
+	 * @return authorities (possibly empty)
+	 */
+	static Set<GrantedAuthority> parseAuthoritiesString(String authorizationsString) {
 		def requiredAuthorities = new HashSet()
 		def authorities = STU.commaDelimitedListToStringArray(authorizationsString)
 		authorities.each { auth ->
@@ -64,7 +77,7 @@ class AuthorizeTools {
 		return requiredAuthorities
 	}
 
-	def retainAll(granted, required) {
+	static Set<String> retainAll(granted, required) {
 		def grantedRoles = authoritiesToRoles(granted)
 		def requiredRoles = authoritiesToRoles(required)
 		grantedRoles.retainAll(requiredRoles)
@@ -72,10 +85,10 @@ class AuthorizeTools {
 		return rolesToAuthorities(grantedRoles, granted)
 	}
 
-	def rolesToAuthorities(grantedRoles, granted) {
+	static Set<String> rolesToAuthorities(grantedRoles, granted) {
 		def target = new HashSet()
 		grantedRoles.each { role ->
-			def auth = granted.find{ authority -> authority.authority == role }
+			def auth = granted.find { authority -> authority.authority == role }
 			if (auth != null) {
 				target.add(auth.authority)
 			}
