@@ -8,6 +8,9 @@ import org.springframework.security.ui.webapp.AuthenticationProcessingFilter
  */
 class LoginController {
 
+	/**
+	 * Dependency injection for the authentication service.
+	 */
 	AuthenticateService authenticateService
 
 	def index = {
@@ -80,17 +83,7 @@ class LoginController {
 			}
 		}
 
-		//is ajax access?
-		def ajaxHeader = authenticateService.securityConfig.security.ajaxHeader
-		boolean isAjax = request.getHeader(ajaxHeader) != null
-		if (!isAjax) {
-			def savedRequest = session[AbstractProcessingFilter.SPRING_SECURITY_SAVED_REQUEST_KEY]
-			if (savedRequest) {
-				isAjax = savedRequest.getHeader(ajaxHeader) != null
-			}
-		}
-
-		if (isAjax) {
+		if (isAjax()) {
 			render("{error: '${msg}'}")
 		}
 		else {
@@ -105,6 +98,22 @@ class LoginController {
 	private boolean isLoggedIn() {
 		def authPrincipal = authenticateService.principal()
 		return authPrincipal != null && authPrincipal != 'anonymousUser'
+	}
+
+	private boolean isAjax() {
+		// check the current request's headers
+		def ajaxHeader = authenticateService.securityConfig.security.ajaxHeader
+		if (request.getHeader(ajaxHeader) != null) {
+			return true
+		}
+
+		// check the SavedRequest's headers
+		def savedRequest = request.session[AbstractProcessingFilter.SPRING_SECURITY_SAVED_REQUEST_KEY]
+		if (savedRequest) {
+			return savedRequest.getHeaderValues(ajaxHeader).hasNext()
+		}
+
+		return false
 	}
 
 	/** cache controls */
