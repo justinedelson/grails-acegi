@@ -53,15 +53,15 @@
 			<form action='${request.contextPath}/j_spring_security_check' method='POST' id='loginForm' class='cssform'>
 				<p>
 					<label for='j_username'>Login ID</label>
-					<input type='text' class='text_' name='j_username' value='' />
+					<input type='text' class='text_' name='j_username' id='j_username'  />
 				</p>
 				<p>
 					<label for='j_password'>Password</label>
-					<input type='password' class='text_' name='j_password' value='' />
+					<input type='password' class='text_' name='j_password' id='j_password' />
 				</p>
 				<p>
-					<label for='j_password'>Remember me</label>
-					<input type='checkbox' class='chk' name='_spring_security_remember_me'>
+					<label for='remember_me'>Remember me</label>
+					<input type='checkbox' class='chk' id='remember_me' name='_spring_security_remember_me'>
 				</p>
 				<p>
 					<input type='submit' value='Login' />

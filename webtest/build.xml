@@ -1,0 +1,164 @@
+<project name='acegi-webtest' default='create-test-project'>
+
+	<!-- Properties -->
+
+	<property file='build.properties' />
+	<property environment='env'/>
+	<property name='grails.home' value='${env.GRAILS_HOME}' />
+
+	<condition property='grails' value='grails.bat'>
+		<os family='windows'/>
+	</condition>
+	<property name='grails' value='grails' />
+
+	<condition property='grails-debug' value='grails-debug.bat'>
+		<os family='windows'/>
+	</condition>
+	<property name='grails-debug' value='grails-debug' />
+
+	<!-- taskdefs -->
+
+	<taskdef resource='net/sf/antcontrib/antlib.xml'>
+		<classpath>
+			<pathelement location='../lib/ant-contrib-1.0b3.jar'/>
+		</classpath>
+	</taskdef>
+
+	<!-- Macrodefs -->
+
+	<macrodef name='grails'>
+		<attribute name='action' />
+		<attribute name='environment' default='dev' />
+		<attribute name='dir' default='../../${testproject}' />
+		<element name='args' optional='true' />
+		<sequential>
+			<exec executable='${grails}' dir='@{dir}' failonerror='true'>
+				<arg value='@{environment}'/>
+				<arg value='@{action}'/>
+				<args />
+			</exec>
+		</sequential>
+	</macrodef>
+
+	<macrodef name='add-classpath-entry'>
+		<attribute name='kind' />
+		<attribute name='path' />
+		<sequential>
+			<echo append='true' file='../../${testproject}/classpath'>	&lt;classpathentry kind='@{kind}' path='@{path}'/&gt;
+</echo>
+		</sequential>
+	</macrodef>
+
+	<!-- Targets -->
+
+	<target name='create-test-project' description='Builds a test project for running WebTest'>
+
+		<fail unless='testproject'>Set the 'testproject' property in build.properties </fail>
+		<fail unless='version.plugin'>Set the 'version.plugin' property in build.properties </fail>
+		<fail unless='version.webtest'>Set the 'version.webtest' property in build.properties </fail>
+
+		<!-- create the app -->
+		<delete dir='../../${testproject}' />
+		<grails action='create-app' dir='../..'>
+			<args><arg value='${testproject}'/></args>
+		</grails>
+
+		<!-- setup bin-groovy -->
+		<mkdir dir='../../${testproject}/.settings' />
+		<copy file='org.codehaus.groovy.eclipse.preferences.prefs'
+			todir='../../${testproject}/.settings'
+		/>
+
+		<!-- install plugins -->
+		<mkdir dir='../../${testproject}/plugins' />
+		<grails action='install-plugin'>
+			<args><arg value='${basedir}/grails-webtest-${version.webtest}.zip'/></args>
+		</grails>
+		<grails action='install-plugin'>
+			<args><arg value='${basedir}/../grails-acegi-${version.plugin}.zip'/></args>
+		</grails>
+
+		<!-- run the scripts to create user, role, controllers, etc. -->
+		<grails action='create-auth-domains'>
+			<args><arg value='User'/><arg value='Role'/></args>
+		</grails>
+		<grails action='generate-manager'/>
+		<grails action='generate-registration'/>
+
+		<!-- setup .classpath -->
+		<copy file='../../${testproject}/.classpath'
+			tofile='../../${testproject}/classpath'
+			overwrite='true'
+		/>
+
+		<!-- remove the last two classpath lines -->
+		<replace file='../../${testproject}/classpath' token='&lt;classpathentry kind="output" path="web-app/WEB-INF/classes"/&gt;' />
+		<replace file='../../${testproject}/classpath' token='&lt;/classpath&gt;' />
+
+		<!-- add in plugin source folders and bin-groovy -->
+		<add-classpath-entry kind='lib' path='bin-groovy' />
+		<add-classpath-entry kind='src' path='webtest/tests' />
+		<add-classpath-entry kind='src' path='plugins/webtest-${version.webtest}/src/groovy' />
+		<add-classpath-entry kind='src' path='plugins/acegi-${version.plugin}/grails-app/controllers' />
+		<add-classpath-entry kind='src' path='plugins/acegi-${version.plugin}/grails-app/services' />
+		<add-classpath-entry kind='src' path='plugins/acegi-${version.plugin}/grails-app/taglib' />
+		<add-classpath-entry kind='src' path='plugins/acegi-${version.plugin}/src/groovy' />
+		<add-classpath-entry kind='src' path='plugins/acegi-${version.plugin}/src/java' />
+
+		<!-- add in plugin jars -->
+		<for param='jar'>
+			<path>
+				<fileset dir='../../${testproject}/plugins/acegi-${version.plugin}/lib' includes='*.jar'/>
+			</path>
+			<sequential>
+				<add-classpath-entry kind='lib' path='@{jar}' />
+			</sequential>
+		</for>
+
+		<!-- add in lib jars -->
+		<for param='jar'>
+			<path>
+				<fileset dir='../../${testproject}/lib' includes='*.jar'/>
+			</path>
+			<sequential>
+				<add-classpath-entry kind='lib' path='@{jar}' />
+			</sequential>
+		</for>
+
+		<add-classpath-entry kind='output' path='classes' />
+		<echo file='../../${testproject}/classpath' append='true'>&lt;/classpath&gt;</echo>
+
+		<!-- remove the directory from the lib entries to make them relative -->
+		<path id='project_dir' location='../../${testproject}' />
+		<property name='project_dir' refid='project_dir' />
+		<replace file='../../${testproject}/classpath' token='${project_dir}/' />
+
+		<move file='../../${testproject}/classpath' tofile='../../${testproject}/.classpath' />
+
+		<!-- copy the sample files -->
+		<mkdir dir='../../${testproject}/webtest/conf' />
+		<mkdir dir='../../${testproject}/webtest/reports' />
+		<mkdir dir='../../${testproject}/webtest/tests' />
+
+		<copy todir='../../${testproject}/grails-app/controllers'>
+			<fileset dir='.'><include name='*Controller.groovy'/></fileset>
+		</copy>
+		<copy todir='../../${testproject}/grails-app/services'>
+			<fileset dir='.'><include name='*Service.groovy'/></fileset>
+		</copy>
+		<copy todir='../../${testproject}/webtest/tests'>
+			<fileset dir='.'><include name='*Test.groovy'/></fileset>
+		</copy>
+		<copy file='TestSuite.groovy' todir='../../${testproject}/webtest/tests' />
+		<copy file='webtest.properties' todir='../../${testproject}/webtest/conf' />
+		<copy file='accessDenied.gsp' todir='../../${testproject}/grails-app/views' />
+		<copy file='BootStrap.groovy' todir='../../${testproject}/grails-app/conf' overwrite='true'/>
+		<copy file='UrlMappings.groovy' todir='../../${testproject}/grails-app/conf' overwrite='true'/>
+
+		<echo>
+			
+		Now run 'cd ../${testproject}' and then run 'grails run-webtest' to execute WebTest.
+		</echo>
+	</target>
+
+</project>
