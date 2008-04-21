@@ -1,4 +1,5 @@
-import org.codehaus.groovy.grails.plugins.springsecurity.service.AuthenticateService
+import org.grails.plugins.springsecurity.service.AuthenticateService
+
 import org.springframework.security.providers.UsernamePasswordAuthenticationToken as AuthToken
 import org.springframework.security.context.SecurityContextHolder as SCH
 

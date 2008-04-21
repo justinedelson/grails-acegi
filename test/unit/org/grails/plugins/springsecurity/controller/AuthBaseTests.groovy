@@ -1,14 +1,14 @@
-package org.codehaus.groovy.grails.plugins.springsecurity.controller
+package org.grails.plugins.springsecurity.controller
 
 import org.codehaus.groovy.grails.plugins.springsecurity.AbstractSecurityTest
 import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
-import org.codehaus.groovy.grails.plugins.springsecurity.service.AuthenticateService
+import org.grails.plugins.springsecurity.service.AuthenticateService
 import org.easymock.EasyMock
 import org.springframework.mock.web.MockHttpServletRequestimport org.springframework.mock.web.MockHttpServletResponseimport org.springframework.security.Authentication
 import org.springframework.security.GrantedAuthority
 import org.springframework.web.servlet.DispatcherServlet
 import org.springframework.web.servlet.LocaleResolver
-import org.springframework.web.servlet.LocaleResolver
+
 /**
  * Unit tests for AuthBase.
  *

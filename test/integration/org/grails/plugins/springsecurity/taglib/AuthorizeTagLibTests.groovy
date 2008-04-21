@@ -1,11 +1,13 @@
-package org.codehaus.groovy.grails.plugins.springsecurity.taglib
+package org.grails.plugins.springsecurity.taglib
 
 import grails.test.GroovyPagesTestCase
+
+import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
+
 import org.springframework.security.Authentication
 import org.springframework.security.GrantedAuthority
 import org.springframework.security.context.SecurityContextHolder as SCH
 import org.springframework.security.providers.TestingAuthenticationToken
-import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
 
 /**
  * Integration tests for <code>AuthorizeTagLib</code>.

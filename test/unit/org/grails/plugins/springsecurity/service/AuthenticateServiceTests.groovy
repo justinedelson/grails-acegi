@@ -1,4 +1,4 @@
-package org.codehaus.groovy.grails.plugins.springsecurity.service
+package org.grails.plugins.springsecurity.service
 
 import org.codehaus.groovy.grails.plugins.springsecurity.AbstractSecurityTest
 import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools

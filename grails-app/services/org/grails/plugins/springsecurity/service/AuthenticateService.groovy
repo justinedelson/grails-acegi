@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.codehaus.groovy.grails.plugins.springsecurity.service
+package org.grails.plugins.springsecurity.service
 
 import org.springframework.security.context.SecurityContextHolder as SCH
 import org.apache.commons.codec.digest.DigestUtils as DU

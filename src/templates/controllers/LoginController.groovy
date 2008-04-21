@@ -1,4 +1,5 @@
-import org.codehaus.groovy.grails.plugins.springsecurity.service.AuthenticateService
+import org.grails.plugins.springsecurity.service.AuthenticateService
+
 import org.springframework.security.DisabledException
 import org.springframework.security.ui.AbstractProcessingFilter
 import org.springframework.security.ui.webapp.AuthenticationProcessingFilter
