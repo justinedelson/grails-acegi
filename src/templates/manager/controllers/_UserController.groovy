@@ -1,4 +1,4 @@
-import org.codehaus.groovy.grails.plugins.springsecurity.service.AuthenticateService
+import org.grails.plugins.springsecurity.service.AuthenticateService
 
 /**
  * ${personDomain} Controller.
@@ -32,25 +32,24 @@ class UserController {
 	def delete = {
 
 		def person = ${personDomain}.get(params.id)
-		if (!person) {
-			flash.message = "${personDomain} not found with id \${params.id}"
-			redirect(action: list)
-			return
-		}
-
-		def authPrincipal = authenticateService.principal()
-		//avoid self-delete if the logged-in user is an admin
-		if (!(authPrincipal instanceof String) && authPrincipal.username != person.username) {
-			//first, delete this person from People_Authorities table.
-			${authorityDomain}.findAll().each { it.removeFromPeople(person) }
-			person.delete()
-			flash.message = "${personDomain} \${params.id} deleted."
-			redirect(action: list)
+		if (person) {
+			def authPrincipal = authenticateService.principal()
+			//avoid self-delete if the logged-in user is an admin
+			if (!(authPrincipal instanceof String) && authPrincipal.username == person.username) {
+				flash.message = "You can not delete yourself, please login as another admin and try again"
+			}
+			else {
+				//first, delete this person from People_Authorities table.
+				${authorityDomain}.findAll().each { it.removeFromPeople(person) }
+				person.delete()
+				flash.message = "${personDomain} \${params.id} deleted."
+			}
 		}
 		else {
-			flash.message = "You can not delete yourself, please login as another admin and try again"
-			redirect(action: list)
+			flash.message = "${personDomain} not found with id \${params.id}"
 		}
+
+		redirect(action: list)
 	}
 
 	def edit = {
