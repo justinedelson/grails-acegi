@@ -21,10 +21,18 @@ import javax.servlet.http.HttpServletResponse
 import org.springframework.security.ui.webapp.AuthenticationProcessingFilter
 
 /**
+ * Extends the default <code>AuthenticationProcessingFilter</code> to override the sendRedirect() logic and
+ * always send absolute redirects.
+ *
  * @author Tsuyoshi Yamamoto
  */
 class GrailsAuthenticationProcessingFilter extends AuthenticationProcessingFilter {
-  
+
+	/**
+	 * Dependency injection for the authentication service.
+	 */
+	def authenticateService
+
 	/**
 	 * {@inheritDoc}
 	 * @see org.springframework.security.ui.AbstractProcessingFilter#sendRedirect(
