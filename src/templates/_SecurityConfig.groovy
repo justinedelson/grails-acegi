@@ -2,6 +2,9 @@ security {
 
 	active = true
 
+	// change to true to use OpenID authentication
+	useOpenId = false
+
 	algorithm = 'MD5' 
 	//use Base64 text ( true or false )
 	encodeHashAsBase64 = false

@@ -1,4 +1,4 @@
-<project name='spring-security' default='test'>
+<project name='acegi' default='test'>
 
 	<!-- Properties -->
 

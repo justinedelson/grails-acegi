@@ -108,6 +108,10 @@ security {
 
 	/** default user's role for user registration */
 	defaultRole='ROLE_USER'
+
+	// OpenId
+	useOpenId = false
+	openIdNonceMaxSeconds = 300 // max time between auth start and end
 }
 
 algorithmMethods {

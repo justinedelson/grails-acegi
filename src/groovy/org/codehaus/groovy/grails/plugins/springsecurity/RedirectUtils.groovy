@@ -41,7 +41,23 @@ class RedirectUtils {
 			final HttpServletResponse response,
 			final String url) throws IOException {
 
-		String finalUrl
+		String redirect = buildRedirectUrl(request, response, url)
+		response.sendRedirect(response.encodeRedirectURL(redirect))
+	}
+
+	/**
+	 * Build a redirect url.
+	 * @param request  the request
+	 * @param response  the response
+     * @param url the target url to redirect to
+     * @return  the url
+	 * @throws IOException  if there's a problem
+	 */
+	static String buildRedirectUrl(
+			final HttpServletRequest request,
+			final HttpServletResponse response,
+			final String url) throws IOException {
+
 		if (!url.startsWith("http://") && !url.startsWith("https://")) {
 			String scheme = request.scheme
 			int serverPort = RESOLVER.getServerPort(request)
@@ -55,11 +71,9 @@ class RedirectUtils {
 				includePort = false
 			}
 			String port = includePort ? ":" + serverPort : ""
-			finalUrl = "${scheme}://${request.serverName}${port}${request.contextPath}${url}"
+			return "${scheme}://${request.serverName}${port}${request.contextPath}${url}"
 		}
-		else {
-			finalUrl = url
-		}
-		response.sendRedirect(response.encodeRedirectURL(finalUrl))
+
+		return url
 	}
 }

@@ -99,6 +99,8 @@ private void copyViewAndControllers() {
 	Ant.mkdir(dir: "${appDir}/views/login")
 	copyFile "${templateDir}/views/login/auth.gsp",
 		"${appDir}/views/login/auth.gsp"
+	copyFile "${templateDir}/views/login/openIdAuth.gsp",
+		"${appDir}/views/login/openIdAuth.gsp"
 	copyFile "${templateDir}/controllers/LoginController.groovy",
 		"${appDir}/controllers/LoginController.groovy"
 	copyFile "${templateDir}/controllers/LogoutController.groovy",

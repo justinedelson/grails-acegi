@@ -9,6 +9,9 @@ import org.codehaus.groovy.grails.plugins.springsecurity.QuietMethodSecurityInte
 import org.codehaus.groovy.grails.plugins.springsecurity.SecurityAnnotationAttributes
 import org.codehaus.groovy.grails.plugins.springsecurity.WithAjaxAuthenticationProcessingFilterEntryPoint
 
+import org.openid4java.consumer.ConsumerManager
+import org.openid4java.consumer.InMemoryConsumerAssociationStore
+import org.openid4java.consumer.InMemoryNonceVerifier
 import org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator
 import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator
 import org.springframework.beans.factory.config.RuntimeBeanReference
@@ -22,11 +25,14 @@ import org.springframework.security.context.SecurityContextHolder as SCH
 import org.springframework.security.event.authentication.LoggerListener
 import org.springframework.security.intercept.method.MethodDefinitionAttributes
 import org.springframework.security.intercept.web.FilterSecurityInterceptor
+import org.springframework.security.providers.openid.OpenIDAuthenticationProvider
 import org.springframework.security.ui.ExceptionTranslationFilter
 import org.springframework.security.ui.basicauth.BasicProcessingFilter
 import org.springframework.security.ui.basicauth.BasicProcessingFilterEntryPoint
 import org.springframework.security.ui.logout.LogoutHandler
 import org.springframework.security.ui.logout.SecurityContextLogoutHandler
+import org.springframework.security.ui.openid.OpenIDAuthenticationProcessingFilter
+import org.springframework.security.ui.openid.consumers.OpenID4JavaConsumer
 import org.springframework.security.ui.rememberme.RememberMeProcessingFilter
 import org.springframework.security.ui.rememberme.TokenBasedRememberMeServices
 import org.springframework.security.ui.switchuser.SwitchUserProcessingFilter
@@ -54,7 +60,7 @@ import org.springframework.web.filter.DelegatingFilterProxy
  */
 class AcegiGrailsPlugin {
 
-	def version = '0.3-20080421-SNAPSHOT'
+	def version = '0.3-20080422-SNAPSHOT'
 	def author = 'Tsuyoshi Yamamoto'
 	def authorEmail = 'tyama@xmldo.jp'
 	def title = 'Grails Spring Security 2.0 Plugin'
@@ -95,6 +101,9 @@ class AcegiGrailsPlugin {
 			filterNames << 'httpSessionContextIntegrationFilter'
 			filterNames << 'logoutFilter'
 			filterNames << 'authenticationProcessingFilter'
+			if (conf.useOpenId) {
+				filterNames << 'openIDAuthenticationProcessingFilter'
+			}
 			if (conf.basicProcessingFilter) {
 				filterNames << 'basicProcessingFilter'
 			}
@@ -115,6 +124,25 @@ class AcegiGrailsPlugin {
 				PATTERN_TYPE_APACHE_ANT
 				/**=${filterNames.join(',')}
 				"""
+		}
+
+		/** OpenId */
+		openIDAuthProvider(OpenIDAuthenticationProvider) {
+			userDetailsService = ref('userDetailsService')
+		}
+		openIDStore(InMemoryConsumerAssociationStore) {}
+		openIDNonceVerifier(InMemoryNonceVerifier, conf.openIdNonceMaxSeconds) {} // 300 seconds
+		openIDConsumerManager(ConsumerManager) {
+			nonceVerifier = ref('openIDNonceVerifier')
+		}
+		openIDConsumer(OpenID4JavaConsumer, openIDConsumerManager) {}
+		openIDAuthenticationProcessingFilter(OpenIDAuthenticationProcessingFilter) {
+			authenticationManager = ref('authenticationManager')
+			authenticationFailureUrl = conf.authenticationFailureUrl //'/login/authfail?login_error=1' // /spring_security_login?login_error
+			defaultTargetUrl = conf.defaultTargetUrl // '/'
+			filterProcessesUrl = '/j_spring_openid_security_check' // not configurable
+			rememberMeServices = ref('rememberMeServices')
+			consumer = ref('openIDConsumer')
 		}
 
 		/** httpSessionContextIntegrationFilter */
@@ -242,10 +270,14 @@ class AcegiGrailsPlugin {
 
 		def providerNames = conf.providerNames
 		if (!providerNames) {
-			providerNames = ['daoAuthenticationProvider',
-			                 'anonymousAuthenticationProvider',
-			                 'rememberMeAuthenticationProvider']
+			providerNames = ['daoAuthenticationProvider']
+			if (conf.useOpenId) {
+				providerNames << 'openIDAuthProvider'
+			}
+			providerNames << 'anonymousAuthenticationProvider'
+			providerNames << 'rememberMeAuthenticationProvider'
 		}
+
 		def providerList = createRefList(providerNames)
 		/** authenticationManager */
 		authenticationManager(ProviderManager) {

@@ -1,7 +1,9 @@
+import org.codehaus.groovy.grails.plugins.springsecurity.RedirectUtils
 import org.grails.plugins.springsecurity.service.AuthenticateService
 
 import org.springframework.security.DisabledException
 import org.springframework.security.ui.AbstractProcessingFilter
+import org.springframework.security.ui.openid.OpenIDConsumerException
 import org.springframework.security.ui.webapp.AuthenticationProcessingFilter
 
 /**
@@ -13,6 +15,16 @@ class LoginController {
 	 * Dependency injection for the authentication service.
 	 */
 	AuthenticateService authenticateService
+
+	/**
+	 * Dependency injection for OpenIDConsumer.
+	 */
+	def openIDConsumer
+
+	/**
+	 * Dependency injection for OpenIDAuthenticationProcessingFilter.
+	 */
+	def openIDAuthenticationProcessingFilter
 
 	def index = {
 		if (isLoggedIn()) {
@@ -30,6 +42,30 @@ class LoginController {
 		nocache(response)
 		if (isLoggedIn()) {
 			redirect(uri: '/')
+		}
+
+		if (authenticateService.securityConfig.security.useOpenId) {
+			render(view: 'openIdAuth')
+		}
+		else {
+			render(view: 'auth')
+		}
+	}
+
+	/**
+	 * Form submit action to start an OpenID authentication.
+	 */
+	def openIdAuthenticate = {
+		String openID = params['j_username']
+		try {
+			String returnToURL = RedirectUtils.buildRedirectUrl(
+					request, response, openIDAuthenticationProcessingFilter.filterProcessesUrl)
+			String redirectUrl = openIDConsumer.beginConsumption(request, openID, returnToURL)
+			redirect(url: redirectUrl)
+		}
+		catch (OpenIDConsumerException e) {
+			log.error "Consumer error: ${e.message}", e
+			redirect(url: openIDAuthenticationProcessingFilter.authenticationFailureUrl)
 		}
 	}
 
