@@ -112,6 +112,18 @@ security {
 	// OpenId
 	useOpenId = false
 	openIdNonceMaxSeconds = 300 // max time between auth start and end
+
+	// LDAP/ActiveDirectory
+	useLdap = false
+	ldapServer = 'ldap://localhost:389' // 'ldap://ad.example.com', 'ldap://monkeymachine:389/dc=acegisecurity,dc=org'
+	ldapManagerDn = 'cn=admin,dc=example,dc=com'
+	ldapManagerPassword = 'secret'
+	ldapSearchBase = 'dc=example,dc=com' // 'ou=users,dc=example,dc=com'
+	ldapSearchFilter = '(uid={0})' //, '(mailNickname={0})'
+	ldapSearchSubtree = true
+	ldapGroupRoleAttribute = 'cn'
+	ldapGroupSearchBase = 'ou=groups,dc=example,dc=com'
+	ldapGroupSearchFilter = 'uniquemember={0}'
 }
 
 algorithmMethods {

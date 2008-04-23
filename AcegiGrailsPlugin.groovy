@@ -4,6 +4,7 @@ import org.codehaus.groovy.grails.plugins.springsecurity.GrailsAccessDeniedHandl
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsAuthenticationProcessingFilter
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsDaoImpl
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsFilterInvocationDefinition
+import org.codehaus.groovy.grails.plugins.springsecurity.GrailsLdapUserDetailsMapper
 import org.codehaus.groovy.grails.plugins.springsecurity.LogoutFilterFactoryBean
 import org.codehaus.groovy.grails.plugins.springsecurity.QuietMethodSecurityInterceptor
 import org.codehaus.groovy.grails.plugins.springsecurity.SecurityAnnotationAttributes
@@ -25,6 +26,9 @@ import org.springframework.security.context.SecurityContextHolder as SCH
 import org.springframework.security.event.authentication.LoggerListener
 import org.springframework.security.intercept.method.MethodDefinitionAttributes
 import org.springframework.security.intercept.web.FilterSecurityInterceptor
+import org.springframework.security.ldap.DefaultSpringSecurityContextSource
+import org.springframework.security.ldap.populator.DefaultLdapAuthoritiesPopulator
+import org.springframework.security.ldap.search.FilterBasedLdapUserSearch
 import org.springframework.security.providers.openid.OpenIDAuthenticationProvider
 import org.springframework.security.ui.ExceptionTranslationFilter
 import org.springframework.security.ui.basicauth.BasicProcessingFilter
@@ -43,6 +47,8 @@ import org.springframework.security.providers.anonymous.AnonymousProcessingFilte
 import org.springframework.security.providers.dao.DaoAuthenticationProvider
 import org.springframework.security.providers.dao.cache.EhCacheBasedUserCache
 import org.springframework.security.providers.encoding.MessageDigestPasswordEncoder
+import org.springframework.security.providers.ldap.LdapAuthenticationProvider
+import org.springframework.security.providers.ldap.authenticator.BindAuthenticator
 import org.springframework.security.providers.rememberme.RememberMeAuthenticationProvider
 import org.springframework.security.util.FilterChainProxy
 import org.springframework.security.vote.AffirmativeBased
@@ -60,7 +66,7 @@ import org.springframework.web.filter.DelegatingFilterProxy
  */
 class AcegiGrailsPlugin {
 
-	def version = '0.3-20080422-SNAPSHOT'
+	def version = '0.3-20080423-SNAPSHOT'
 	def author = 'Tsuyoshi Yamamoto'
 	def authorEmail = 'tyama@xmldo.jp'
 	def title = 'Grails Spring Security 2.0 Plugin'
@@ -270,9 +276,14 @@ class AcegiGrailsPlugin {
 
 		def providerNames = conf.providerNames
 		if (!providerNames) {
-			providerNames = ['daoAuthenticationProvider']
-			if (conf.useOpenId) {
-				providerNames << 'openIDAuthProvider'
+			if (conf.useLdap) {
+				providerNames = ['ldapAuthProvider']
+			}
+			else {
+				providerNames = ['daoAuthenticationProvider']
+				if (conf.useOpenId) {
+					providerNames << 'openIDAuthProvider'
+				}
 			}
 			providerNames << 'anonymousAuthenticationProvider'
 			providerNames << 'rememberMeAuthenticationProvider'
@@ -370,6 +381,32 @@ class AcegiGrailsPlugin {
 				switchUserUrl = conf.swswitchUserUrl
 				exitUserUrl = conf.swexitUserUrl
 				targetUrl = conf.swtargetUrl
+			}
+		}
+
+		// LDAP
+		if (conf.useLdap) {
+			contextSource(DefaultSpringSecurityContextSource, conf.ldapServer) {
+				userDn = conf.ldapManagerDn
+				password = conf.ldapManagerPassword
+			}
+
+			ldapUserSearch(FilterBasedLdapUserSearch, conf.ldapSearchBase, conf.ldapSearchFilter, ref('contextSource')) {
+				searchSubtree = conf.ldapSearchSubtree
+			}
+
+			ldapAuthenticator(BindAuthenticator, ref('contextSource')) {
+				userSearch = ref('ldapUserSearch')
+			}
+			ldapAuthoritiesPopulator(DefaultLdapAuthoritiesPopulator, ref('contextSource'), conf.ldapGroupSearchBase) {
+				groupRoleAttribute = conf.ldapGroupRoleAttribute
+				groupSearchFilter = conf.ldapGroupSearchFilter
+			}
+			ldapUserDetailsMapper(GrailsLdapUserDetailsMapper) {
+				grailsDao = ref('userDetailsService')
+			}
+			ldapAuthProvider(LdapAuthenticationProvider, ref('ldapAuthenticator'), ref('ldapAuthoritiesPopulator')) {
+				userDetailsContextMapper = ref('ldapUserDetailsMapper')
 			}
 		}
 	}

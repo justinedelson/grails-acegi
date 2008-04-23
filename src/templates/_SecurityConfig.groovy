@@ -5,6 +5,9 @@ security {
 	// change to true to use OpenID authentication
 	useOpenId = false
 
+	// change to true to use LDAP/ActiveDirectory authentication
+	useLdap = false
+
 	algorithm = 'MD5' 
 	//use Base64 text ( true or false )
 	encodeHashAsBase64 = false

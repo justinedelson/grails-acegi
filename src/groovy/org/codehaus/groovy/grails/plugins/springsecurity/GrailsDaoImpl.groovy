@@ -50,17 +50,8 @@ class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements UserDet
 		GrailsWebApplicationObjectSupport.SessionContainer container = setUpSession()
 
 		try {
-			def query = container.session.createQuery(
-					"from $loginUserDomainClass where $usernameFieldName=:username")
-			query.setProperties([username: username])
-			def users = query/*.setCacheable(true)*/.list()
+			def user = loadDomainUser(username, container.session)
 
-			if (users.empty) {
-				logger.error("User not found: ${username}")
-				throw new UsernameNotFoundException("User not found.", username)
-			}
-
-			def user = users[0]
 			GrantedAuthority[] authorities = null
 			if (relationalAuthoritiesField) {
 				authorities = createRolesByRelationalAuthorities(user, username)
@@ -81,6 +72,36 @@ class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements UserDet
 		finally {
 			releaseSession(container)
 		}
+    }
+
+	/**
+	 * Load a domain user by username.
+	 * @param username  the login name
+	 * @return  the user
+	 */
+	def loadDomainUser(final String username) throws UsernameNotFoundException, DataAccessException {
+		GrailsWebApplicationObjectSupport.SessionContainer container = setUpSession()
+		try {
+			return loadDomainUser(username, container.session)
+		}
+		finally {
+			releaseSession(container)
+		}
+    }
+
+	private def loadDomainUser(username, session) throws UsernameNotFoundException, DataAccessException {
+
+		def query = session.createQuery(
+				"from $loginUserDomainClass where $usernameFieldName=:username")
+		query.setProperties([username: username])
+		def users = query/*.setCacheable(true)*/.list()
+
+		if (users.empty) {
+			logger.error("User not found: ${username}")
+			throw new UsernameNotFoundException("User not found.", username)
+		}
+
+		return users[0]
     }
 
 	/**
