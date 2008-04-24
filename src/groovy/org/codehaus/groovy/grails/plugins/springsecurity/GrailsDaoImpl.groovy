@@ -114,10 +114,11 @@ class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements UserDet
 	 * @param user  the user domain instance
 	 * @return  the instance
 	 */
-	protected UserDetails createUserDetails(String username, password, enabled,
+	protected UserDetails createUserDetails(
+			String username, String password, boolean enabled,
 			GrantedAuthority[] authorities, GroovyObject user) {
 		new GrailsUserImpl(
-				username, user."$passwordFieldName", user."$enabledFieldName",
+				username, password, enabled,
 				true, true, true, authorities, user)
 	}
 
