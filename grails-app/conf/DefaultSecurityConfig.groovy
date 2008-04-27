@@ -105,6 +105,7 @@ security {
 	mailPassword = 'sungod'
 	mailProtocol = 'smtp'
 	mailFrom = 'user@localhost'
+	mailPort = 25
 
 	/** default user's role for user registration */
 	defaultRole='ROLE_USER'
@@ -115,22 +116,8 @@ security {
 
 	// LDAP/ActiveDirectory
 	useLdap = false
-	ldapServer = 'ldap://localhost:389' // 'ldap://ad.example.com', 'ldap://monkeymachine:389/dc=acegisecurity,dc=org'
-	ldapManagerDn = 'cn=admin,dc=example,dc=com'
-	ldapManagerPassword = 'secret'
-	ldapSearchBase = 'dc=example,dc=com' // 'ou=users,dc=example,dc=com'
-	ldapSearchFilter = '(uid={0})' //, '(mailNickname={0})'
+	ldapRetrieveGroupRoles = true
+	ldapRetrieveDatabaseRoles = false
 	ldapSearchSubtree = true
 	ldapGroupRoleAttribute = 'cn'
-	ldapGroupSearchBase = 'ou=groups,dc=example,dc=com'
-	ldapGroupSearchFilter = 'uniquemember={0}'
-}
-
-algorithmMethods {
-	MD5 = 'md5Hex'
-	SHA = 'shaHex'
-	SHA1 = 'shaHex'
-	SHA256 = 'sha256Hex'
-	SHA384 = 'sha384Hex'
-	SHA512 = 'sha512Hex'
 }

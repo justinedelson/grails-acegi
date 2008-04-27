@@ -4,11 +4,12 @@ import org.codehaus.groovy.grails.plugins.springsecurity.GrailsAccessDeniedHandl
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsAuthenticationProcessingFilter
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsDaoImpl
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsFilterInvocationDefinition
-import org.codehaus.groovy.grails.plugins.springsecurity.GrailsLdapUserDetailsMapper
 import org.codehaus.groovy.grails.plugins.springsecurity.LogoutFilterFactoryBean
 import org.codehaus.groovy.grails.plugins.springsecurity.QuietMethodSecurityInterceptor
 import org.codehaus.groovy.grails.plugins.springsecurity.SecurityAnnotationAttributes
+import org.codehaus.groovy.grails.plugins.springsecurity.SecurityEventListener
 import org.codehaus.groovy.grails.plugins.springsecurity.WithAjaxAuthenticationProcessingFilterEntryPoint
+import org.codehaus.groovy.grails.plugins.springsecurity.ldap.GrailsLdapUserDetailsMapper
 
 import org.openid4java.consumer.ConsumerManager
 import org.openid4java.consumer.InMemoryConsumerAssociationStore
@@ -66,7 +67,7 @@ import org.springframework.web.filter.DelegatingFilterProxy
  */
 class AcegiGrailsPlugin {
 
-	def version = '0.3-20080424-SNAPSHOT'
+	def version = '0.3-20080426-SNAPSHOT'
 	def author = 'Tsuyoshi Yamamoto'
 	def authorEmail = 'tyama@xmldo.jp'
 	def title = 'Grails Spring Security 2.0 Plugin'
@@ -92,7 +93,6 @@ class AcegiGrailsPlugin {
 
 		//log.info('loading security config ...')
 		println 'loading security config ...'
-		def useMail = conf.useMail
 
 		def makeItGetter = { field ->
 			if (!field) {
@@ -362,13 +362,19 @@ class AcegiGrailsPlugin {
 		}
 
 		//load simple java mail settings
+		def useMail = conf.useMail
 		if (useMail) {
 			mailSender(JavaMailSenderImpl) {
 				host = conf.mailHost
 				username = conf.mailUsername
 				password = conf.mailPassword
 				protocol = conf.mailProtocol
+				port = conf.mailPort
+				if (conf.javaMailProperties) {
+					javaMailProperties = conf.javaMailProperties as Properties
+				}
 			}
+
 			mailMessage(SimpleMailMessage) {
 				from = conf.mailFrom
 			}
@@ -398,16 +404,30 @@ class AcegiGrailsPlugin {
 			ldapAuthenticator(BindAuthenticator, ref('contextSource')) {
 				userSearch = ref('ldapUserSearch')
 			}
-			ldapAuthoritiesPopulator(DefaultLdapAuthoritiesPopulator, ref('contextSource'), conf.ldapGroupSearchBase) {
-				groupRoleAttribute = conf.ldapGroupRoleAttribute
-				groupSearchFilter = conf.ldapGroupSearchFilter
-			}
 			ldapUserDetailsMapper(GrailsLdapUserDetailsMapper) {
-				grailsDao = ref('userDetailsService')
+				grailsDaoImpl = ref('userDetailsService')
+				authenticateService = ref('authenticateService')
 			}
-			ldapAuthProvider(LdapAuthenticationProvider, ref('ldapAuthenticator'), ref('ldapAuthoritiesPopulator')) {
-				userDetailsContextMapper = ref('ldapUserDetailsMapper')
+			if (conf.ldapRetrieveGroupRoles) {
+				ldapAuthoritiesPopulator(DefaultLdapAuthoritiesPopulator, ref('contextSource'), conf.ldapGroupSearchBase) {
+					groupRoleAttribute = conf.ldapGroupRoleAttribute
+					groupSearchFilter = conf.ldapGroupSearchFilter
+				}
+				ldapAuthProvider(LdapAuthenticationProvider, ref('ldapAuthenticator'), ref('ldapAuthoritiesPopulator')) {
+					userDetailsContextMapper = ref('ldapUserDetailsMapper')
+				}
 			}
+			else {
+				// use the NullAuthoritiesPopulator
+				ldapAuthProvider(LdapAuthenticationProvider, ref('ldapAuthenticator')) {
+					userDetailsContextMapper = ref('ldapUserDetailsMapper')
+				}
+			}
+		}
+
+		// SecurityEventListener
+		securityEventListener(SecurityEventListener) {
+			authenticateService = ref('authenticateService')
 		}
 	}
 

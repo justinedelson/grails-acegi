@@ -46,43 +46,43 @@ class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements UserDet
 	 * @see org.springframework.security.userdetails.UserDetailsService#loadUserByUsername(java.lang.String)
 	 */
 	UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException, DataAccessException {
+		return loadUserByUsername(username, true)
+	}
+
+	/**
+	 * Load a user by username, optionally not loading roles.
+	 * @param username  the login name
+	 * @param loadRoles  if <code>true</code> load roles from the database
+	 * @return the user if found, otherwise throws <code>UsernameNotFoundException</code>
+	 * @throws UsernameNotFoundException  if the user isn't found
+	 * @throws DataAccessException  if there's a database problem
+	 */
+	UserDetails loadUserByUsername(final String username, final boolean loadRoles)
+			throws UsernameNotFoundException, DataAccessException {
 
 		GrailsWebApplicationObjectSupport.SessionContainer container = setUpSession()
 
 		try {
 			def user = loadDomainUser(username, container.session)
 
-			GrantedAuthority[] authorities = null
-			if (relationalAuthoritiesField) {
-				authorities = createRolesByRelationalAuthorities(user, username)
-			}
-			else if (authoritiesMethodName) {
-				authorities = createRolesByAuthoritiesMethod(user, username)
-			}
+			GrantedAuthority[] authorities = []
+			if (loadRoles) {
+				if (relationalAuthoritiesField) {
+					authorities = createRolesByRelationalAuthorities(user, username)
+				}
+				else if (authoritiesMethodName) {
+					authorities = createRolesByAuthoritiesMethod(user, username)
+				}
 
-			if (!authorities) {
-				logger.error("User [${username}] has no GrantedAuthority")
-				throw new UsernameNotFoundException("User has no GrantedAuthority")
+				if (!authorities) {
+					logger.error("User [${username}] has no GrantedAuthority")
+					throw new UsernameNotFoundException("User has no GrantedAuthority")
+				}
 			}
 
 			return createUserDetails(
 					username, user."$passwordFieldName", user."$enabledFieldName",
 					authorities, user)
-		}
-		finally {
-			releaseSession(container)
-		}
-    }
-
-	/**
-	 * Load a domain user by username.
-	 * @param username  the login name
-	 * @return  the user
-	 */
-	def loadDomainUser(final String username) throws UsernameNotFoundException, DataAccessException {
-		GrailsWebApplicationObjectSupport.SessionContainer container = setUpSession()
-		try {
-			return loadDomainUser(username, container.session)
 		}
 		finally {
 			releaseSession(container)

@@ -1,9 +1,11 @@
-package org.codehaus.groovy.grails.plugins.springsecurity;
+package org.codehaus.groovy.grails.plugins.springsecurity.ldap;
 
 import groovy.lang.GroovyObject;
 
 import javax.naming.directory.Attributes;
 
+import org.codehaus.groovy.grails.plugins.springsecurity.GrailsUser;
+import org.codehaus.groovy.grails.plugins.springsecurity.GrailsUserImpl;
 import org.springframework.security.userdetails.ldap.LdapUserDetails;
 
 /**
