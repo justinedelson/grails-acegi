@@ -93,14 +93,23 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 	 * Test passwordEncoder().
 	 */
 	void testPasswordEncoder() {
-		def config = [security: [algorithm: 'SHA', encodeHashAsBase64: false],
-		              algorithmMethods: [SHA: 'shaHex']]
+		def config = [security: [algorithm: 'SHA', encodeHashAsBase64: false]]
 		_service.metaClass.getSecurityConfig = { -> config }
 
 		assertEquals '7c6a61c68ef8b9b6b061b28c348bc1ed7921cb53', _service.passwordEncoder('passw0rd')
 
 		config.security.encodeHashAsBase64 = true
 		assertEquals 'N2M2YTYxYzY4ZWY4YjliNmIwNjFiMjhjMzQ4YmMxZWQ3OTIxY2I1Mw==',
+			_service.passwordEncoder('passw0rd').toString()
+
+		config.security.algorithm = 'SHA-256'
+
+		config.security.encodeHashAsBase64 = false
+		assertEquals '8f0e2f76e22b43e2855189877e7dc1e1e7d98c226c95db247cd1d547928334a9',
+			_service.passwordEncoder('passw0rd')
+
+		config.security.encodeHashAsBase64 = true
+		assertEquals 'OGYwZTJmNzZlMjJiNDNlMjg1NTE4OTg3N2U3ZGMxZTFlN2Q5OGMyMjZjOTVkYjI0N2NkMWQ1\nNDc5MjgzMzRhOQ==',
 			_service.passwordEncoder('passw0rd').toString()
 	}
 

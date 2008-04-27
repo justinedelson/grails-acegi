@@ -14,11 +14,7 @@
  */
 package org.grails.plugins.springsecurity.taglib
 
-import org.springframework.security.GrantedAuthorityImpl
 import org.springframework.security.context.SecurityContextHolder as SCH
-import org.springframework.util.StringUtils as STU
-import org.springframework.web.servlet.support.RequestContextUtils as RCU
-import org.apache.commons.codec.digest.DigestUtils as DU
 
 import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
 

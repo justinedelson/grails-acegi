@@ -14,10 +14,11 @@
  */
 package org.grails.plugins.springsecurity.service
 
-import org.springframework.security.context.SecurityContextHolder as SCH
-import org.apache.commons.codec.digest.DigestUtils as DU
+import java.security.MessageDigest
 
+import org.apache.commons.codec.binary.Hex
 import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
+import org.springframework.security.context.SecurityContextHolder as SCH
 
 /**
  * Rewrote to the Groovy from Java source of
@@ -106,12 +107,13 @@ class AuthenticateService {
 
 		def algorithm = securityConfig.security.algorithm
 		def encodeHashAsBase64 = securityConfig.security.encodeHashAsBase64
-		def algorithmMethod = securityConfig.algorithmMethods."${algorithm}"
+
+		def encoded = new String(Hex.encodeHex(MessageDigest.getInstance(algorithm).digest(passwd.bytes)))
 
 		if (encodeHashAsBase64) {
-			return DU."${algorithmMethod}"(passwd).getBytes().encodeBase64()
+			return encoded.bytes.encodeBase64()
 		}
 
-		return DU."${algorithmMethod}"(passwd)
+		return encoded
 	}
 }
