@@ -4,18 +4,14 @@ import org.easymock.EasyMock
 
 import org.grails.plugins.springsecurity.service.AuthenticateService
 
-//import org.springframework.security.Authentication
 import org.springframework.security.AuthenticationException
 import org.springframework.security.BadCredentialsException
-//import org.springframework.security.GrantedAuthorityImpl
-//import org.springframework.security.event.authentication.AbstractAuthenticationEvent
 import org.springframework.security.event.authentication.AuthenticationFailureBadCredentialsEvent
 import org.springframework.security.event.authentication.AuthenticationSuccessEvent
 import org.springframework.security.event.authentication.AuthenticationSwitchUserEvent
 import org.springframework.security.event.authentication.InteractiveAuthenticationSuccessEvent
 import org.springframework.security.event.authorization.AbstractAuthorizationEvent
 import org.springframework.security.providers.TestingAuthenticationToken
-//import org.springframework.security.userdetails.UserDetails
 
 /**
  * Unit tests for SecurityEventListener.
@@ -43,7 +39,7 @@ class SecurityEventListenerTests extends AbstractSecurityTest {
 	void testInteractiveAuthenticationSuccessEvent() {
 
 		boolean called = false
-		closures.onInteractiveAuthenticationSuccessEvent = { e -> called = true }
+		closures.onInteractiveAuthenticationSuccessEvent = { e, appCtx -> called = true }
 
 		_listener.onApplicationEvent(new InteractiveAuthenticationSuccessEvent(
 				new TestingAuthenticationToken(null, null, null), getClass()))
@@ -57,7 +53,7 @@ class SecurityEventListenerTests extends AbstractSecurityTest {
 	void testAbstractAuthenticationFailureEvent() {
 
 		boolean called = false
-		closures.onAbstractAuthenticationFailureEvent = { e -> called = true }
+		closures.onAbstractAuthenticationFailureEvent = { e, appCtx -> called = true }
 
 		AuthenticationException exception = new BadCredentialsException("bad credentials")
 		AuthenticationFailureBadCredentialsEvent event = new AuthenticationFailureBadCredentialsEvent(
@@ -74,14 +70,13 @@ class SecurityEventListenerTests extends AbstractSecurityTest {
 	void testAuthenticationSuccessEvent() {
 
 		boolean called = false
-		closures.onAuthenticationSuccessEvent = { e -> called = true }
+		closures.onAuthenticationSuccessEvent = { e, appCtx -> called = true }
 
 		_listener.onApplicationEvent(new AuthenticationSuccessEvent(
 				new TestingAuthenticationToken(null, null, null)))
 
 		assertTrue called
 	}
-	 //AuthenticationSwitchUserEvent
 
 	/**
 	 * Test handling <code>AbstractAuthorizationEvent</code>.
@@ -89,20 +84,13 @@ class SecurityEventListenerTests extends AbstractSecurityTest {
 	void testAbstractAuthorizationEvent() {
 
 		boolean called = false
-		closures.onAuthorizationEvent = { e -> called = true }
+		closures.onAuthorizationEvent = { e, appCtx -> called = true }
 
 		_listener.onApplicationEvent(new TestAuthorizationEvent())
 
 		assertTrue called
 	}
 }
-/*
-				if (config.onAuthenticationSwitchUserEvent) {
-//					GrailsUser userInfo = (GrailsUser)event.getAuthentication().getPrincipal()
-//					UserDetails userDetails = event.getTargetUser()
-					config.onAuthenticationSwitchUserEvent.call((AuthenticationSwitchUserEvent)e)
-				}
-*/
 
 /**
  * Dummy event (should be an anonymous inner class, but not possible in Groovy).
