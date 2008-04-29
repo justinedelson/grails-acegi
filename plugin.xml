@@ -1,4 +1,4 @@
-<plugin name='acegi' version='0.3-20080426-SNAPSHOT'>
+<plugin name='acegi' version='0.3-20080429-SNAPSHOT'>
   <author>Tsuyoshi Yamamoto</author>
   <authorEmail>tyama@xmldo.jp</authorEmail>
   <title>Grails Spring Security 2.0 Plugin</title>
@@ -6,7 +6,6 @@
   <documentation>http://grails.org/AcegiSecurity+Plugin</documentation>
   <resources>
     <resource>DefaultSecurityConfig</resource>
-    <resource>PreInit</resource>
     <resource>org.grails.plugins.springsecurity.taglib.AuthorizeTagLib</resource>
     <resource>org.grails.plugins.springsecurity.service.AuthenticateService</resource>
     <resource>org.grails.plugins.springsecurity.controller.AuthBase</resource>
