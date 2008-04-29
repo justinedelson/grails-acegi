@@ -18,6 +18,7 @@ package org.codehaus.groovy.grails.plugins.springsecurity
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
+import org.springframework.security.AuthenticationException
 import org.springframework.security.ui.webapp.AuthenticationProcessingFilter
 
 /**
@@ -34,6 +35,11 @@ class GrailsAuthenticationProcessingFilter extends AuthenticationProcessingFilte
 	def authenticateService
 
 	/**
+	 * Dependency injection for the Ajax auth fail url.
+	 */
+	def ajaxAuthenticationFailureUrl
+
+	/**
 	 * {@inheritDoc}
 	 * @see org.springframework.security.ui.AbstractProcessingFilter#sendRedirect(
 	 * 	javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse,
@@ -45,5 +51,14 @@ class GrailsAuthenticationProcessingFilter extends AuthenticationProcessingFilte
 			final HttpServletResponse response,
 			final String url) throws IOException {
 		RedirectUtils.sendRedirect(request, response, url);
+	}
+
+	@Override
+	protected String determineFailureUrl(final HttpServletRequest request, final AuthenticationException failed) {
+		String url = super.determineFailureUrl(request, failed)
+		if (url == authenticationFailureUrl && authenticateService.isAjax(request)) {
+			url = ajaxAuthenticationFailureUrl ?: authenticationFailureUrl
+		}
+		return url
 	}
 }

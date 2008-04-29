@@ -93,6 +93,12 @@ class AuthorizeTagLib {
 		}
 	}
 
+	def loggedInUsername = { attrs ->
+		if (isAuthenticated()) {
+			out << SCH.context.authentication.principal.username
+		}
+	}
+
 	private boolean isAuthenticated() {
 		def authPrincipal = SCH?.context?.authentication?.principal
 		return authPrincipal != null && authPrincipal != 'anonymousUser'

@@ -21,6 +21,7 @@ security {
 
 	/** authenticationProcessingFilter */
 	authenticationFailureUrl = '/login/authfail?login_error=1'
+	ajaxAuthenticationFailureUrl = '/login/authfail?ajax=true'
 	defaultTargetUrl = '/'
 	filterProcessesUrl = '/j_spring_security_check'
 
@@ -59,8 +60,8 @@ security {
 	rememberMeKey = 'grailsRocks'
 
 	/** LoggerListener 
-    * ( add 'log4j.logger.org.springframework.security=info,stdout'
-    * to log4j.*.properties to see logs )
+	 * ( add 'log4j.logger.org.springframework.security=info,stdout'
+	 * to log4j.*.properties to see logs )
 	 */
 	useLogger = false
 
@@ -120,4 +121,5 @@ security {
 	ldapRetrieveDatabaseRoles = false
 	ldapSearchSubtree = true
 	ldapGroupRoleAttribute = 'cn'
+	ldapPasswordAttributeName = 'userPassword'
 }

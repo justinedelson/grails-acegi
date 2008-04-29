@@ -138,19 +138,7 @@ class LoginController {
 	}
 
 	private boolean isAjax() {
-		// check the current request's headers
-		def ajaxHeader = authenticateService.securityConfig.security.ajaxHeader
-		if (request.getHeader(ajaxHeader) != null) {
-			return true
-		}
-
-		// check the SavedRequest's headers
-		def savedRequest = request.session[AbstractProcessingFilter.SPRING_SECURITY_SAVED_REQUEST_KEY]
-		if (savedRequest) {
-			return savedRequest.getHeaderValues(ajaxHeader).hasNext()
-		}
-
-		return false
+		return authenticateService.isAjax(request)
 	}
 
 	/** cache controls */

@@ -67,7 +67,7 @@ import org.springframework.web.filter.DelegatingFilterProxy
  */
 class AcegiGrailsPlugin {
 
-	def version = '0.3-20080426-SNAPSHOT'
+	def version = '0.3-20080429-SNAPSHOT'
 	def author = 'Tsuyoshi Yamamoto'
 	def authorEmail = 'tyama@xmldo.jp'
 	def title = 'Grails Spring Security 2.0 Plugin'
@@ -173,9 +173,11 @@ class AcegiGrailsPlugin {
 		authenticationProcessingFilter(GrailsAuthenticationProcessingFilter) {
 			authenticationManager = ref('authenticationManager')
 			authenticationFailureUrl = conf.authenticationFailureUrl //'/login/authfail?login_error=1'
+			ajaxAuthenticationFailureUrl = conf.ajaxAuthenticationFailureUrl // /login/authfail?ajax=true
 			defaultTargetUrl = conf.defaultTargetUrl // '/'
 			filterProcessesUrl = conf.filterProcessesUrl // '/j_spring_security_check'
 			rememberMeServices = ref('rememberMeServices')
+			authenticateService = ref('authenticateService')
 		}
 
 		// Basic Auth
@@ -407,6 +409,7 @@ class AcegiGrailsPlugin {
 			ldapUserDetailsMapper(GrailsLdapUserDetailsMapper) {
 				grailsDaoImpl = ref('userDetailsService')
 				authenticateService = ref('authenticateService')
+				passwordAttributeName = conf.ldapPasswordAttributeName // 'userPassword'
 			}
 			if (conf.ldapRetrieveGroupRoles) {
 				ldapAuthoritiesPopulator(DefaultLdapAuthoritiesPopulator, ref('contextSource'), conf.ldapGroupSearchBase) {

@@ -19,6 +19,7 @@ import java.security.MessageDigest
 import org.apache.commons.codec.binary.Hex
 import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
 import org.springframework.security.context.SecurityContextHolder as SCH
+import org.springframework.security.ui.AbstractProcessingFilter
 
 /**
  * Rewrote to the Groovy from Java source of
@@ -115,5 +116,32 @@ class AuthenticateService {
 		}
 
 		return encoded
+	}
+
+	/**
+	 * Check if the request was triggered by an Ajax call.
+	 * @param request  the request
+	 * @return  <code>true</code> if Ajax
+	 */
+	boolean isAjax(request) {
+
+		// look for an ajax=true parameter
+		if ('true' == request.getParameter('ajax')) {
+			return true
+		}
+
+		// check the current request's headers
+		def ajaxHeader = getSecurityConfig().security.ajaxHeader
+		if (request.getHeader(ajaxHeader) != null) {
+			return true
+		}
+
+		// check the SavedRequest's headers
+		def savedRequest = request.session[AbstractProcessingFilter.SPRING_SECURITY_SAVED_REQUEST_KEY]
+		if (savedRequest) {
+			return savedRequest.getHeaderValues(ajaxHeader).hasNext()
+		}
+
+		return false
 	}
 }
