@@ -69,21 +69,21 @@ security {
 	 * true and config your mail settings.Note you also need to run the script
 	 * grails generate-registration.
 	 */
-	 useMail = false
-	 //mailHost = 'localhost'
-	 //mailUsername = 'user@localhost'
-	 //mailPassword = 'sungod'
-	 //mailProtocol = 'smtp'
-	 //mailFrom = 'user@localhost'
+	useMail = false
+	//mailHost = 'localhost'
+	//mailUsername = 'user@localhost'
+	//mailPassword = 'sungod'
+	//mailProtocol = 'smtp'
+	//mailFrom = 'user@localhost'
 
-	 /** AJAX request header */
-	 //ajaxHeader = 'X-Requested-With'
+	/** AJAX request header */
+	//ajaxHeader = 'X-Requested-With'
   
-	 /** default user's role for user registration */
-	 defaultRole = 'ROLE_USER'
+	/** default user's role for user registration */
+	defaultRole = 'ROLE_USER'
 
-	 /** use basicProcessingFilter */
-	 basicProcessingFilter = false
-	 /** use switchUserProcessingFilter */
-	 switchUserProcessingFilter = false
+	/** use basicProcessingFilter */
+	basicProcessingFilter = false
+	/** use switchUserProcessingFilter */
+	switchUserProcessingFilter = false
 }

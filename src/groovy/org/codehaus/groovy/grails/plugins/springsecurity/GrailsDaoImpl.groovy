@@ -89,7 +89,7 @@ class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements UserDet
 		}
     }
 
-	private def loadDomainUser(username, session) throws UsernameNotFoundException, DataAccessException {
+	protected def loadDomainUser(username, session) throws UsernameNotFoundException, DataAccessException {
 
 		def query = session.createQuery(
 				"from $loginUserDomainClass where $usernameFieldName=:username")
@@ -122,14 +122,14 @@ class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements UserDet
 				true, true, true, authorities, user)
 	}
 
-	private GrantedAuthority[] createRolesByAuthoritiesMethod(user, String username) {
+	protected GrantedAuthority[] createRolesByAuthoritiesMethod(user, String username) {
 		def authorities = user."$authoritiesMethodName"()
 		assertNotEmpty authorities, username
 
 		authorities.collect { roleName -> new GrantedAuthorityImpl(roleName) } as GrantedAuthority[]
 	}
 
-	private GrantedAuthority[] createRolesByRelationalAuthorities(user, String username) {
+	protected GrantedAuthority[] createRolesByRelationalAuthorities(user, String username) {
 		// get authorities from LoginUser [LoginUser]--N:N--[Authority]
 
 		def authorities = user."$relationalAuthoritiesField"
@@ -138,7 +138,7 @@ class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements UserDet
 		authorities.collect { item -> new GrantedAuthorityImpl(item."$authorityFieldName") } as GrantedAuthority[]
 	}
 
-	private void assertNotEmpty(Collection authorities, String username) {
+	protected void assertNotEmpty(Collection authorities, String username) {
 		if (authorities == null || authorities.empty) {
 			logger.error("User [${username}] has no GrantedAuthority")
 			throw new UsernameNotFoundException("User has no GrantedAuthority")
