@@ -1,7 +1,5 @@
 package org.codehaus.groovy.grails.plugins.springsecurity.ldap;
 
-import groovy.lang.GroovyObject;
-
 import javax.naming.directory.Attributes;
 
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsUser;
@@ -26,8 +24,10 @@ public class GrailsLdapUser extends GrailsUserImpl implements GrailsUser, LdapUs
 	 * @param domainClass  the domain instance
 	 */
 	@SuppressWarnings("deprecation") // just passing along the core impl
-	public GrailsLdapUser(final LdapUserDetails details, final GroovyObject domainClass) {
-		super(details.getUsername(), details.getPassword(), details.isEnabled(), details.isAccountNonExpired(), details.isCredentialsNonExpired(), details.isAccountNonLocked(), details.getAuthorities(), domainClass);
+	public GrailsLdapUser(final LdapUserDetails details, final Object domainClass) {
+		super(details.getUsername(), details.getPassword(), details.isEnabled(),
+				details.isAccountNonExpired(), details.isCredentialsNonExpired(),
+				details.isAccountNonLocked(), details.getAuthorities(), domainClass);
 		_attributes = details.getAttributes();
 		_dn = details.getDn();
 	}
