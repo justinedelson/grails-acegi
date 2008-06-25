@@ -22,7 +22,7 @@ class GrailsWebApplicationObjectSupportTests extends GroovyTestCase {
 	void testSetUpSessionExisting() {
 
 		WebApplicationContext context = EasyMock.createMock(WebApplicationContext)
-		_thing.setApplicationContext(context)
+		EasyMock.expect(context.getServletContext()).andReturn(null)
 
 		SessionFactory sessionFactory = EasyMock.createMock(SessionFactory)
 		EasyMock.expect(context.getBean('sessionFactory')).andReturn(sessionFactory)
@@ -30,6 +30,8 @@ class GrailsWebApplicationObjectSupportTests extends GroovyTestCase {
 		Session session = EasyMock.createMock(Session)
 
 		EasyMock.replay(context, sessionFactory, session)
+
+		_thing.setApplicationContext(context)
 
 		TransactionSynchronizationManager.bindResource(sessionFactory, new SessionHolder(session))
 
@@ -46,7 +48,7 @@ class GrailsWebApplicationObjectSupportTests extends GroovyTestCase {
 	void testSetUpSessionNew() {
 
 		WebApplicationContext context = EasyMock.createMock(WebApplicationContext)
-		_thing.setApplicationContext(context)
+		EasyMock.expect(context.getServletContext()).andReturn(null)
 
 		SessionFactory sessionFactory = EasyMock.createMock(SessionFactory)
 		EasyMock.expect(context.getBean('sessionFactory')).andReturn(sessionFactory)
@@ -56,6 +58,8 @@ class GrailsWebApplicationObjectSupportTests extends GroovyTestCase {
 		EasyMock.expect(session.getSessionFactory()).andReturn(sessionFactory)
 
 		EasyMock.replay(context, sessionFactory, session)
+
+		_thing.setApplicationContext(context)
 
 		assertFalse TransactionSynchronizationManager.hasResource(sessionFactory)
 
