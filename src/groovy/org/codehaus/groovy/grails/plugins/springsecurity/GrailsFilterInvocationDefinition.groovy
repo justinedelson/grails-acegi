@@ -26,7 +26,7 @@ import org.springframework.util.StringUtils
 
 /**
  * GrailsFilterInvocationDefinition.
- * 
+ *
  * @author Tsuyoshi Yamamoto
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
@@ -53,7 +53,7 @@ implements FilterInvocationDefinitionSource {
 	 * {@inheritDoc}
 	 * @see org.springframework.security.intercept.ObjectDefinitionSource#getAttributes(java.lang.Object)
 	 */
-	ConfigAttributeDefinition getAttributes(final Object object) throws IllegalArgumentException {
+	ConfigAttributeDefinition getAttributes(Object object) throws IllegalArgumentException {
 		if (object == null || !supports(object.getClass())) {
 			logger.error('Object must be a FilterInvocation')
 			throw new IllegalArgumentException('Object must be a FilterInvocation')
@@ -66,7 +66,7 @@ implements FilterInvocationDefinitionSource {
 	 * {@inheritDoc}
 	 * @see org.springframework.security.intercept.ObjectDefinitionSource#supports(java.lang.Class)
 	 */
-	boolean supports(final Class clazz) {
+	boolean supports(Class clazz) {
 		return FilterInvocation.class.isAssignableFrom(clazz)
 	}
 
@@ -89,7 +89,7 @@ implements FilterInvocationDefinitionSource {
 				String hql = "from $requestMapClass where $requestMapPathFieldName = '/' or $requestMapPathFieldName = '/**' "
 				String path = '/'
 				for (StringTokenizer stn = new StringTokenizer(url, '/'); stn.hasMoreTokens();) {
-					path += stn.nextToken() + '/'
+					path += stn.nextToken()
 			        hql += "or lower($requestMapPathFieldName) like '$path%' "
 			        path += '/'
 				}
