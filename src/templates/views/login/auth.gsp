@@ -20,7 +20,7 @@
 #login .inner .fheader {
 	padding:4px;margin:3px 0px 3px 0;color:#2e3741;font-size:14px;font-weight:bold;
 }
-#login .inner .cssform p{
+#login .inner .cssform p {
 	clear: left;
 	margin: 0;
 	padding: 5px 0 8px 0;
@@ -29,13 +29,13 @@
 	margin-bottom: 10px;
 	height: 1%;
 }
-#login .inner .cssform input[type='text']{ 
+#login .inner .cssform input[type='text'] {
 	width: 120px;
 }
-#login .inner .cssform label{
+#login .inner .cssform label {
 	font-weight: bold;
 	float: left;
-	margin-left: -105px; 
+	margin-left: -105px;
 	width: 100px;
 }
 #login .inner .login_message {color:red;}
@@ -53,7 +53,7 @@
 			<form action='${request.contextPath}/j_spring_security_check' method='POST' id='loginForm' class='cssform'>
 				<p>
 					<label for='j_username'>Login ID</label>
-					<input type='text' class='text_' name='j_username' id='j_username'  />
+					<input type='text' class='text_' name='j_username' id='j_username' value='${request.remoteUser}' />
 				</p>
 				<p>
 					<label for='j_password'>Password</label>
@@ -61,7 +61,8 @@
 				</p>
 				<p>
 					<label for='remember_me'>Remember me</label>
-					<input type='checkbox' class='chk' id='remember_me' name='_spring_security_remember_me'>
+					<input type='checkbox' class='chk' name='_spring_security_remember_me' id='remember_me'
+					<g:if test='${hasCookie}'>checked='checked'</g:if> />
 				</p>
 				<p>
 					<input type='submit' value='Login' />

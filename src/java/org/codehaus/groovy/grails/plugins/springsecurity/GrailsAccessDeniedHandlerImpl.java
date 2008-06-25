@@ -23,9 +23,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.security.AccessDeniedException;
+import org.springframework.security.ui.AbstractProcessingFilter;
 import org.springframework.security.ui.AccessDeniedHandler;
+import org.springframework.security.ui.savedrequest.SavedRequest;
 import org.springframework.security.util.PortResolver;
 import org.springframework.security.util.PortResolverImpl;
+import org.springframework.security.context.SecurityContextHolder;
 
 /**
  * AccessDeniedHandler for redirect to errorPage (not RequestDispatcher#forward).
@@ -51,6 +54,14 @@ public class GrailsAccessDeniedHandlerImpl implements AccessDeniedHandler {
 
 		HttpServletRequest request = (HttpServletRequest)req;
 		HttpServletResponse response = (HttpServletResponse)res;
+
+		if (e != null && isLoggedIn()) {
+			// user has a cookie but is getting bounced because of IS_AUTHENTICATED_FULLY,
+			// so Acegi won't save the original request
+			request.getSession().setAttribute(
+					AbstractProcessingFilter.SPRING_SECURITY_SAVED_REQUEST_KEY,
+					new SavedRequest(request, portResolver));
+		}
 
 		if (errorPage != null || (ajaxErrorPage != null && request.getHeader(ajaxHeader) != null)) {
 			boolean includePort = true;
@@ -88,6 +99,14 @@ public class GrailsAccessDeniedHandlerImpl implements AccessDeniedHandler {
 			// Send 403 (we do this after response has been written)
 			response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
 		}
+	}
+
+	private boolean isLoggedIn() {
+		if (SecurityContextHolder.getContext() == null
+				|| SecurityContextHolder.getContext().getAuthentication() == null) {
+			return false;
+		}
+		return !(SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof String);
 	}
 
 	/**

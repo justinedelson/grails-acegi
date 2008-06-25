@@ -1,9 +1,11 @@
 import org.codehaus.groovy.grails.plugins.springsecurity.RedirectUtils
 import org.grails.plugins.springsecurity.service.AuthenticateService
 
+import org.springframework.security.AuthenticationTrustResolver
+import org.springframework.security.AuthenticationTrustResolverImpl
 import org.springframework.security.DisabledException
+import org.springframework.security.context.SecurityContextHolder as SCH
 import org.springframework.security.ui.AbstractProcessingFilter
-import org.springframework.security.ui.openid.OpenIDConsumerException
 import org.springframework.security.ui.webapp.AuthenticationProcessingFilter
 
 /**
@@ -26,12 +28,14 @@ class LoginController {
 	 */
 	def openIDAuthenticationProcessingFilter
 
+	private final AuthenticationTrustResolver authenticationTrustResolver = new AuthenticationTrustResolverImpl()
+
 	def index = {
 		if (isLoggedIn()) {
-			redirect(uri: '/')
+			redirect uri: '/'
 		}
 		else {
-			redirect(action: auth, params: params)
+			redirect action: auth, params: params
 		}
 	}
 
@@ -41,14 +45,14 @@ class LoginController {
 	def auth = {
 		nocache(response)
 		if (isLoggedIn()) {
-			redirect(uri: '/')
+			redirect uri: '/'
 		}
 
 		if (authenticateService.securityConfig.security.useOpenId) {
-			render(view: 'openIdAuth')
+			render view: 'openIdAuth'
 		}
 		else {
-			render(view: 'auth')
+			render view: 'auth'
 		}
 	}
 
@@ -61,11 +65,11 @@ class LoginController {
 			String returnToURL = RedirectUtils.buildRedirectUrl(
 					request, response, openIDAuthenticationProcessingFilter.filterProcessesUrl)
 			String redirectUrl = openIDConsumer.beginConsumption(request, openID, returnToURL)
-			redirect(url: redirectUrl)
+			redirect url: redirectUrl
 		}
-		catch (OpenIDConsumerException e) {
+		catch (org.springframework.security.ui.openid.OpenIDConsumerException e) {
 			log.error "Consumer error: ${e.message}", e
-			redirect(url: openIDAuthenticationProcessingFilter.authenticationFailureUrl)
+			redirect url: openIDAuthenticationProcessingFilter.authenticationFailureUrl
 		}
 	}
 
@@ -94,7 +98,18 @@ class LoginController {
 	 * Show denied page.
 	 */
 	def denied = {
-		redirect(uri: '/')
+		if (ControllerUtils.isUserAuthenticated()) {
+			// have cookie but the page is guarded with IS_AUTHENTICATED_FULLY
+			redirect action: full, params: params
+		}
+	}
+
+	/**
+	 * Login page for users with a remember-me cookie but accessing a IS_AUTHENTICATED_FULLY page.
+	 */
+	def full = {
+		render view: 'auth', params: params,
+			model: [hasCookie: authenticationTrustResolver.isRememberMe(SCH.context?.authentication)]
 	}
 
 	// Denial page (data|view|json) for Ajax access.
@@ -121,11 +136,11 @@ class LoginController {
 		}
 
 		if (isAjax()) {
-			render("{error: '${msg}'}")
+			render "{error: '${msg}'}"
 		}
 		else {
 			flash.message = msg
-			redirect(action: auth, params: params)
+			redirect action: auth, params: params
 		}
 	}
 
@@ -145,8 +160,8 @@ class LoginController {
 	private void nocache(response) {
 		response.setHeader('Cache-Control', 'no-cache') // HTTP 1.1
 		response.addDateHeader('Expires', 0)
-		response.setDateHeader('max-age', 0) 
-		response.setIntHeader ('Expires', -1) //prevents caching at the proxy server 
+		response.setDateHeader('max-age', 0)
+		response.setIntHeader ('Expires', -1) //prevents caching at the proxy server
 		response.addHeader('cache-Control', 'private') //IE5.x only
 	}
 }

@@ -20,7 +20,7 @@
  * @author Tsuyoshi Yamamoto
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
- 
+
 includeTargets << new File("${acegiPluginDir}/scripts/SecurityTargets.groovy")
 
 target('default': 'Creates Domain classes for Spring Security plugin') {
@@ -101,6 +101,8 @@ private void copyViewAndControllers() {
 		"${appDir}/views/login/auth.gsp"
 	copyFile "${templateDir}/views/login/openIdAuth.gsp",
 		"${appDir}/views/login/openIdAuth.gsp"
+	copyFile "${templateDir}/views/login/denied.gsp",
+		"${appDir}/views/login/denied.gsp"
 	copyFile "${templateDir}/controllers/LoginController.groovy",
 		"${appDir}/controllers/LoginController.groovy"
 	copyFile "${templateDir}/controllers/LogoutController.groovy",
