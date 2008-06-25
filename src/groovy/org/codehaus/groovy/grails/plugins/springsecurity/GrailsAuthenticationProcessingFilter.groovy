@@ -15,9 +15,12 @@
  */
 package org.codehaus.groovy.grails.plugins.springsecurity
 
+import javax.servlet.FilterChain
+import javax.servlet.ServletException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
+import org.springframework.security.Authentication
 import org.springframework.security.AuthenticationException
 import org.springframework.security.ui.webapp.AuthenticationProcessingFilter
 
@@ -41,20 +44,39 @@ class GrailsAuthenticationProcessingFilter extends AuthenticationProcessingFilte
 
 	/**
 	 * {@inheritDoc}
+	 * @see org.springframework.security.ui.AbstractProcessingFilter#doFilterHttp(
+	 * 	javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse,
+	 * 	javax.servlet.FilterChain)
+	 */
+	@Override
+	void doFilterHttp(HttpServletRequest request, HttpServletResponse response,
+			FilterChain chain) throws IOException, ServletException {
+
+		SecurityRequestHolder.request = request
+		try {
+			super.doFilterHttp(request, response, chain)
+		}
+		finally {
+			SecurityRequestHolder.reset()
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
 	 * @see org.springframework.security.ui.AbstractProcessingFilter#sendRedirect(
 	 * 	javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse,
 	 * 	java.lang.String)
 	 */
 	@Override
 	protected void sendRedirect(
-			final HttpServletRequest request,
-			final HttpServletResponse response,
-			final String url) throws IOException {
+			HttpServletRequest request,
+			HttpServletResponse response,
+			String url) throws IOException {
 		RedirectUtils.sendRedirect(request, response, url);
 	}
 
 	@Override
-	protected String determineFailureUrl(final HttpServletRequest request, final AuthenticationException failed) {
+	protected String determineFailureUrl(HttpServletRequest request, AuthenticationException failed) {
 		String url = super.determineFailureUrl(request, failed)
 		if (url == authenticationFailureUrl && authenticateService.isAjax(request)) {
 			url = ajaxAuthenticationFailureUrl ?: authenticationFailureUrl
