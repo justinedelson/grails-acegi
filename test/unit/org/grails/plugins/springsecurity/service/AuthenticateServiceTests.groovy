@@ -99,7 +99,7 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 		assertEquals '7c6a61c68ef8b9b6b061b28c348bc1ed7921cb53', _service.passwordEncoder('passw0rd')
 
 		config.security.encodeHashAsBase64 = true
-		assertEquals 'N2M2YTYxYzY4ZWY4YjliNmIwNjFiMjhjMzQ4YmMxZWQ3OTIxY2I1Mw==',
+		assertEquals 'fGphxo74ubawYbKMNIvB7Xkhy1M=',
 			_service.passwordEncoder('passw0rd').toString()
 
 		config.security.algorithm = 'SHA-256'
@@ -109,7 +109,7 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 			_service.passwordEncoder('passw0rd')
 
 		config.security.encodeHashAsBase64 = true
-		assertEquals 'OGYwZTJmNzZlMjJiNDNlMjg1NTE4OTg3N2U3ZGMxZTFlN2Q5OGMyMjZjOTVkYjI0N2NkMWQ1\nNDc5MjgzMzRhOQ==',
+		assertEquals 'jw4vduIrQ+KFUYmHfn3B4efZjCJsldskfNHVR5KDNKk=',
 			_service.passwordEncoder('passw0rd').toString()
 	}
 

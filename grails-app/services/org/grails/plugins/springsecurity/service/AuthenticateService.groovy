@@ -1,11 +1,11 @@
 /* Copyright 2006-2007 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,6 +19,7 @@ import java.security.MessageDigest
 import org.apache.commons.codec.binary.Hex
 import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
 import org.springframework.security.context.SecurityContextHolder as SCH
+import org.springframework.security.providers.encoding.MessageDigestPasswordEncoder
 import org.springframework.security.ui.AbstractProcessingFilter
 
 /**
@@ -99,23 +100,15 @@ class AuthenticateService {
 	}
 
 	/**
-	 * returns a MessageDigest password. 
+	 * returns a MessageDigest password.
 	 * (changes algorithm method dynamically by param of config)
 	 */
 	def passwordEncoder(String passwd) {
-
 		def securityConfig = getSecurityConfig()
-
 		def algorithm = securityConfig.security.algorithm
 		def encodeHashAsBase64 = securityConfig.security.encodeHashAsBase64
-
-		def encoded = new String(Hex.encodeHex(MessageDigest.getInstance(algorithm).digest(passwd.bytes)))
-
-		if (encodeHashAsBase64) {
-			return encoded.bytes.encodeBase64()
-		}
-
-		return encoded
+		def encoder = new MessageDigestPasswordEncoder(algorithm, encodeHashAsBase64)
+		return encoder.encodePassword(passwd, null)
 	}
 
 	/**
