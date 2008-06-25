@@ -13,7 +13,7 @@ security {
 	getAuthoritiesMethod = null // 'getMoreAuthorities'
 
 	/**
-	 * Authority domain class authority field name 
+	 * Authority domain class authority field name
 	 * authorityFieldInList
 	 */
 	authorityDomainClass = 'Authority'
@@ -37,7 +37,7 @@ security {
 	/** logoutFilter */
 	afterLogoutUrl = '/'
 
-	/** accessDeniedHandler 
+	/** accessDeniedHandler
 	 *  set errorPage to null, if you want to get error code 403 (FORBIDDEN).
 	 */
 	errorPage = '/login/denied'
@@ -48,18 +48,18 @@ security {
 	//The digest algorithm to use.
 	//Supports the named Message Digest Algorithms in the Java environment.
 	//http://java.sun.com/j2se/1.4.2/docs/guide/security/CryptoSpec.html#AppA
-	algorithm = 'SHA' // Ex. MD5 SHA 
+	algorithm = 'SHA' // Ex. MD5 SHA
 	//use Base64 text ( true or false )
 	encodeHashAsBase64 = false
 
 	/** rememberMeServices */
-	cookieName = 'grails_remember_me' 
+	cookieName = 'grails_remember_me'
 	alwaysRemember = false
 	tokenValiditySeconds = 1209600 //14 days
 	parameter = '_spring_security_remember_me'
 	rememberMeKey = 'grailsRocks'
 
-	/** LoggerListener 
+	/** LoggerListener
 	 * ( add 'log4j.logger.org.springframework.security=info,stdout'
 	 * to log4j.*.properties to see logs )
 	 */
@@ -73,7 +73,7 @@ security {
 	requestMapPathField = 'url'
 	requestMapConfigAttributeField = 'configAttribute'
 
-	/** 
+	/**
 	 * if useRequestMapDomainClass is false, set request map pattern in string
 	 * see example below
 	 */
@@ -122,4 +122,11 @@ security {
 	ldapSearchSubtree = true
 	ldapGroupRoleAttribute = 'cn'
 	ldapPasswordAttributeName = 'userPassword'
+
+	// Kerberos
+	useKerberos = false
+	kerberosLoginConfigFile = 'WEB-INF/jaas.conf'
+	kerberosRealm = 'KERBEROS.REALM'
+	kerberosKdc = 'krbserver.domain.lan'
+	kerberosRetrieveDatabaseRoles = true
 }
