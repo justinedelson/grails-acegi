@@ -11,9 +11,6 @@ import org.codehaus.groovy.grails.plugins.springsecurity.SecurityEventListener
 import org.codehaus.groovy.grails.plugins.springsecurity.WithAjaxAuthenticationProcessingFilterEntryPoint
 import org.codehaus.groovy.grails.plugins.springsecurity.ldap.GrailsLdapUserDetailsMapper
 
-import org.openid4java.consumer.ConsumerManager
-import org.openid4java.consumer.InMemoryConsumerAssociationStore
-import org.openid4java.consumer.InMemoryNonceVerifier
 import org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator
 import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator
 import org.springframework.beans.factory.config.RuntimeBeanReference
@@ -30,14 +27,11 @@ import org.springframework.security.intercept.web.FilterSecurityInterceptor
 import org.springframework.security.ldap.DefaultSpringSecurityContextSource
 import org.springframework.security.ldap.populator.DefaultLdapAuthoritiesPopulator
 import org.springframework.security.ldap.search.FilterBasedLdapUserSearch
-import org.springframework.security.providers.openid.OpenIDAuthenticationProvider
 import org.springframework.security.ui.ExceptionTranslationFilter
 import org.springframework.security.ui.basicauth.BasicProcessingFilter
 import org.springframework.security.ui.basicauth.BasicProcessingFilterEntryPoint
 import org.springframework.security.ui.logout.LogoutHandler
 import org.springframework.security.ui.logout.SecurityContextLogoutHandler
-import org.springframework.security.ui.openid.OpenIDAuthenticationProcessingFilter
-import org.springframework.security.ui.openid.consumers.OpenID4JavaConsumer
 import org.springframework.security.ui.rememberme.RememberMeProcessingFilter
 import org.springframework.security.ui.rememberme.TokenBasedRememberMeServices
 import org.springframework.security.ui.switchuser.SwitchUserProcessingFilter
@@ -52,6 +46,7 @@ import org.springframework.security.providers.ldap.LdapAuthenticationProvider
 import org.springframework.security.providers.ldap.authenticator.BindAuthenticator
 import org.springframework.security.providers.rememberme.RememberMeAuthenticationProvider
 import org.springframework.security.util.FilterChainProxy
+import org.springframework.security.util.FilterToBeanProxy
 import org.springframework.security.vote.AffirmativeBased
 import org.springframework.security.vote.AuthenticatedVoter
 import org.springframework.security.vote.RoleVoter
@@ -67,7 +62,7 @@ import org.springframework.web.filter.DelegatingFilterProxy
  */
 class AcegiGrailsPlugin {
 
-	def version = '0.3'
+	def version = '0.3.1-20080621-SNAPSHOT'
 	def author = 'Tsuyoshi Yamamoto'
 	def authorEmail = 'tyama@xmldo.jp'
 	def title = 'Grails Spring Security 2.0 Plugin'
@@ -86,20 +81,13 @@ class AcegiGrailsPlugin {
 
 		def conf = getSecurityConfig()
 		if (!conf || !conf.active) {
-			//log.info('[active=false] Spring Security will not loaded')
-			println '[active=false] Spring Security will not loaded'
+			//log.info('[active=false] Spring Security not loaded')
+			println '[active=false] Spring Security not loaded'
 			return
 		}
 
 		//log.info('loading security config ...')
 		println 'loading security config ...'
-
-		def makeItGetter = { field ->
-			if (!field) {
-				return null
-			}
-			'get' + field[0].toUpperCase() + field.substring(1)	
-		}
 
 		def filterNames = conf.filterNames
 		if (!filterNames) {
@@ -132,23 +120,25 @@ class AcegiGrailsPlugin {
 				"""
 		}
 
-		/** OpenId */
-		openIDAuthProvider(OpenIDAuthenticationProvider) {
-			userDetailsService = ref('userDetailsService')
-		}
-		openIDStore(InMemoryConsumerAssociationStore) {}
-		openIDNonceVerifier(InMemoryNonceVerifier, conf.openIdNonceMaxSeconds) {} // 300 seconds
-		openIDConsumerManager(ConsumerManager) {
-			nonceVerifier = ref('openIDNonceVerifier')
-		}
-		openIDConsumer(OpenID4JavaConsumer, openIDConsumerManager) {}
-		openIDAuthenticationProcessingFilter(OpenIDAuthenticationProcessingFilter) {
-			authenticationManager = ref('authenticationManager')
-			authenticationFailureUrl = conf.authenticationFailureUrl //'/login/authfail?login_error=1' // /spring_security_login?login_error
-			defaultTargetUrl = conf.defaultTargetUrl // '/'
-			filterProcessesUrl = '/j_spring_openid_security_check' // not configurable
-			rememberMeServices = ref('rememberMeServices')
-			consumer = ref('openIDConsumer')
+		if (conf.useOpenId) {
+			/** OpenId */
+			openIDAuthProvider(org.codehaus.groovy.grails.plugins.springsecurity.openid.GrailsOpenIdAuthenticationProvider) {
+				userDetailsService = ref('userDetailsService')
+			}
+			openIDStore(org.openid4java.consumer.InMemoryConsumerAssociationStore) {}
+			openIDNonceVerifier(org.openid4java.consumer.InMemoryNonceVerifier, conf.openIdNonceMaxSeconds) {} // 300 seconds
+			openIDConsumerManager(org.openid4java.consumer.ConsumerManager) {
+				nonceVerifier = ref('openIDNonceVerifier')
+			}
+			openIDConsumer(org.springframework.security.ui.openid.consumers.OpenID4JavaConsumer, openIDConsumerManager) {}
+			openIDAuthenticationProcessingFilter(org.springframework.security.ui.openid.OpenIDAuthenticationProcessingFilter) {
+				authenticationManager = ref('authenticationManager')
+				authenticationFailureUrl = conf.authenticationFailureUrl //'/login/authfail?login_error=1' // /spring_security_login?login_error
+				defaultTargetUrl = conf.defaultTargetUrl // '/'
+				filterProcessesUrl = '/j_spring_openid_security_check' // not configurable
+				rememberMeServices = ref('rememberMeServices')
+				consumer = ref('openIDConsumer')
+			}
 		}
 
 		/** httpSessionContextIntegrationFilter */
@@ -278,11 +268,15 @@ class AcegiGrailsPlugin {
 
 		def providerNames = conf.providerNames
 		if (!providerNames) {
+			providerNames = []
+			if (conf.useKerberos) {
+				providerNames << 'kerberosAuthProvider'
+			}
 			if (conf.useLdap) {
-				providerNames = ['ldapAuthProvider']
+				providerNames << 'ldapAuthProvider'
 			}
 			else {
-				providerNames = ['daoAuthenticationProvider']
+				providerNames << 'daoAuthenticationProvider'
 				if (conf.useOpenId) {
 					providerNames << 'openIDAuthProvider'
 				}
@@ -415,6 +409,7 @@ class AcegiGrailsPlugin {
 				ldapAuthoritiesPopulator(DefaultLdapAuthoritiesPopulator, ref('contextSource'), conf.ldapGroupSearchBase) {
 					groupRoleAttribute = conf.ldapGroupRoleAttribute
 					groupSearchFilter = conf.ldapGroupSearchFilter
+					searchSubtree = conf.ldapSearchSubtree
 				}
 				ldapAuthProvider(LdapAuthenticationProvider, ref('ldapAuthenticator'), ref('ldapAuthoritiesPopulator')) {
 					userDetailsContextMapper = ref('ldapUserDetailsMapper')
@@ -428,32 +423,99 @@ class AcegiGrailsPlugin {
 			}
 		}
 
+/*
+		// CAS
+		if (conf.useCAS) {
+			serviceProperties(org.acegisecurity.ui.cas.ServiceProperties) {
+				service = 'https://localhost:8443/contacts-cas/j_acegi_cas_security_check'
+				sendRenew = false
+			}
+
+			casProcessingFilter(org.acegisecurity.ui.cas.CasProcessingFilter) {
+				authenticationManager = ref('authenticationManager')
+				authenticationFailureUrl = '/casfailed.jsp'
+				defaultTargetUrl = '/'
+				filterProcessesUrl = '/j_acegi_cas_security_check'
+			}
+
+			casProcessingFilterEntryPoint(org.acegisecurity.ui.cas.CasProcessingFilterEntryPoint) {
+				loginUrl = 'https://localhost:8443/cas/login'
+				serviceProperties = ref('serviceProperties')
+			}
+		}
+*/
 		// SecurityEventListener
 		securityEventListener(SecurityEventListener) {
 			authenticateService = ref('authenticateService')
 		}
+		
+		// Kerberos
+		if (conf.useKerberos) {
+			jaasNameCallbackHandler(org.springframework.security.providers.jaas.JaasNameCallbackHandler)
+			jaasPasswordCallbackHandler(org.springframework.security.providers.jaas.JaasPasswordCallbackHandler)
+
+			kerberosAuthProvider(org.codehaus.groovy.grails.plugins.springsecurity.kerberos.GrailsKerberosAuthenticationProvider) {
+				authenticateService = ref('authenticateService')
+				userDetailsService = ref('userDetailsService')
+				loginConfig = conf.kerberosLoginConfigFile
+				loginContextName = "KrbAuthentication"
+				callbackHandlers = [ref('jaasNameCallbackHandler'), ref('jaasPasswordCallbackHandler')]
+				authorityGranters = []
+			}
+			//TODO: Improve
+			System.setProperty('java.security.krb5.realm', conf.kerberosRealm)
+			System.setProperty('java.security.krb5.kdc', conf.kerberosKdc)
+		}
 	}
 
 	def doWithApplicationContext = { applicationContext ->
-		// nothing to do		
+		// nothing to do
 	}
 
 	def doWithWebDescriptor = { xml ->
 
 		def conf = getSecurityConfig()
-		if (conf && conf.active) {
-			def contextParam = xml.'context-param'
+		if (!conf || !conf.active) {
+			return
+		}
+
+		// we add the filter(s) right after the last context-param
+		def contextParam = xml.'context-param'
+
+		contextParam[contextParam.size() - 1] + {
+			'filter' {
+				'filter-name'('springSecurityFilterChain')
+				'filter-class'(DelegatingFilterProxy.name)
+			}
+		}
+
+		if (conf.useCAS) {
 			contextParam[contextParam.size() - 1] + {
 				'filter' {
-					'filter-name'('springSecurityFilterChain')
-					'filter-class'(DelegatingFilterProxy.name)
+					'filter-name'('CAS Processing Filter')
+					'filter-class'(FilterToBeanProxy.name)
 				}
+//			  <init-param>
+//			    <param-name>targetClass</param-name>
+//			    <param-value>org.acegisecurity.ui.cas.CasProcessingFilter</param-value>
+//			  </init-param>
 			}
+		}
 
-			def filter = xml.'filter'
+		// and the filter-mapping(s) right after the last filter
+		def filter = xml.'filter'
+
+		filter[filter.size() - 1] + {
+			'filter-mapping'{
+				'filter-name'('springSecurityFilterChain')
+				'url-pattern'('/*')
+			}
+		}
+
+		if (conf.useCAS) {
 			filter[filter.size() - 1] + {
 				'filter-mapping'{
-					'filter-name'('springSecurityFilterChain')
+					'filter-name'('CAS Processing Filter')
 					'url-pattern'('/*')
 				}
 			}

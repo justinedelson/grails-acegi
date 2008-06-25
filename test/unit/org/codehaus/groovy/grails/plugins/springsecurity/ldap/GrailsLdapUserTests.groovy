@@ -57,8 +57,37 @@ class TestLdapUserDetails implements LdapUserDetails {
 	GrantedAuthority[] authorities
 	String password
 	String username
-	boolean accountNonExpired
-	boolean accountNonLocked
-	boolean credentialsNonExpired
-	boolean enabled
+
+	// groovy 1.5.6 weirdness
+	private boolean _enabled
+	boolean isEnabled() {
+		return _enabled
+	}
+	void setEnabled(boolean enabled) {
+		_enabled = enabled
+	}
+
+	private boolean _credentialsNonExpired
+	boolean isCredentialsNonExpired() {
+		return _credentialsNonExpired
+	}
+	void setCredentialsNonExpired(boolean credentialsNonExpired) {
+		_credentialsNonExpired = credentialsNonExpired
+	}
+
+	private boolean _accountNonExpired
+	boolean isAccountNonExpired() {
+		return _accountNonExpired
+	}
+	void setAccountNonExpired(boolean accountNonExpired) {
+		_accountNonExpired = accountNonExpired
+	}
+
+	private boolean _accountNonLocked
+	boolean isAccountNonLocked() {
+		return _accountNonLocked
+	}
+	void setAccountNonLocked(boolean accountNonLocked) {
+		_accountNonLocked = accountNonLocked
+	}
 }
