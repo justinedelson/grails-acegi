@@ -1,7 +1,5 @@
 package org.codehaus.groovy.grails.plugins.springsecurity.ldap
 
-import org.grails.plugins.springsecurity.service.AuthenticateService
-import org.codehaus.groovy.grails.plugins.springsecurity.GrailsDaoImpl
 import org.codehaus.groovy.grails.plugins.springsecurity.ldap.GrailsLdapUser
 
 import org.springframework.ldap.core.DirContextOperations
@@ -19,14 +17,14 @@ import org.springframework.security.userdetails.ldap.LdapUserDetailsMapper
 class GrailsLdapUserDetailsMapper extends LdapUserDetailsMapper {
 
 	/**
-	 * Dependency injection for <code>GrailsDaoImpl</code>.
+	 * Dependency injection for the user service.
 	 */
-	def GrailsDaoImpl grailsDaoImpl
+	def userDetailsService
 
 	/**
 	 * Dependency injection for the authentication service.
 	 */
-	def AuthenticateService authenticateService
+	def authenticateService
 
 	/**
 	 * {@inheritDoc}

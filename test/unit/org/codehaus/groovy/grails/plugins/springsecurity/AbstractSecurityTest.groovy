@@ -49,7 +49,7 @@ abstract class AbstractSecurityTest extends GroovyTestCase {
 	 * Remove overridden/added metaclass methods between tests.
 	 * @param classes  the classes to clean up
 	 */
-	protected void removeMetaClassMethods(final Class<?>... classes) {
+	protected void removeMetaClassMethods(Class<?>... classes) {
 		classes.each { clazz ->
 			def emc = new ExpandoMetaClass(clazz, true, true)
 			emc.initialize()

@@ -51,7 +51,7 @@ class RequestmapTest extends WebTest {
 		}
 	}
 
-	private void verifyListSize(final int size) {
+	private void verifyListSize(int size) {
 		ant.group(description:"verify Requestmap list view with $size row(s)") {
 			verifyText  (text:'Requestmap List')
 			verifyXPath (xpath:ROW_COUNT_XPATH, text:size, description:"$size row(s) of data expected")

@@ -37,9 +37,9 @@ class RedirectUtils {
 	 * @throws IOException  if there's a problem
 	 */
 	static void sendRedirect(
-			final HttpServletRequest request,
-			final HttpServletResponse response,
-			final String url) throws IOException {
+			HttpServletRequest request,
+			HttpServletResponse response,
+			String url) throws IOException {
 
 		String redirect = buildRedirectUrl(request, response, url)
 		response.sendRedirect(response.encodeRedirectURL(redirect))
@@ -54,9 +54,9 @@ class RedirectUtils {
 	 * @throws IOException  if there's a problem
 	 */
 	static String buildRedirectUrl(
-			final HttpServletRequest request,
-			final HttpServletResponse response,
-			final String url) throws IOException {
+			HttpServletRequest request,
+			HttpServletResponse response,
+			String url) throws IOException {
 
 		if (!url.startsWith("http://") && !url.startsWith("https://")) {
 			String scheme = request.scheme

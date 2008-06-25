@@ -54,7 +54,7 @@ class SecurityEventListener implements ApplicationListener, ApplicationContextAw
 	 * @see org.springframework.context.ApplicationListener#onApplicationEvent(
 	 * 	org.springframework.context.ApplicationEvent)
 	 */
-	void onApplicationEvent(final ApplicationEvent e) {
+	void onApplicationEvent(ApplicationEvent e) {
 		if (e instanceof AbstractAuthenticationEvent) {
 			if (e instanceof InteractiveAuthenticationSuccessEvent) {
 				if (config.onInteractiveAuthenticationSuccessEvent) {
@@ -96,8 +96,8 @@ class SecurityEventListener implements ApplicationListener, ApplicationContextAw
  	 * @see org.springframework.context.ApplicationContextAware#setApplicationContext(
  	 * 	org.springframework.context.ApplicationContext)
  	 */
- 	void setApplicationContext(final ApplicationContext applicationContext) {
- 		_applicationContext = applicationContext;		
+ 	void setApplicationContext(ApplicationContext applicationContext) {
+ 		_applicationContext = applicationContext;
  	}
 
 	private def getConfig() {

@@ -144,7 +144,7 @@ class RegisterController {
 			person.passwd = ''
 			flash.message = 'Default Role not found.'
 			render(view: 'index', model: [person: person])
-			return 
+			return
 		}
 
 		if (params.captcha.toUpperCase() != session.captcha) {

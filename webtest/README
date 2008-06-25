@@ -3,8 +3,8 @@ To run the WebTest functional tests, cd into this directory and run "ant" - the 
 You'll need to create a file named build.properties with three properties, 'testproject', 'version.plugin', and 'version.webtest', e.g.
 
    testproject=AcegiTestApp
-	version.plugin=0.3-20080422-SNAPSHOT
-	version.webtest=0.4
+   version.plugin=0.3-20080422-SNAPSHOT
+   version.webtest=0.4
 
 - 'testproject' is the name of the Grails test application. Make sure there's not already a project with that name in your workspace since it will be deleted and replaced.
 - 'version.plugin' is the version of the Acegi plugin (the same value as the 'version' variable in AcegiGrailsPlugin.groovy)

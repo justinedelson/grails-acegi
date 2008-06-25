@@ -27,7 +27,7 @@ pluginTemplatePath = "${templateDir}/manager"
 
 target('default': 'Generates view and controller for Spring Security user management') {
 	loadConfig()
-	
+
 	generateControllerAndViews('User')
 	generateControllerAndViews('Role')
 	generateControllerAndViews('Requestmap')

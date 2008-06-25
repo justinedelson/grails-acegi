@@ -140,7 +140,7 @@ class SecurityTest extends WebTest {
 		}
 	}
 
-	private void verifyListSize(final int size) {
+	private void verifyListSize(int size) {
 		ant.group(description: "verify list view with $size row(s)") {
 			verifyText  (text: 'List')
 			verifyXPath (xpath: ROW_COUNT_XPATH, text: size, description: "$size row(s) of data expected")
