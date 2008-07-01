@@ -36,7 +36,7 @@ class GrailsLdapUserDetailsMapper extends LdapUserDetailsMapper {
 	UserDetails mapUserFromContext(DirContextOperations ctx, String username, GrantedAuthority[] authorities) {
 
 		boolean retrieveDatabaseRoles = authenticateService.securityConfig.security.ldapRetrieveDatabaseRoles
-		def dbDetails = grailsDaoImpl.loadUserByUsername(username, retrieveDatabaseRoles)
+		def dbDetails = userDetailsService.loadUserByUsername(username, retrieveDatabaseRoles)
 		authorities = mergeDatabaseRoles(dbDetails, authorities)
 
 		LdapUserDetails ldapDetails = (LdapUserDetails)super.mapUserFromContext(ctx, username, authorities)
