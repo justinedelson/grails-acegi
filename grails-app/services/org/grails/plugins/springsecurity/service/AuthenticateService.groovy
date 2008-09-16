@@ -39,28 +39,21 @@ class AuthenticateService {
 	 * @deprecated You can invoke tags from controllers (since grails-0.6)
    	*/
    	def ifAllGranted(role) {
-		def granted = AuthorizeTools.getPrincipalAuthorities()
-		return granted.containsAll(AuthorizeTools.parseAuthoritiesString(role))
+		return AuthorizeTools.ifAllGranted(role)
 	}
 
 	/**
    	 * @deprecated You can invoke tags from controllers (since grails-0.6)
    	 */
    	def ifNotGranted(role) {
-
-		def granted = AuthorizeTools.getPrincipalAuthorities()
-		Set grantedCopy = AuthorizeTools.retainAll(granted, AuthorizeTools.parseAuthoritiesString(role));
-		return grantedCopy.isEmpty()
+   		return AuthorizeTools.ifNotGranted(role)
 	}
 
 	/**
 	 * @deprecated You can invoke tags from controllers (since grails-0.6)
 	 */
 	def ifAnyGranted(role) {
-
-		def granted = AuthorizeTools.getPrincipalAuthorities()
-		Set grantedCopy = AuthorizeTools.retainAll(granted, AuthorizeTools.parseAuthoritiesString(role))
-		return !grantedCopy.isEmpty()
+		return AuthorizeTools.ifAnyGranted(role)
 	}
 
 	/**
@@ -102,8 +95,13 @@ class AuthenticateService {
 	/**
 	 * returns a MessageDigest password.
 	 * (changes algorithm method dynamically by param of config)
+	 * @deprecated  use <code>encodePassword</code> instead
 	 */
 	def passwordEncoder(String passwd) {
+		return encodePassword(passwd)
+	}
+
+	def encodePassword(String passwd) {
 		def securityConfig = getSecurityConfig()
 		def algorithm = securityConfig.security.algorithm
 		def encodeHashAsBase64 = securityConfig.security.encodeHashAsBase64

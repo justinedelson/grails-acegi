@@ -96,4 +96,21 @@ class AuthorizeTools {
 
 		return target
 	}
+
+	static boolean ifAllGranted(role) {
+		def granted = getPrincipalAuthorities()
+		return granted.containsAll(parseAuthoritiesString(role))
+	}
+
+	static boolean ifNotGranted(role) {
+		def granted = getPrincipalAuthorities()
+		Set grantedCopy = retainAll(granted, parseAuthoritiesString(role))
+		return grantedCopy.empty
+	}
+
+	static boolean ifAnyGranted(role) {
+		def granted = getPrincipalAuthorities()
+		Set grantedCopy = retainAll(granted, parseAuthoritiesString(role))
+		return !grantedCopy.empty
+	}
 }

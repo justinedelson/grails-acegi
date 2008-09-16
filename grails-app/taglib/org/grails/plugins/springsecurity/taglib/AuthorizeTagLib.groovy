@@ -32,10 +32,7 @@ class AuthorizeTagLib {
 	 * </g:ifAllGranted>
 	 */
 	def ifAllGranted = { attrs, body ->
-		def role = attrs.role
-		def granted = AuthorizeTools.getPrincipalAuthorities()
-
-		if (granted.containsAll(AuthorizeTools.parseAuthoritiesString(role))) {
+		if (AuthorizeTools.ifAllGranted(attrs.role)) {
 			out << body()
 		}
 	}
@@ -46,10 +43,7 @@ class AuthorizeTagLib {
 	 * </g:ifNotGranted>
 	 */
 	def ifNotGranted = { attrs, body ->
-		def role = attrs.role
-		def granted = AuthorizeTools.getPrincipalAuthorities()
-		Set grantedCopy = AuthorizeTools.retainAll(granted, AuthorizeTools.parseAuthoritiesString(role))
-		if (grantedCopy.empty) {
+		if (AuthorizeTools.ifNotGranted(attrs.role)) {
 			out << body()
 		}
 	}
@@ -60,11 +54,7 @@ class AuthorizeTagLib {
 	 * </g:ifAnyGranted>
 	 */
 	def ifAnyGranted = { attrs, body ->
-
-		def role = attrs.role
-		def granted = AuthorizeTools.getPrincipalAuthorities()
-		Set grantedCopy = AuthorizeTools.retainAll(granted, AuthorizeTools.parseAuthoritiesString(role))
-		if (!grantedCopy.empty) {
+		if (AuthorizeTools.ifAnyGranted(attrs.role)) {
 			out << body()
 		}
 	}
