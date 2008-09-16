@@ -33,7 +33,7 @@ class RedirectUtils {
 	 * Send a redirect.
 	 * @param request  the request
 	 * @param response  the response
-     * @param url the target url to redirect to
+	 * @param url the target url to redirect to
 	 * @throws IOException  if there's a problem
 	 */
 	static void sendRedirect(
@@ -49,8 +49,8 @@ class RedirectUtils {
 	 * Build a redirect url.
 	 * @param request  the request
 	 * @param response  the response
-     * @param url the target url to redirect to
-     * @return  the url
+	 * @param url the target url to redirect to
+	 * @return  the url
 	 * @throws IOException  if there's a problem
 	 */
 	static String buildRedirectUrl(
