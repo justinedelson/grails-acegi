@@ -16,7 +16,7 @@ class LoginController {
 	/**
 	 * Dependency injection for the authentication service.
 	 */
-	AuthenticateService authenticateService
+	def authenticateService
 
 	/**
 	 * Dependency injection for OpenIDConsumer.
@@ -98,7 +98,7 @@ class LoginController {
 	 * Show denied page.
 	 */
 	def denied = {
-		if (ControllerUtils.isUserAuthenticated()) {
+		if (isLoggedIn()) {
 			// have cookie but the page is guarded with IS_AUTHENTICATED_FULLY
 			redirect action: full, params: params
 		}
@@ -148,8 +148,7 @@ class LoginController {
 	 * Check if logged in.
 	 */
 	private boolean isLoggedIn() {
-		def authPrincipal = authenticateService.principal()
-		return authPrincipal != null && authPrincipal != 'anonymousUser'
+		return authenticateService.isLoggedIn()
 	}
 
 	private boolean isAjax() {

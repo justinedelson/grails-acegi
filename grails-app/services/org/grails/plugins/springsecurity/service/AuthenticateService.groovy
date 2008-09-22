@@ -15,6 +15,7 @@
 package org.grails.plugins.springsecurity.service
 
 import java.security.MessageDigest
+import org.springframework.security.userdetails.UserDetails
 
 import org.apache.commons.codec.binary.Hex
 import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
@@ -31,7 +32,7 @@ import org.springframework.security.ui.AbstractProcessingFilter
  */
 class AuthenticateService {
 
-	boolean transactional = true
+	boolean transactional = false
 
 	private securityConfig
 
@@ -69,13 +70,7 @@ class AuthenticateService {
 	 * @return  the domain object or <code>null</code> if not logged in
 	 */
 	def userDomain() {
-
-		def principal = principal()
-		def loginUser = null
-		if (principal != null && principal != 'anonymousUser') {
-			loginUser = principal?.domainClass
-		}
-		return loginUser
+		return isLoggedIn() ? principal().domainClass : null
 	}
 
 	/**
@@ -134,5 +129,13 @@ class AuthenticateService {
 		}
 
 		return false
+	}
+
+	/**
+	 * Quick check to see if the current user is logged in.
+	 * @return  <code>true</code> if the principal is a <code>UserDetails</code> or subclass
+	 */
+	boolean isLoggedIn() {
+		return principal() instanceof UserDetails
 	}
 }
