@@ -1,5 +1,7 @@
 import org.codehaus.groovy.grails.commons.ControllerArtefactHandler
 
+import org.codehaus.groovy.grails.plugins.springsecurity.AuthenticatedVetoableDecisionManager
+
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsAccessDeniedHandlerImpl
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsAuthenticationProcessingFilter
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsDaoImpl
@@ -47,7 +49,6 @@ import org.springframework.security.providers.ldap.authenticator.BindAuthenticat
 import org.springframework.security.providers.rememberme.RememberMeAuthenticationProvider
 import org.springframework.security.util.FilterChainProxy
 import org.springframework.security.util.FilterToBeanProxy
-import org.springframework.security.vote.AffirmativeBased
 import org.springframework.security.vote.AuthenticatedVoter
 import org.springframework.security.vote.RoleVoter
 import org.springframework.security.wrapper.SecurityContextHolderAwareRequestFilter
@@ -233,7 +234,7 @@ class AcegiGrailsPlugin {
 		}
 		def decisionVoterList = createRefList(decisionVoterNames)
 		/** accessDecisionManager */
-		accessDecisionManager(AffirmativeBased) {
+		accessDecisionManager(AuthenticatedVetoableDecisionManager) {
 			allowIfAllAbstainDecisions = false
 			decisionVoters = decisionVoterList
 		}
