@@ -23,28 +23,60 @@
 import groovy.text.SimpleTemplateEngine
 
 grailsHome = Ant.project.properties.'environment.GRAILS_HOME'
-includeTargets << new File("${grailsHome}/scripts/Init.groovy")
+includeTargets << new File("$grailsHome/scripts/Init.groovy")
 
-personDomainClassName = 'Person'
-authorityDomainClassName = 'Authority'
-requestmapDomainClassName = 'Requestmap'
-templateDir = "${acegiPluginDir}/src/templates"
-appDir = "${basedir}/grails-app"
+personClassName = 'Person'
+personClassPackage = ''
+authorityClassName = 'Authority'
+authorityClassPackage = ''
+requestmapClassName = 'Requestmap'
+requestmapClassPackage = ''
+templateDir = "$acegiPluginDir/src/templates"
+appDir = "$basedir/grails-app"
 
-overwrite = false
+overwrite = true
 
-generateFile = { Map binding, String templatePath, String outputPath ->
+generateFile = { String templatePath, String outputPath ->
 
-	def templateFile = new File(templatePath)
+	File templateFile = new File(templatePath)
 	if (!templateFile.exists()) {
-		println "${templatePath} doesn't exist"
+		println "$templatePath doesn't exist"
 		return
 	}
 
-	def outFile = new File(outputPath)
+	File outFile = new File(outputPath)
 	if (outFile.exists() && !overwrite) {
-	    println "file *not* generated: ${outFile.absolutePath}"
+	    println "file *not* generated: $outFile.absolutePath"
 		return
+	}
+
+	// in case it's in a package, create dirs
+	Ant.mkdir dir: outFile.parentFile
+
+	def binding = [personClassName: personClassName,
+	               personClassPackage: '',
+	               personClass: '', personClassImport: '',
+	               authorityClassName: authorityClassName,
+	               authorityClassPackage: '',
+	               authorityClass: '', authorityClassImport: '',
+	               requestmapClassName: requestmapClassName,
+	               requestmapClassPackage: '',
+	               requestmapClass: '', requestmapClassImport: '']
+
+	if (personClassPackage) {
+		binding.personClass = "${personClassPackage}.$personClassName"
+		binding.personClassImport = "import $binding.personClass"
+		binding.personClassPackage = "package $personClassPackage"
+	}
+	if (authorityClassPackage) {
+		binding.authorityClass = "${authorityClassPackage}.$authorityClassName"
+		binding.authorityClassImport = "import $binding.authorityClass"
+		binding.authorityClassPackage = "package $authorityClassPackage"
+	}
+	if (requestmapClassPackage) {
+		binding.requestmapClass = "${requestmapClassPackage}.$requestmapClassName"
+		binding.requestmapClassImport = "import $binding.requestmapClass"
+		binding.requestmapClassPackage = "package $requestmapClassPackage"
 	}
 
 	outFile.withWriter { writer ->
@@ -52,7 +84,7 @@ generateFile = { Map binding, String templatePath, String outputPath ->
 		template.make(binding).writeTo(writer)
 	}
 
-	println "file generated at ${outFile.absolutePath}"
+	println "file generated at $outFile.absolutePath"
 }
 
 copyFile = { String from, String to ->
@@ -61,11 +93,35 @@ copyFile = { String from, String to ->
 
 loadConfig = {
 	GroovyClassLoader loader = new GroovyClassLoader(getClass().getClassLoader())
-	Class clazz = loader.parseClass(new File("${basedir}/grails-app/conf/SecurityConfig.groovy"))
+	Class clazz = loader.parseClass(new File("$basedir/grails-app/conf/SecurityConfig.groovy"))
 	def securityConfig = new ConfigSlurper().parse(clazz)
-	personDomainClassName = securityConfig.security.loginUserDomainClass
-	authorityDomainClassName = securityConfig.security.authorityDomainClass
-	requestmapDomainClassName = securityConfig.security.requestMapClass
-	println "Login user domain class: ${personDomainClassName}"
-	println "Authority domain class: ${authorityDomainClassName}"
+	splitPersonClassName securityConfig.security.loginUserDomainClass
+	splitAuthorityClassName securityConfig.security.authorityDomainClass
+	splitRequestmapClassName securityConfig.security.requestMapClass
+	println "Login user domain class: $securityConfig.security.loginUserDomainClass"
+	println "Authority domain class: $securityConfig.security.authorityDomainClass"
+	println "Request Map domain class: $securityConfig.security.requestMapClass"
+}
+
+splitClassName = { name ->
+	int index = name.lastIndexOf('.')
+	return index == -1 ? [name, ''] : [name.substring(index + 1), name.substring(0, index)]
+}
+
+splitPersonClassName = { name ->
+	def packageAndClass = splitClassName(name)
+	personClassName = packageAndClass[0]
+	personClassPackage = packageAndClass[1]
+}
+
+splitAuthorityClassName = { name ->
+	def packageAndClass = splitClassName(name)
+	authorityClassName = packageAndClass[0]
+	authorityClassPackage = packageAndClass[1]
+}
+
+splitRequestmapClassName = { name ->
+	def packageAndClass = splitClassName(name)
+	requestmapClassName = packageAndClass[0]
+	requestmapClassPackage = packageAndClass[1]
 }

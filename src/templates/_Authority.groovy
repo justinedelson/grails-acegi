@@ -1,9 +1,13 @@
-/**
- * ${authorityDomain} class for Authority.
- */
-class ${authorityDomain} {
+${authorityClassPackage}
 
-	static hasMany = [people: ${personDomain}]
+${personClassImport}
+
+/**
+ * Authority domain class.
+ */
+class ${authorityClassName} {
+
+	static hasMany = [people: ${personClassName}]
 
 	/** description */
 	String description

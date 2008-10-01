@@ -1,9 +1,11 @@
+${requestmapClassImport}
+
 import org.springframework.util.StringUtils
 
 /**
  * Requestmap controller.
  */
-class RequestmapController {
+class ${requestmapClassName}Controller {
 
 	// the delete, save and update actions only accept POST requests
 	def allowedMethods = [delete: 'POST', save: 'POST', update: 'POST']
@@ -16,30 +18,30 @@ class RequestmapController {
 		if (!params.max) {
 			params.max = 10
 		}
-		[requestmapList: ${requestmapDomain}.list(params)]
+		[requestmapList: ${requestmapClassName}.list(params)]
 	}
 
 	def show = {
-		[requestmap: ${requestmapDomain}.get(params.id)]
+		[requestmap: ${requestmapClassName}.get(params.id)]
 	}
 
 	def delete = {
-		def requestmap = ${requestmapDomain}.get(params.id)
+		def requestmap = ${requestmapClassName}.get(params.id)
 		if (!requestmap) {
-			flash.message = "${requestmapDomain} not found with id \${params.id}"
+			flash.message = "${requestmapClassName} not found with id \${params.id}"
 			redirect(action:list)
 			return
 		}
 
 		requestmap.delete()
-		flash.message = "${requestmapDomain} \${params.id} deleted."
+		flash.message = "${requestmapClassName} \${params.id} deleted."
 		redirect(action: list)
 	}
 
 	def edit = {
-		def requestmap = ${requestmapDomain}.get(params.id)
+		def requestmap = ${requestmapClassName}.get(params.id)
 		if (!requestmap) {
-			flash.message = "${requestmapDomain} not found with id \${params.id}"
+			flash.message = "${requestmapClassName} not found with id \${params.id}"
 			redirect(action: list)
 			return
 		}
@@ -52,9 +54,9 @@ class RequestmapController {
 	 */
 	def update = {
 
-		def requestmap = ${requestmapDomain}.get(params.id)
+		def requestmap = ${requestmapClassName}.get(params.id)
 		if (!requestmap) {
-			flash.message = "${requestmapDomain} not found with id \${params.id}"
+			flash.message = "${requestmapClassName} not found with id \${params.id}"
 			redirect(action: edit, id :params.id)
 			return
 		}
@@ -69,7 +71,7 @@ class RequestmapController {
 	}
 
 	def create = {
-		def requestmap = new ${requestmapDomain}()
+		def requestmap = new ${requestmapClassName}()
 		requestmap.properties = params
 		[requestmap: requestmap]
 	}
@@ -79,7 +81,7 @@ class RequestmapController {
 	 */
 	def save = {
 
-		def requestmap = new ${requestmapDomain}()
+		def requestmap = new ${requestmapClassName}()
 		updateFromParams(requestmap)
 		if (requestmap.save()) {
 			redirect(action: show, id: requestmap.id)

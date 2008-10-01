@@ -1,15 +1,16 @@
-import org.grails.plugins.springsecurity.service.AuthenticateService
+${personClassImport}
+${authorityClassImport}
 
 import org.springframework.security.providers.UsernamePasswordAuthenticationToken as AuthToken
 import org.springframework.security.context.SecurityContextHolder as SCH
 
 /**
- * Actions over ${personDomain} object.
+ * Registration controller.
  */
 class RegisterController {
 
-	EmailerService emailerService
-	AuthenticateService authenticateService
+	def emailerService
+	def authenticateService
 	def daoAuthenticationProvider
 
 	def allowedMethods = [save: 'POST', update: 'POST']
@@ -19,15 +20,14 @@ class RegisterController {
 	 */
 	def index = {
 
-		//if logon user.
+		// skip if already logged in
 		if (authenticateService.userDomain()) {
-			log.info("\${authenticateService.userDomain()} user hit the register page")
 			redirect(action: 'show')
 			return
 		}
 
 		if (session.id) {
-			def person = new ${personDomain}()
+			def person = new ${personClassName}()
 			person.properties = params
 			return [person: person]
 		}
@@ -43,7 +43,7 @@ class RegisterController {
 		//get user id from session's domain class.
 		def user = authenticateService.userDomain()
 		if (user) {
-			render(view: 'show', model: [person: ${personDomain}.get(user.id)])
+			render(view: 'show', model: [person: ${personClassName}.get(user.id)])
 		}
 		else {
 			redirect(action: 'index')
@@ -58,7 +58,7 @@ class RegisterController {
 		def person
 		def user = authenticateService.userDomain()
 		if (user) {
-			person = ${personDomain}.get(user.id)
+			person = ${personClassName}.get(user.id)
 		}
 
 		if (!person) {
@@ -78,7 +78,7 @@ class RegisterController {
 		def person
 		def user = authenticateService.userDomain()
 		if (user) {
-			person = ${personDomain}.get(user.id)
+			person = ${personClassName}.get(user.id)
 		}
 		else {
 			redirect(action: 'index')
@@ -128,18 +128,17 @@ class RegisterController {
 	def save = {
 
 		if (authenticateService.userDomain() != null) {
-			log.info("\${authenticateService.userDomain()} user hit the register page")
 			redirect(action: 'show')
 			return
 		}
 
-		def person = new ${personDomain}()
+		def person = new ${personClassName}()
 		person.properties = params
 
 		def config = authenticateService.securityConfig
 		def defaultRole = config.security.defaultRole
 
-		def role = ${authorityDomain}.findByAuthority(defaultRole)
+		def role = ${authorityClassName}.findByAuthority(defaultRole)
 		if (!role) {
 			person.passwd = ''
 			flash.message = 'Default Role not found.'

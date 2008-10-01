@@ -22,25 +22,25 @@
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
 
-includeTargets << new File("${acegiPluginDir}/scripts/SecurityTargets.groovy")
+includeTargets << new File("$acegiPluginDir/scripts/SecurityTargets.groovy")
 
-pluginTemplatePath = "${templateDir}/manager"
+pluginTemplatePath = "$templateDir/manager"
 
 target('default': 'Generates user registration views and controllers') {
 
 	loadConfig()
 
-	if (!new File("${basedir}/lib/mail-1.4.jar").exists()) {
+	if (!new File("$basedir/lib/mail-1.4.jar").exists()) {
 		println "Downloading mail-1.4 ..."
-		get(dest: "${basedir}/lib/mail-1.4.jar",
+		get(dest: "$basedir/lib/mail-1.4.jar",
 			src: "http://repo1.maven.org/maven2/javax/mail/mail/1.4/mail-1.4.jar",
 			verbose: true,
 			usetimestamp: true)
 	}
 
-	if (!new File("${basedir}/lib/activation-1.1.jar").exists()) {
+	if (!new File("$basedir/lib/activation-1.1.jar").exists()) {
 		println "Downloading activation-1.1.jar ..."
-		get(dest: "${basedir}/lib/activation-1.1.jar",
+		get(dest: "$basedir/lib/activation-1.1.jar",
 			src: "http://repo1.maven.org/maven2/javax/activation/activation/1.1/activation-1.1.jar",
 			verbose: true,
 			usetimestamp: true)
@@ -52,7 +52,7 @@ target('default': 'Generates user registration views and controllers') {
 private void generateRegistration(String name) {
 
 	def uname = name[0].toUpperCase() + name.substring(1)
-	def outFile = new File("${basedir}/grails-app/controllers/${uname}Controller.groovy")
+	def outFile = new File("$basedir/grails-app/controllers/${uname}Controller.groovy")
 	if (outFile.exists()) {
 		Ant.input(addProperty: 'overwrite', message: 'Do you want to overwrite? y/n')
 		if ('y' == Ant.antProject.properties.'overwrite') {
@@ -63,33 +63,28 @@ private void generateRegistration(String name) {
 		overwrite = true
 	}
 
-	println "generating files for ${uname} ......."
-	def binding = [personDomain: personDomainClassName,
-	               authorityDomain: authorityDomainClassName,
-	               requestmapDomain: requestmapDomainClassName]
+	println "generating files for $uname ......."
 
 	//copy the CaptchaController
-	String dest = "${basedir}/grails-app/controllers/CaptchaController.groovy"
-	println "copying CaptchaController.groovy to - ${dest}"
-	copyFile "${pluginTemplatePath}/controllers/_CaptchaController.groovy", "${dest}"
+	String dest = "$basedir/grails-app/controllers/CaptchaController.groovy"
+	println "copying CaptchaController.groovy to - $dest"
+	copyFile "$pluginTemplatePath/controllers/_CaptchaController.groovy", dest
 
 	//copy the EmailerService
-	dest = "${basedir}/grails-app/services/EmailerService.groovy"
-	println "copying EmailerService.groovy to - ${dest}"
-	copyFile "${pluginTemplatePath}/services/_EmailerService.groovy", "${dest}"
+	dest = "$basedir/grails-app/services/EmailerService.groovy"
+	println "copying EmailerService.groovy to - $dest"
+	copyFile "$pluginTemplatePath/services/_EmailerService.groovy", dest
 
 	//generate RegisterController.groovy
-	dest = "${basedir}/grails-app/controllers/${uname}Controller.groovy"
-	println "generating file ${dest}"
-	generateFile(binding,
-			"${pluginTemplatePath}/controllers/_${uname}Controller.groovy",
-			"${dest}")
+	dest = "$basedir/grails-app/controllers/${uname}Controller.groovy"
+	println "generating file $dest"
+	generateFile "$pluginTemplatePath/controllers/_${uname}Controller.groovy", dest
 
 	//generate views for RegisterController
-	dest = "${basedir}/grails-app/views/${name}"
-	println "copying view files to - ${dest}/*"
-	Ant.mkdir(dir: "${dest}")
-	copyFile "${pluginTemplatePath}/views/${name}/edit.gsp", "${dest}/edit.gsp"
-	copyFile "${pluginTemplatePath}/views/${name}/index.gsp", "${dest}/index.gsp"
-	copyFile "${pluginTemplatePath}/views/${name}/show.gsp", "${dest}/show.gsp"
+	dest = "$basedir/grails-app/views/$name"
+	println "copying view files to - $dest/*"
+	Ant.mkdir dir: dest
+	copyFile "$pluginTemplatePath/views/$name/edit.gsp", "$dest/edit.gsp"
+	copyFile "$pluginTemplatePath/views/$name/index.gsp", "$dest/index.gsp"
+	copyFile "$pluginTemplatePath/views/$name/show.gsp", "$dest/show.gsp"
 }

@@ -1,10 +1,14 @@
+${personClassPackage}
+
+${authorityClassImport}
+
 /**
- * ${personDomain} for user account.
+ * User domain class.
  */
-class ${personDomain} {
+class ${personClassName} {
 	static transients = ['pass']
-	static hasMany = [authorities: ${authorityDomain}]
-	static belongsTo = ${authorityDomain}
+	static hasMany = [authorities: ${authorityClassName}]
+	static belongsTo = ${authorityClassName}
 
 	/** Username */
 	String username

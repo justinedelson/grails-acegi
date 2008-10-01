@@ -21,24 +21,24 @@
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
 
-includeTargets << new File("${acegiPluginDir}/scripts/SecurityTargets.groovy")
+includeTargets << new File("$acegiPluginDir/scripts/SecurityTargets.groovy")
 
-pluginTemplatePath = "${templateDir}/manager"
+pluginTemplatePath = "$templateDir/manager"
 
 target('default': 'Generates view and controller for Spring Security user management') {
 	loadConfig()
 
-	generateControllerAndViews('User')
-	generateControllerAndViews('Role')
-	generateControllerAndViews('Requestmap')
+	generateControllerAndViews 'User'
+	generateControllerAndViews 'Role'
+	generateControllerAndViews 'Requestmap'
 }
 
 private void generateControllerAndViews(String name) {
 
-	String path = "${basedir}/grails-app/controllers/${name}Controller.groovy"
-	def outFile = new File("${path}")
+	String path = "$basedir/grails-app/controllers/${name}Controller.groovy"
+	def outFile = new File(path)
 	if (outFile.exists()) {
-		Ant.input(addProperty: 'overwrite', message: "${outFile.name} exists - overwrite? y/n")
+		Ant.input addProperty: 'overwrite', message: "$outFile.name exists - overwrite? y/n"
 		if ('y' == Ant.antProject.properties.'overwrite') {
 			overwrite = true
 		}
@@ -47,24 +47,17 @@ private void generateControllerAndViews(String name) {
 		overwrite = true
 	}
 
-	println "generating files for ${name} ......."
-	def binding = [personDomain: personDomainClassName,
-	               authorityDomain: authorityDomainClassName,
-	               requestmapDomain: requestmapDomainClassName]
+	println "generating files for $name ......."
 
-	//generate UserController.groovy
-	println "generating file ${path}"
-	generateFile(binding,
-		"${pluginTemplatePath}/controllers/_${name}Controller.groovy",
-		"${path}")
+	println "generating file $path"
+	generateFile "$pluginTemplatePath/controllers/_${name}Controller.groovy", path
 
-	//generate views for UserController
-	path = "${basedir}/grails-app/views/${name.toLowerCase()}"
-	String viewPath = "${pluginTemplatePath}/views/${name.toLowerCase()}"
-	println "generating view files - ${path}/* "
-	Ant.mkdir(dir: "${path}")
-	generateFile(binding, "${viewPath}/list.gsp", "${path}/list.gsp")
-	generateFile(binding, "${viewPath}/edit.gsp", "${path}/edit.gsp")
-	generateFile(binding, "${viewPath}/create.gsp", "${path}/create.gsp")
-	generateFile(binding, "${viewPath}/show.gsp", "${path}/show.gsp")
+	path = "$basedir/grails-app/views/${name.toLowerCase()}"
+	String viewPath = "$pluginTemplatePath/views/${name.toLowerCase()}"
+	println "generating view files - $path/* "
+	Ant.mkdir dir: path
+	generateFile "$viewPath/list.gsp", "$path/list.gsp"
+	generateFile "$viewPath/edit.gsp", "$path/edit.gsp"
+	generateFile "$viewPath/create.gsp", "$path/create.gsp"
+	generateFile "$viewPath/show.gsp", "$path/show.gsp"
 }

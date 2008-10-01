@@ -21,7 +21,7 @@ security {
 	errorPage = null
 
 	/** login user domain class name and fields */
-	loginUserDomainClass = "${personDomain}"
+	loginUserDomainClass = "${personClass}"
 	userName = 'username'
 	password = 'passwd'
 	enabled = 'enabled'
@@ -36,13 +36,13 @@ security {
 	 * Authority domain class authority field name
 	 * authorityFieldInList
 	 */
-	authorityDomainClass = "${authorityDomain}"
+	authorityDomainClass = "${authorityClass}"
 	authorityField = 'authority'
 
 	/** use RequestMap from DomainClass */
 	useRequestMapDomainClass = true
 	/** Requestmap domain class (if useRequestMapDomainClass = true) */
-	requestMapClass = "${requestmapDomain}"
+	requestMapClass = "${requestmapClass}"
 	requestMapPathField = 'url'
 	requestMapConfigAttributeField = 'configAttribute'
 

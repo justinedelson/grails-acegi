@@ -21,7 +21,7 @@
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
 
-includeTargets << new File("${acegiPluginDir}/scripts/SecurityTargets.groovy")
+includeTargets << new File("$acegiPluginDir/scripts/SecurityTargets.groovy")
 
 target('default': 'Creates Domain classes for Spring Security plugin') {
 	parseArgs()
@@ -33,83 +33,67 @@ private void parseArgs() {
 	args = args ? args.split('\n') : []
 	switch (args.size()) {
 		case 0:
-			println 'Create domain classes with default name'
-			return
-		case 1:
-			personDomainClassName = args[0]
-			println "Login user domain class: ${personDomainClassName}"
-			//prompt for authority name
-			Ant.input(addProperty: 'authority.name', message: 'authority domain class name not specified. Please enter:')
-			def authorityClassNames = Ant.antProject.properties.'authority.name'
-			if (authorityClassNames) {
-				def splitNames = authorityClassNames.split('\n')
-				if (splitNames.size() == 1) {
-					authorityDomainClassName = splitNames[0]
-					println "Authority domain class: ${authorityDomainClassName}"
-					return
-				}
-			}
+			println 'Creating domain classes with default name'
 			break
-		case 2:
-			personDomainClassName = args[0]
-			authorityDomainClassName = args[1]
-			println "Login user domain class: ${personDomainClassName}"
-			println "Authority domain class: ${authorityDomainClassName}"
-			return
+		case 3:
+			splitPersonClassName args[0]
+			splitAuthorityClassName args[1]
+			splitRequestmapClassName args[2]
+			println "Login user domain class: ${args[0]}"
+			println "Authority domain class: ${args[1]}"
+			println "Requestmap domain class: ${args[1]}"
+			break
+		default:
+			usage()
+			break
 	}
-
-	usage()
 }
 
 private void usage() {
-	println 'usage: grails create-auth-domains person authority'
+	println 'usage: grails create-auth-domains <person class name> <authority class name> <request map class name>'
 	System.exit(1)
 }
 
 private void createDomains() {
 
-	def binding = [personDomain: personDomainClassName,
-	               authorityDomain: authorityDomainClassName,
-	               requestmapDomain: requestmapDomainClassName]
+	// create Person domain class
+	generateFile "$templateDir/_Person.groovy",
+		"$appDir/domain/${packageToDir(personClassPackage)}${personClassName}.groovy"
 
-	//create Person domain class
-	generateFile(binding,
-			"${templateDir}/_Person.groovy",
-			"${appDir}/domain/${personDomainClassName}.groovy")
+	// create Authority domain class
+	generateFile "$templateDir/_Authority.groovy",
+		"$appDir/domain/${packageToDir(authorityClassPackage)}${authorityClassName}.groovy"
 
-	//create Authority domain class
-	generateFile(binding,
-			"${templateDir}/_Authority.groovy",
-			"${appDir}/domain/${authorityDomainClassName}.groovy")
+	// create Requestmap domain class
+	generateFile "$templateDir/_Requestmap.groovy",
+		"$appDir/domain/${packageToDir(requestmapClassPackage)}${requestmapClassName}.groovy"
 
-	//copy Requestmap domain class
-	println 'copying Requestmap domain class.'
-	copyFile "${templateDir}/_Requestmap.groovy", "${appDir}/domain/Requestmap.groovy"
+	// create SecurityConfig
+	generateFile "$templateDir/_SecurityConfig.groovy", "$appDir/conf/SecurityConfig.groovy"
+}
 
-	//create SecurityConfig
-	generateFile(binding,
-			"${templateDir}/_SecurityConfig.groovy",
-			"${appDir}/conf/SecurityConfig.groovy")
+private String packageToDir(pkg) {
+	String dir = ''
+	if (pkg) {
+		dir = pkg.replaceAll('\\.', '/') + '/'
+	}
+
+	return dir
 }
 
 private void copyViewAndControllers() {
 
-	//copy login.gsp and Login/Logout Controller example.
+	// copy login.gsp and Login/Logout Controller example.
 	println 'copying login.gsp and Login/Logout Controller example. '
-	Ant.mkdir(dir: "${appDir}/views/login")
-	copyFile "${templateDir}/views/login/auth.gsp",
-		"${appDir}/views/login/auth.gsp"
-	copyFile "${templateDir}/views/login/openIdAuth.gsp",
-		"${appDir}/views/login/openIdAuth.gsp"
-	copyFile "${templateDir}/views/login/denied.gsp",
-		"${appDir}/views/login/denied.gsp"
-	copyFile "${templateDir}/controllers/LoginController.groovy",
-		"${appDir}/controllers/LoginController.groovy"
-	copyFile "${templateDir}/controllers/LogoutController.groovy",
-		"${appDir}/controllers/LogoutController.groovy"
+	Ant.mkdir dir: "$appDir/views/login"
+	copyFile "$templateDir/views/login/auth.gsp", "$appDir/views/login/auth.gsp"
+	copyFile "$templateDir/views/login/openIdAuth.gsp", "$appDir/views/login/openIdAuth.gsp"
+	copyFile "$templateDir/views/login/denied.gsp", "$appDir/views/login/denied.gsp"
+	copyFile "$templateDir/controllers/LoginController.groovy", "$appDir/controllers/LoginController.groovy"
+	copyFile "$templateDir/controllers/LogoutController.groovy", "$appDir/controllers/LogoutController.groovy"
 
-	//log4j.logger.org.springframework.security='off,stdout'
-	def configFile = new File("${appDir}/conf/Config.groovy")
+	// log4j.logger.org.springframework.security='off,stdout'
+	def configFile = new File("$appDir/conf/Config.groovy")
 	if (configFile.exists()) {
 		configFile.append("\n\n//log4j.logger.org.springframework.security='off,stdout'")
 	}

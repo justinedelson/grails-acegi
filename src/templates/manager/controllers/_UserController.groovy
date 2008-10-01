@@ -1,11 +1,12 @@
-import org.grails.plugins.springsecurity.service.AuthenticateService
+${personClassImport}
+${authorityClassImport}
 
 /**
- * ${personDomain} Controller.
+ * User controller.
  */
-class UserController {
+class ${personClassName}Controller {
 
-	AuthenticateService authenticateService
+	def authenticateService
 
 	// the delete, save and update actions only accept POST requests
 	def allowedMethods = [delete: 'POST', save: 'POST', update: 'POST']
@@ -18,11 +19,11 @@ class UserController {
 		if (!params.max) {
 			params.max = 10
 		}
-		[personList: ${personDomain}.list(params)]
+		[personList: ${personClassName}.list(params)]
 	}
 
 	def show = {
-		[person: ${personDomain}.get(params.id)]
+		[person: ${personClassName}.get(params.id)]
 	}
 
 	/**
@@ -31,7 +32,7 @@ class UserController {
 	 */
 	def delete = {
 
-		def person = ${personDomain}.get(params.id)
+		def person = ${personClassName}.get(params.id)
 		if (person) {
 			def authPrincipal = authenticateService.principal()
 			//avoid self-delete if the logged-in user is an admin
@@ -40,13 +41,13 @@ class UserController {
 			}
 			else {
 				//first, delete this person from People_Authorities table.
-				${authorityDomain}.findAll().each { it.removeFromPeople(person) }
+				${authorityClassName}.findAll().each { it.removeFromPeople(person) }
 				person.delete()
-				flash.message = "${personDomain} \${params.id} deleted."
+				flash.message = "${personClassName} \${params.id} deleted."
 			}
 		}
 		else {
-			flash.message = "${personDomain} not found with id \${params.id}"
+			flash.message = "${personClassName} not found with id \${params.id}"
 		}
 
 		redirect(action: list)
@@ -54,14 +55,14 @@ class UserController {
 
 	def edit = {
 
-		def person = ${personDomain}.get(params.id)
+		def person = ${personClassName}.get(params.id)
 		if (!person) {
-			flash.message = "${personDomain} not found with id \${params.id}"
+			flash.message = "${personClassName} not found with id \${params.id}"
 			redirect(action: list)
 			return
 		}
 
-		[person: person, authorityList: ${authorityDomain}.list(params)]
+		[person: person, authorityList: ${authorityClassName}.list(params)]
 	}
 
 	/**
@@ -69,9 +70,9 @@ class UserController {
 	 */
 	def update = {
 
-		def person = ${personDomain}.get(params.id)
+		def person = ${personClassName}.get(params.id)
 		if (!person) {
-			flash.message = "${personDomain} not found with id \${params.id}"
+			flash.message = "${personClassName} not found with id \${params.id}"
 			redirect(action: edit, id: params.id)
 			return
 		}
@@ -82,7 +83,7 @@ class UserController {
 			person.passwd = authenticateService.passwordEncoder(params.passwd)
 		}
 		if (person.save()) {
-			${authorityDomain}.findAll().each { it.removeFromPeople(person) }
+			${authorityClassName}.findAll().each { it.removeFromPeople(person) }
 			addRoles(person)
 			redirect(action: show, id: person.id)
 		}
@@ -92,9 +93,9 @@ class UserController {
 	}
 
 	def create = {
-		def person = new ${personDomain}()
+		def person = new ${personClassName}()
 		person.properties = params
-		[person: person, authorityList: ${authorityDomain}.list(params)]
+		[person: person, authorityList: ${authorityClassName}.list(params)]
 	}
 
 	/**
@@ -102,7 +103,7 @@ class UserController {
 	 */
 	def save = {
 
-		def person = new ${personDomain}()
+		def person = new ${personClassName}()
 		person.properties = params
 		person.passwd = authenticateService.passwordEncoder(params.passwd)
 		if (person.save()) {
@@ -110,14 +111,14 @@ class UserController {
 			redirect(action: show, id: person.id)
 		}
 		else {
-			render(view: 'create', model: [authorityList: ${authorityDomain}.list(params), person: person])
+			render(view: 'create', model: [authorityList: ${authorityClassName}.list(params), person: person])
 		}
 	}
 
 	private void addRoles(person) {
 		for (String key in params.keySet()) {
 			if (key.contains('ROLE') && 'on' == params.get(key)) {
-				${authorityDomain}.findByAuthority(key).addToPeople(person)
+				${authorityClassName}.findByAuthority(key).addToPeople(person)
 			}
 		}
 	}

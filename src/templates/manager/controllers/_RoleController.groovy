@@ -1,7 +1,10 @@
+${authorityClassImport}
+${requestmapClassImport}
+
 /**
- * ${authorityDomain} Controller.
+ * Authority Controller.
  */
-class RoleController {
+class ${authorityClassName}Controller {
 
 	// the delete, save and update actions only accept POST requests
 	def allowedMethods = [delete: 'POST', save: 'POST', update: 'POST']
@@ -14,36 +17,36 @@ class RoleController {
 		if (!params.max) {
 			params.max = 10
 		}
-		[authorityList: ${authorityDomain}.list(params)]
+		[authorityList: ${authorityClassName}.list(params)]
 	}
 
 	def show = {
-		[authority: ${authorityDomain}.get(params.id)]
+		[authority: ${authorityClassName}.get(params.id)]
 	}
 
 	def delete = {
-		def authority = ${authorityDomain}.get(params.id)
+		def authority = ${authorityClassName}.get(params.id)
 		if (!authority) {
-			flash.message = "${authorityDomain} not found with id \${params.id}"
+			flash.message = "${authorityClassName} not found with id \${params.id}"
 			redirect(action: list)
 			return
 		}
 
 		String oldRole = authority.authority
-		def rms = ${requestmapDomain}.findAllByConfigAttributeLike('%' + oldRole + '%')
+		def rms = ${requestmapClassName}.findAllByConfigAttributeLike('%' + oldRole + '%')
 		rms.each {
 			it.configAttribute = it.configAttribute.replace(oldRole, '')
 			it.validate()
 		}
 		authority.delete()
-		flash.message = "${authorityDomain} \${params.id} deleted."
+		flash.message = "${authorityClassName} \${params.id} deleted."
 		redirect(action: list)
 	}
 
 	def edit = {
-		def authority = ${authorityDomain}.get(params.id)
+		def authority = ${authorityClassName}.get(params.id)
 		if (!authority) {
-			flash.message = "${authorityDomain} not found with id \${params.id}"
+			flash.message = "${authorityClassName} not found with id \${params.id}"
 			redirect(action: list)
 			return
 		}
@@ -57,9 +60,9 @@ class RoleController {
 	 */
 	def update = {
 
-		def authority = ${authorityDomain}.get(params.id)
+		def authority = ${authorityClassName}.get(params.id)
 		if (!authority) {
-			flash.message = "${authorityDomain} not found with id \${params.id}"
+			flash.message = "${authorityClassName} not found with id \${params.id}"
 			redirect(action: edit, id: params.id)
 			return
 		}
@@ -69,7 +72,7 @@ class RoleController {
 		String role = params.authority
 		authority.authority = 'ROLE_' + role.toUpperCase()
 		String newRole = authority.authority
-		def rms = ${requestmapDomain}.findAllByConfigAttributeLike('%' + oldRole + '%')
+		def rms = ${requestmapClassName}.findAllByConfigAttributeLike('%' + oldRole + '%')
 		rms.each {
 			it.configAttribute = it.configAttribute.replace(oldRole, newRole)
 			it.validate()
@@ -83,7 +86,7 @@ class RoleController {
 	}
 
 	def create = {
-		def authority = new ${authorityDomain}()
+		def authority = new ${authorityClassName}()
 		authority.authority = ''
 		authority.properties = params
 		[authority: authority]
@@ -94,7 +97,7 @@ class RoleController {
 	 */
 	def save = {
 
-		def authority = new ${authorityDomain}()
+		def authority = new ${authorityClassName}()
 		String au = params.authority
 		authority.properties = params
 		//here translate user's input to the required format

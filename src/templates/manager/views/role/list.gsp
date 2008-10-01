@@ -2,15 +2,15 @@
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 		<meta name="layout" content="main" />
-		<title>${authorityDomain} List</title>
+		<title>${authorityClassName} List</title>
 	</head>
 	<body>
 		<div class="nav">
 			<span class="menuButton"><a class="home" href="\${createLinkTo(dir:'')}">Home</a></span>
-			<span class="menuButton"><g:link class="create" action="create">New ${authorityDomain}</g:link></span>
+			<span class="menuButton"><g:link class="create" action="create">New ${authorityClassName}</g:link></span>
 		</div>
 		<div class="body">
-			<h1>${authorityDomain} List</h1>
+			<h1>${authorityClassName} List</h1>
 			<g:if test="\${flash.message}">
 			<div class="message">\${flash.message}</div>
 			</g:if>
@@ -19,7 +19,7 @@
 				<thead>
 					<tr>
 						<g:sortableColumn property="id" title="Id" />
-						<g:sortableColumn property="authority" title="${authorityDomain} Name" />
+						<g:sortableColumn property="authority" title="${authorityClassName} Name" />
 						<g:sortableColumn property="description" title="Description" />
 						<th>&nbsp;</th>
 					</tr>
@@ -42,7 +42,7 @@
 			</div>
 
 			<div class="paginateButtons">
-				<g:paginate total="\${${authorityDomain}.count()}" />
+				<g:paginate total="\${${authorityClass}.count()}" />
 			</div>
 		</div>
 	</body>

@@ -16,11 +16,11 @@ class EmailerService {
 
 	boolean transactional = false
 
-	MailSender mailSender
-	SimpleMailMessage mailMessage // a "prototype" email instance
+	def mailSender
+	def mailMessage // a "prototype" email instance
 
 	/**
-   	 * Send a list of emails
+   	 * Send a list of emails.
    	 *
    	 * @param mails a list of maps
    	 */
@@ -38,7 +38,6 @@ class EmailerService {
 		}
 		// Send them all together
 		try {
-			log.debug "about to send ${messages.size()} messages to:\n${messages.to.join('\n')}"
 			mailSender.send(messages as SimpleMailMessage[])
 		}
 		catch (MailException e) {

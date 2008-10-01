@@ -2,19 +2,19 @@
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 		<meta name="layout" content="main" />
-		<title>Show ${authorityDomain}</title>
+		<title>Show ${authorityClassName}</title>
 	</head>
 
 	<body>
 
 		<div class="nav">
 			<span class="menuButton"><a class="home" href="\${createLinkTo(dir:'')}">Home</a></span>
-			<span class="menuButton"><g:link class="list" action="list">${authorityDomain} List</g:link></span>
-			<span class="menuButton"><g:link class="create" action="create">New ${authorityDomain}</g:link></span>
+			<span class="menuButton"><g:link class="list" action="list">${authorityClassName} List</g:link></span>
+			<span class="menuButton"><g:link class="create" action="create">New ${authorityClassName}</g:link></span>
 		</div>
 
 		<div class="body">
-			<h1>Show ${authorityDomain}</h1>
+			<h1>Show ${authorityClassName}</h1>
 			<g:if test="\${flash.message}">
 			<div class="message">\${flash.message}</div>
 			</g:if>
@@ -28,7 +28,7 @@
 					</tr>
 
 					<tr class="prop">
-						<td valign="top" class="name">${authorityDomain} Name:</td>
+						<td valign="top" class="name">${authorityClassName} Name:</td>
 						<td valign="top" class="value">\${authority.authority.substring(5).toLowerCase()}</td>
 					</tr>
 

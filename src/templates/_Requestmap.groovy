@@ -1,7 +1,9 @@
+${requestmapClassPackage}
+
 /**
- * Domain class for Request Map.
+ * Request Map domain class.
  */
-class Requestmap {
+class ${requestmapClassName} {
 
 	String url
 	String configAttribute
