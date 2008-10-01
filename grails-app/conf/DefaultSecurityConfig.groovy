@@ -129,4 +129,7 @@ security {
 	kerberosRealm = 'KERBEROS.REALM'
 	kerberosKdc = 'krbserver.domain.lan'
 	kerberosRetrieveDatabaseRoles = true
+
+	// HttpSessionEventPublisher
+	useHttpSessionEventPublisher = false
 }

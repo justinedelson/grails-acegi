@@ -36,6 +36,7 @@ import org.springframework.security.ui.logout.LogoutHandler
 import org.springframework.security.ui.logout.SecurityContextLogoutHandler
 import org.springframework.security.ui.rememberme.RememberMeProcessingFilter
 import org.springframework.security.ui.rememberme.TokenBasedRememberMeServices
+import org.springframework.security.ui.session.HttpSessionEventPublisher
 import org.springframework.security.ui.switchuser.SwitchUserProcessingFilter
 import org.springframework.security.ui.webapp.AuthenticationProcessingFilter
 import org.springframework.security.providers.ProviderManager
@@ -518,6 +519,15 @@ class AcegiGrailsPlugin {
 				'filter-mapping'{
 					'filter-name'('CAS Processing Filter')
 					'url-pattern'('/*')
+				}
+			}
+		}
+
+		if (conf.useHttpSessionEventPublisher) {
+			def filterMapping = xml.'filter-mapping'
+			filterMapping[filterMapping.size() - 1] + {
+				'listener' {
+					'listener-class'(HttpSessionEventPublisher.name)
 				}
 			}
 		}
