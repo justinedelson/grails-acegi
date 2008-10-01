@@ -17,8 +17,12 @@ package org.grails.plugins.springsecurity.service
 import java.security.MessageDigest
 import org.springframework.security.userdetails.UserDetails
 
+import grails.util.GrailsUtil
+
 import org.apache.commons.codec.binary.Hex
+
 import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
+
 import org.springframework.security.context.SecurityContextHolder as SCH
 import org.springframework.security.providers.encoding.MessageDigestPasswordEncoder
 import org.springframework.security.ui.AbstractProcessingFilter
@@ -79,10 +83,7 @@ class AuthenticateService {
 	 */
 	ConfigObject getSecurityConfig() {
 		if (securityConfig == null) {
-			GroovyClassLoader classLoader = new GroovyClassLoader(getClass().getClassLoader())
-			def userConfig = new ConfigSlurper().parse(classLoader.loadClass('SecurityConfig'))
-			def defaultConfig = new ConfigSlurper().parse(classLoader.loadClass('DefaultSecurityConfig'))
-			securityConfig = defaultConfig.merge(userConfig)
+			securityConfig = AuthorizeTools.getSecurityConfig()
 		}
 		return securityConfig
 	}

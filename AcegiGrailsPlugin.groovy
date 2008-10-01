@@ -82,7 +82,7 @@ class AcegiGrailsPlugin {
 
 	def doWithSpring = {
 
-		def conf = getSecurityConfig()
+		def conf = AuthorizeTools.getSecurityConfig()
 		if (!conf || !conf.active) {
 			//log.info('[active=false] Spring Security not loaded')
 			println '[active=false] Spring Security not loaded'
@@ -482,7 +482,7 @@ class AcegiGrailsPlugin {
 
 	def doWithWebDescriptor = { xml ->
 
-		def conf = getSecurityConfig()
+		def conf = AuthorizeTools.getSecurityConfig()
 		if (!conf || !conf.active) {
 			return
 		}
@@ -574,32 +574,6 @@ class AcegiGrailsPlugin {
 			def principal = SCH.context?.authentication?.principal
 			return principal != null && principal != 'anonymousUser'
 		}
-	}
-
-	private ConfigObject getSecurityConfig() {
-
-		GroovyClassLoader classLoader = new GroovyClassLoader(getClass().getClassLoader())
-
-		ConfigObject userConfig
-		try {
-			userConfig = new ConfigSlurper().parse(classLoader.loadClass('SecurityConfig'))
-		}
-		catch (Exception ignored) {
-			// ignored, use defaults
-		}
-
-		ConfigObject config
-		ConfigObject defaultConfig = new ConfigSlurper().parse(classLoader.loadClass('DefaultSecurityConfig'))
-		if (userConfig) {
-			//log.info('using user SecurityConfig')
-			config = defaultConfig.merge(userConfig)
-		}
-		else {
-			//log.info('using DefaultSecurityConfig')
-			config = defaultConfig
-		}
-
-		return config.security
 	}
 
 	private boolean hasAnnotation(serviceClass) {

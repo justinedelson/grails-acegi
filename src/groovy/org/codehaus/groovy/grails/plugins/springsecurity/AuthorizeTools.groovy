@@ -20,6 +20,8 @@ import org.springframework.security.GrantedAuthorityImpl
 import org.springframework.security.context.SecurityContextHolder as SCH
 import org.springframework.util.StringUtils as STU
 
+import grails.util.GrailsUtil
+
 /**
  * Helper methods.
  * @author Tsuyoshi Yamamoto
@@ -112,5 +114,32 @@ class AuthorizeTools {
 		def granted = getPrincipalAuthorities()
 		Set grantedCopy = retainAll(granted, parseAuthoritiesString(role))
 		return !grantedCopy.empty
+	}
+
+	static ConfigObject getSecurityConfig() {
+
+		GroovyClassLoader classLoader = new GroovyClassLoader(AuthorizeTools.getClassLoader())
+
+		def slurper = new ConfigSlurper(GrailsUtil.environment)
+		ConfigObject userConfig
+		try {
+			userConfig = slurper.parse(classLoader.loadClass('SecurityConfig'))
+		}
+		catch (Exception ignored) {
+			// ignored, use defaults
+		}
+
+		ConfigObject config
+		ConfigObject defaultConfig = slurper.parse(classLoader.loadClass('DefaultSecurityConfig'))
+		if (userConfig) {
+			//log.info('using user SecurityConfig')
+			config = defaultConfig.merge(userConfig)
+		}
+		else {
+			//log.info('using DefaultSecurityConfig')
+			config = defaultConfig
+		}
+
+		return config.security
 	}
 }
