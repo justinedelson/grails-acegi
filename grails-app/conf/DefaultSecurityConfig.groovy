@@ -132,4 +132,7 @@ security {
 
 	// HttpSessionEventPublisher
 	useHttpSessionEventPublisher = false
+
+	// user caching
+	cacheUsers = true
 }

@@ -44,6 +44,7 @@ import org.springframework.security.providers.anonymous.AnonymousAuthenticationP
 import org.springframework.security.providers.anonymous.AnonymousProcessingFilter
 import org.springframework.security.providers.dao.DaoAuthenticationProvider
 import org.springframework.security.providers.dao.cache.EhCacheBasedUserCache
+import org.springframework.security.providers.dao.cache.NullUserCache
 import org.springframework.security.providers.encoding.MessageDigestPasswordEncoder
 import org.springframework.security.providers.ldap.LdapAuthenticationProvider
 import org.springframework.security.providers.ldap.authenticator.BindAuthenticator
@@ -307,14 +308,19 @@ class AcegiGrailsPlugin {
 			}
 		}
 
-		userCache(EhCacheBasedUserCache) {
-			cache = ref('securityUserCache')
+		if (conf.cacheUsers) {
+			userCache(EhCacheBasedUserCache) {
+				cache = ref('securityUserCache')
+			}
+			securityUserCache(EhCacheFactoryBean) {
+				cacheManager = ref('cacheManager')
+				cacheName = 'userCache'
+			}
+			cacheManager(EhCacheManagerFactoryBean) {}
 		}
-		securityUserCache(EhCacheFactoryBean) {
-			cacheManager = ref('cacheManager')
-			cacheName = 'userCache'
+		else {
+			userCache(NullUserCache)
 		}
-		cacheManager(EhCacheManagerFactoryBean) {}
 
 		/** userDetailsService */
 		userDetailsService(GrailsDaoImpl) {
