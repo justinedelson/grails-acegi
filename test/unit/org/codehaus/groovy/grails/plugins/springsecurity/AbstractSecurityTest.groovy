@@ -1,9 +1,10 @@
 package org.codehaus.groovy.grails.plugins.springsecurity
 
+import org.grails.plugins.springsecurity.test.TestingAuthenticationToken
+
 import org.springframework.security.Authentication
 import org.springframework.security.GrantedAuthority
 import org.springframework.security.context.SecurityContextHolder as SCH
-import org.springframework.security.providers.TestingAuthenticationToken
 
 /**
  * Abstract base class for security unit tests.

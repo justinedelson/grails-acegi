@@ -3,6 +3,7 @@ package org.codehaus.groovy.grails.plugins.springsecurity
 import org.easymock.EasyMock
 
 import org.grails.plugins.springsecurity.service.AuthenticateService
+import org.grails.plugins.springsecurity.test.TestingAuthenticationToken
 
 import org.springframework.security.AuthenticationException
 import org.springframework.security.BadCredentialsException
@@ -11,7 +12,6 @@ import org.springframework.security.event.authentication.AuthenticationSuccessEv
 import org.springframework.security.event.authentication.AuthenticationSwitchUserEvent
 import org.springframework.security.event.authentication.InteractiveAuthenticationSuccessEvent
 import org.springframework.security.event.authorization.AbstractAuthorizationEvent
-import org.springframework.security.providers.TestingAuthenticationToken
 
 /**
  * Unit tests for SecurityEventListener.
@@ -42,7 +42,7 @@ class SecurityEventListenerTests extends AbstractSecurityTest {
 		closures.onInteractiveAuthenticationSuccessEvent = { e, appCtx -> called = true }
 
 		_listener.onApplicationEvent(new InteractiveAuthenticationSuccessEvent(
-				new TestingAuthenticationToken(null, null, null), getClass()))
+				new TestingAuthenticationToken(), getClass()))
 
 		assertTrue called
 	}
@@ -57,8 +57,7 @@ class SecurityEventListenerTests extends AbstractSecurityTest {
 
 		AuthenticationException exception = new BadCredentialsException("bad credentials")
 		AuthenticationFailureBadCredentialsEvent event = new AuthenticationFailureBadCredentialsEvent(
-				new TestingAuthenticationToken(null, null, null),
-				exception)
+				new TestingAuthenticationToken(), exception)
 		_listener.onApplicationEvent(event)
 
 		assertTrue called
@@ -73,7 +72,7 @@ class SecurityEventListenerTests extends AbstractSecurityTest {
 		closures.onAuthenticationSuccessEvent = { e, appCtx -> called = true }
 
 		_listener.onApplicationEvent(new AuthenticationSuccessEvent(
-				new TestingAuthenticationToken(null, null, null)))
+				new TestingAuthenticationToken()))
 
 		assertTrue called
 	}

@@ -2,11 +2,13 @@ package org.codehaus.groovy.grails.plugins.springsecurity.openid
 
 import org.codehaus.groovy.grails.plugins.springsecurity.AbstractSecurityTest
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsUserImpl
+import org.grails.plugins.springsecurity.test.TestingAuthenticationToken
+
 import org.springframework.security.AuthenticationServiceException
 import org.springframework.security.BadCredentialsException
 import org.springframework.security.GrantedAuthority
 import org.springframework.security.GrantedAuthorityImpl
-import org.springframework.security.providers.TestingAuthenticationTokenimport org.springframework.security.providers.openid.AuthenticationCancelledException
+import org.springframework.security.providers.openid.AuthenticationCancelledException
 import org.springframework.security.providers.openid.OpenIDAuthenticationStatus
 import org.springframework.security.providers.openid.OpenIDAuthenticationToken
 /**
@@ -20,7 +22,7 @@ class GrailsOpenIdAuthenticationProviderTests extends AbstractSecurityTest {
 
 	void testAuthenticateNotSupported() {
 
-		def authentication = new TestingAuthenticationToken(null, null, null)
+		def authentication = new TestingAuthenticationToken()
 		assertNull _provider.authenticate(authentication)
 	}
 

@@ -15,8 +15,8 @@
 	<classpathentry kind="lib" path="lib/easymock.jar"/>
 	<classpathentry kind="lib" path="lib/openid4java-0.9.2.jar"/>
 	<classpathentry kind="lib" path="lib/spring-ldap-1.2.1.jar"/>
-	<classpathentry kind="lib" path="lib/spring-security-core-2.0.3.jar"/>
-	<classpathentry kind="lib" path="lib/spring-security-core-tiger-2.0.3.jar"/>
-	<classpathentry kind="lib" path="lib/spring-security-openid-2.0.3.jar"/>
+	<classpathentry kind="lib" path="lib/spring-security-core-2.0.4.jar" sourcepath="C:/dev/spring/spring-security/src"/>
+	<classpathentry kind="lib" path="lib/spring-security-core-tiger-2.0.4.jar"/>
+	<classpathentry kind="lib" path="lib/spring-security-openid-2.0.4.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>

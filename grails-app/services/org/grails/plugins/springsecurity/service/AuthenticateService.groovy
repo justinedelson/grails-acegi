@@ -15,7 +15,6 @@
 package org.grails.plugins.springsecurity.service
 
 import java.security.MessageDigest
-import org.springframework.security.userdetails.UserDetails
 
 import grails.util.GrailsUtil
 
@@ -26,6 +25,7 @@ import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
 import org.springframework.security.context.SecurityContextHolder as SCH
 import org.springframework.security.providers.encoding.MessageDigestPasswordEncoder
 import org.springframework.security.ui.AbstractProcessingFilter
+import org.springframework.security.userdetails.UserDetails
 
 /**
  * Rewrote to the Groovy from Java source of
