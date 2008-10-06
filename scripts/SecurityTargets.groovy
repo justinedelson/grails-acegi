@@ -55,13 +55,13 @@ generateFile = { String templatePath, String outputPath ->
 
 	def binding = [personClassName: personClassName,
 	               personClassPackage: '',
-	               personClass: '', personClassImport: '',
+	               personClass: personClassName, personClassImport: '',
 	               authorityClassName: authorityClassName,
 	               authorityClassPackage: '',
-	               authorityClass: '', authorityClassImport: '',
+	               authorityClass: authorityClassName, authorityClassImport: '',
 	               requestmapClassName: requestmapClassName,
 	               requestmapClassPackage: '',
-	               requestmapClass: '', requestmapClassImport: '']
+	               requestmapClass: requestmapClassName, requestmapClassImport: '']
 
 	if (personClassPackage) {
 		binding.personClass = "${personClassPackage}.$personClassName"

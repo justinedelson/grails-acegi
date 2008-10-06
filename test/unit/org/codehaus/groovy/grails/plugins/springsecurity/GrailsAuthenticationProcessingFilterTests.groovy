@@ -3,6 +3,7 @@ package org.codehaus.groovy.grails.plugins.springsecurity
 import javax.servlet.FilterChain
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+
 import org.easymock.EasyMock
 import org.springframework.mock.web.MockFilterChain
 import org.springframework.mock.web.MockHttpServletRequest
@@ -41,7 +42,6 @@ class GrailsAuthenticationProcessingFilterTests extends AbstractSecurityTest {
 
 		HttpServletRequest srhRequest
 		boolean resetCalled = false
-		boolean superDoFilterHttpCalled = false
 
 		SecurityRequestHolder.metaClass.'static'.setRequest = { req ->
 			srhRequest = req
@@ -51,15 +51,10 @@ class GrailsAuthenticationProcessingFilterTests extends AbstractSecurityTest {
 			resetCalled = true
 		}
 
-		AuthenticationProcessingFilter.metaClass.doFilterHttp = { HttpServletRequest request, HttpServletResponse response, FilterChain chain ->
-			superDoFilterHttpCalled = true
-		}
-
 		_filter.doFilterHttp _request, _response, new MockFilterChain()
 
 		assertSame _request, srhRequest
-//		assertTrue resetCalled
-//		assertTrue superDoFilterHttpCalled
+		assertTrue resetCalled
 	}
 
 	void testDetermineFailureUrlAjax() {

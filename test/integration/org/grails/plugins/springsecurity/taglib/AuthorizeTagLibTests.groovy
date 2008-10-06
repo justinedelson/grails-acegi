@@ -3,11 +3,11 @@ package org.grails.plugins.springsecurity.taglib
 import grails.test.GroovyPagesTestCase
 
 import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
+import org.grails.plugins.springsecurity.test.TestingAuthenticationToken
 
 import org.springframework.security.Authentication
 import org.springframework.security.GrantedAuthority
 import org.springframework.security.context.SecurityContextHolder as SCH
-import org.springframework.security.providers.TestingAuthenticationToken
 
 /**
  * Integration tests for <code>AuthorizeTagLib</code>.
@@ -16,7 +16,6 @@ import org.springframework.security.providers.TestingAuthenticationToken
  */
 class AuthorizeTagLibTests extends GroovyPagesTestCase {
 
-	private final AuthorizeTools _tools = new AuthorizeTools()
 	private final Expando _user = new Expando()
 
 	def transactional = false
@@ -103,7 +102,7 @@ class AuthorizeTagLibTests extends GroovyPagesTestCase {
 		principal.domainClass = _user
 
 		Authentication authentication = new TestingAuthenticationToken(
-				principal, null, _tools.parseAuthoritiesString(roles) as GrantedAuthority[])
+				principal, null, AuthorizeTools.parseAuthoritiesString(roles) as GrantedAuthority[])
 		authentication.authenticated = true
 		SCH.context.authentication = authentication
 	}

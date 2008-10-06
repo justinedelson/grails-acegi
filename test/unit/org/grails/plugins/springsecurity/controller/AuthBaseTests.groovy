@@ -18,7 +18,6 @@ class AuthBaseTests extends AbstractSecurityTest {
 
 	private final AuthBase _authBase = new AuthBase()
 	private final AuthenticateService _service = new AuthenticateService()
-	private final AuthorizeTools _tools = new AuthorizeTools()
 
 	private final Map _redirectParams = [:]
 	private final Map _params = [:]
@@ -176,7 +175,8 @@ class AuthBaseTests extends AbstractSecurityTest {
 	private Authentication authenticate(roles) {
 		def principal = new Expando()
 		principal.domainClass = new Expando()
-		return authenticate(principal, null, _tools.parseAuthoritiesString(roles) as GrantedAuthority[])
+		return authenticate(principal, null,
+			AuthorizeTools.parseAuthoritiesString(roles) as GrantedAuthority[])
 	}
 
 	/**

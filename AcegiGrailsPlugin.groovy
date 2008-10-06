@@ -1,7 +1,7 @@
 import org.codehaus.groovy.grails.commons.ControllerArtefactHandler
 
 import org.codehaus.groovy.grails.plugins.springsecurity.AuthenticatedVetoableDecisionManager
-
+import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsAccessDeniedHandlerImpl
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsAuthenticationProcessingFilter
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsDaoImpl
@@ -65,7 +65,7 @@ import org.springframework.web.filter.DelegatingFilterProxy
  */
 class AcegiGrailsPlugin {
 
-	def version = '0.3.1-20080621-SNAPSHOT'
+	def version = '0.3.1-20081005-SNAPSHOT'
 	def author = 'Tsuyoshi Yamamoto'
 	def authorEmail = 'tyama@xmldo.jp'
 	def title = 'Grails Spring Security 2.0 Plugin'
@@ -91,6 +91,8 @@ class AcegiGrailsPlugin {
 
 		//log.info('loading security config ...')
 		println 'loading security config ...'
+
+		createRefList.delegate = delegate
 
 		def filterNames = conf.filterNames
 		if (!filterNames) {
@@ -262,7 +264,7 @@ class AcegiGrailsPlugin {
 
 		/** anonymousAuthenticationProvider */
 		anonymousAuthenticationProvider(AnonymousAuthenticationProvider) {
-			key = conf.key // "foo"
+			key = conf.key // 'foo'
 		}
 		/** rememberMeAuthenticationProvider */
 		rememberMeAuthenticationProvider(RememberMeAuthenticationProvider) {
@@ -456,7 +458,7 @@ class AcegiGrailsPlugin {
 		securityEventListener(SecurityEventListener) {
 			authenticateService = ref('authenticateService')
 		}
-		
+
 		// Kerberos
 		if (conf.useKerberos) {
 			jaasNameCallbackHandler(org.springframework.security.providers.jaas.JaasNameCallbackHandler)
@@ -588,8 +590,7 @@ class AcegiGrailsPlugin {
 		return false
 	}
 
-	private createRefList(names) {
-		// 'ref' method isn't available in a method, so call what it calls
-		names.collect { name -> new RuntimeBeanReference(name, false) }
+	private def createRefList = { names ->
+		names.collect { name -> ref(name) }
 	}
 }

@@ -11,8 +11,6 @@ import org.springframework.security.GrantedAuthorityImpl
  */
 class AuthorizeToolsTests extends AbstractSecurityTest {
 
-	private final AuthorizeTools _tools = new AuthorizeTools()
-
 	/**
 	 * Test authoritiesToRoles().
 	 */
@@ -26,7 +24,7 @@ class AuthorizeToolsTests extends AbstractSecurityTest {
 			authorities << new GrantedAuthorityImpl(name)
 		}
 
-		def roles = _tools.authoritiesToRoles(authorities)
+		def roles = AuthorizeTools.authoritiesToRoles(authorities)
 		assertSameContents roleNames, roles
 	}
 
@@ -41,7 +39,7 @@ class AuthorizeToolsTests extends AbstractSecurityTest {
 		def authorities = [new GrantedAuthorityImpl('role1'), authority]
 
 		shouldFail(IllegalArgumentException) {
-			_tools.authoritiesToRoles(authorities)
+			AuthorizeTools.authoritiesToRoles(authorities)
 		}
 
 		EasyMock.verify(authority)
@@ -51,7 +49,7 @@ class AuthorizeToolsTests extends AbstractSecurityTest {
 	 * Test getPrincipalAuthorities() when not authenticated.
 	 */
 	void testGetPrincipalAuthoritiesNoAuth() {
-		assertTrue _tools.getPrincipalAuthorities().empty
+		assertTrue AuthorizeTools.getPrincipalAuthorities().empty
 	}
 
 	/**
@@ -59,7 +57,7 @@ class AuthorizeToolsTests extends AbstractSecurityTest {
 	 */
 	void testGetPrincipalAuthoritiesNoRoles() {
 		authenticate()
-		assertTrue _tools.getPrincipalAuthorities().empty
+		assertTrue AuthorizeTools.getPrincipalAuthorities().empty
 	}
 
 	/**
@@ -73,7 +71,7 @@ class AuthorizeToolsTests extends AbstractSecurityTest {
 
 		authenticate(null, null, authorities as GrantedAuthority[])
 
-		assertEquals authorities, _tools.getPrincipalAuthorities()
+		assertEquals authorities, AuthorizeTools.getPrincipalAuthorities()
 	}
 
 	/**
@@ -81,7 +79,7 @@ class AuthorizeToolsTests extends AbstractSecurityTest {
 	 */
 	void testParseAuthoritiesString() {
 		String roleNames = 'role1,role2,role3'
-		def roles = _tools.parseAuthoritiesString(roleNames)
+		def roles = AuthorizeTools.parseAuthoritiesString(roleNames)
 
 		assertEquals 3, roles.size()
 		def expected = ['role1', 'role2', 'role3']
@@ -99,7 +97,7 @@ class AuthorizeToolsTests extends AbstractSecurityTest {
 		def required = [new GrantedAuthorityImpl('role1')]
 
 		def expected = ['role1']
-		assertSameContents expected, _tools.retainAll(granted, required)
+		assertSameContents expected, AuthorizeTools.retainAll(granted, required)
 	}
 
 	/**
@@ -113,7 +111,7 @@ class AuthorizeToolsTests extends AbstractSecurityTest {
 		               new GrantedAuthorityImpl('role4')]
 
 		def expected = ['role1', 'role2']
-		assertSameContents expected, _tools.rolesToAuthorities(grantedRoles, granted)
+		assertSameContents expected, AuthorizeTools.rolesToAuthorities(grantedRoles, granted)
 	}
 
 	/**

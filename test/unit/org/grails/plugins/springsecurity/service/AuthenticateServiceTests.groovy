@@ -2,11 +2,12 @@ package org.grails.plugins.springsecurity.service
 
 import org.codehaus.groovy.grails.plugins.springsecurity.AbstractSecurityTest
 import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
+import org.codehaus.groovy.grails.plugins.springsecurity.GrailsUserImpl
+import org.grails.plugins.springsecurity.test.TestingAuthenticationToken
 
 import org.springframework.security.Authentication
 import org.springframework.security.GrantedAuthority
 import org.springframework.security.context.SecurityContextHolder as SCH
-import org.springframework.security.providers.TestingAuthenticationToken
 
 /**
  * Unit tests for AuthenticateServiceTests.
@@ -16,14 +17,13 @@ import org.springframework.security.providers.TestingAuthenticationToken
 class AuthenticateServiceTests extends AbstractSecurityTest {
 
 	private final AuthenticateService _service = new AuthenticateService()
-	private final AuthorizeTools _tools = new AuthorizeTools()
 	private final _user = new Object() // domain class instance
 
 	/**
 	 * Test transactional.
 	 */
 	void testTransactional() {
-		assertTrue _service.transactional
+		assertFalse _service.transactional
 	}
 
 	/**
@@ -114,10 +114,12 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 	}
 
 	private void authenticate(roles) {
-		def principal = new Expando()
-		principal.domainClass = _user
+		GrantedAuthority[] authorities = AuthorizeTools.parseAuthoritiesString(roles) as GrantedAuthority[]
+		def principal = new GrailsUserImpl(
+				'username', 'password', true, true, true,
+				true, authorities, _user)
 		Authentication authentication = new TestingAuthenticationToken(
-				principal, null, _tools.parseAuthoritiesString(roles) as GrantedAuthority[])
+				principal, null, authorities)
 		authentication.authenticated = true
 		SCH.context.authentication = authentication
 	}

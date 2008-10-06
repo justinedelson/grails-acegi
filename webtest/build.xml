@@ -80,7 +80,7 @@
 
 		<!-- run the scripts to create user, role, controllers, etc. -->
 		<grails action='create-auth-domains'>
-			<args><arg value='User'/><arg value='Role'/></args>
+			<args><arg value='User'/><arg value='Role'/><arg value='Requestmap'/></args>
 		</grails>
 		<grails action='generate-manager'/>
 		<grails action='generate-registration'/>

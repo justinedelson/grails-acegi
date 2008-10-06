@@ -33,7 +33,7 @@ private void parseArgs() {
 	args = args ? args.split('\n') : []
 	switch (args.size()) {
 		case 0:
-			println 'Creating domain classes with default name'
+			println 'Creating domain classes with default names'
 			break
 		case 3:
 			splitPersonClassName args[0]
@@ -41,7 +41,7 @@ private void parseArgs() {
 			splitRequestmapClassName args[2]
 			println "Login user domain class: ${args[0]}"
 			println "Authority domain class: ${args[1]}"
-			println "Requestmap domain class: ${args[1]}"
+			println "Requestmap domain class: ${args[2]}"
 			break
 		default:
 			usage()
