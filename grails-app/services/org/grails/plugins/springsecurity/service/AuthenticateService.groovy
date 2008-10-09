@@ -99,8 +99,8 @@ class AuthenticateService {
 
 	def encodePassword(String passwd) {
 		def securityConfig = getSecurityConfig()
-		def algorithm = securityConfig.security.algorithm
-		def encodeHashAsBase64 = securityConfig.security.encodeHashAsBase64
+		def algorithm = securityConfig.algorithm
+		def encodeHashAsBase64 = securityConfig.encodeHashAsBase64
 		def encoder = new MessageDigestPasswordEncoder(algorithm, encodeHashAsBase64)
 		return encoder.encodePassword(passwd, null)
 	}
@@ -118,7 +118,7 @@ class AuthenticateService {
 		}
 
 		// check the current request's headers
-		def ajaxHeader = getSecurityConfig().security.ajaxHeader
+		def ajaxHeader = getSecurityConfig().ajaxHeader
 		if (request.getHeader(ajaxHeader) != null) {
 			return true
 		}
