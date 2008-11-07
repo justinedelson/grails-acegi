@@ -43,21 +43,21 @@ class AuthenticateService {
 	/**
 	 * @deprecated You can invoke tags from controllers (since grails-0.6)
    	*/
-   	def ifAllGranted(role) {
+   	boolean ifAllGranted(role) {
 		return AuthorizeTools.ifAllGranted(role)
 	}
 
 	/**
    	 * @deprecated You can invoke tags from controllers (since grails-0.6)
    	 */
-   	def ifNotGranted(role) {
+   	boolean ifNotGranted(role) {
    		return AuthorizeTools.ifNotGranted(role)
 	}
 
 	/**
 	 * @deprecated You can invoke tags from controllers (since grails-0.6)
 	 */
-	def ifAnyGranted(role) {
+	boolean ifAnyGranted(role) {
 		return AuthorizeTools.ifAnyGranted(role)
 	}
 
@@ -93,13 +93,13 @@ class AuthenticateService {
 	 * (changes algorithm method dynamically by param of config)
 	 * @deprecated  use <code>encodePassword</code> instead
 	 */
-	def passwordEncoder(String passwd) {
+	String passwordEncoder(String passwd) {
 		return encodePassword(passwd)
 	}
 
-	def encodePassword(String passwd) {
+	String encodePassword(String passwd) {
 		def securityConfig = getSecurityConfig()
-		def algorithm = securityConfig.algorithm
+		String algorithm = securityConfig.algorithm
 		def encodeHashAsBase64 = securityConfig.encodeHashAsBase64
 		def encoder = new MessageDigestPasswordEncoder(algorithm, encodeHashAsBase64)
 		return encoder.encodePassword(passwd, null)
@@ -118,7 +118,7 @@ class AuthenticateService {
 		}
 
 		// check the current request's headers
-		def ajaxHeader = getSecurityConfig().ajaxHeader
+		String ajaxHeader = getSecurityConfig().ajaxHeader
 		if (request.getHeader(ajaxHeader) != null) {
 			return true
 		}
