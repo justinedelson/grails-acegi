@@ -57,6 +57,10 @@
 		<fail unless='version.plugin'>Set the 'version.plugin' property in build.properties </fail>
 		<fail unless='version.webtest'>Set the 'version.webtest' property in build.properties </fail>
 
+		<!-- if the version.plugin property is set incorrectly it'll start doing a remote install -->
+		<available file='${basedir}/../grails-acegi-${version.plugin}.zip' property='plugin-exists'/>
+		<fail unless='plugin-exists'>${basedir}/../grails-acegi-${version.plugin}.zip not found - check version.plugin: ${version.plugin}</fail>
+
 		<!-- create the app -->
 		<delete dir='../../${testproject}' />
 		<grails action='create-app' dir='../..'>
@@ -157,7 +161,7 @@
 
 		<echo>
 			
-		Now run 'cd ../${testproject}' and then run 'grails run-webtest' to execute WebTest.
+		Now run 'cd ../../${testproject}' and then run 'grails run-webtest' to execute WebTests.
 		</echo>
 	</target>
 
