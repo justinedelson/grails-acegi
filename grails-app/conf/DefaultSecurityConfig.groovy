@@ -135,4 +135,20 @@ security {
 
 	// user caching
 	cacheUsers = true
+
+	// CAS
+	useCAS = false
+	cas.casServer = 'localhost'
+	cas.casServerPort = '443'
+	cas.casServerSecure = true
+	cas.localhostSecure = true
+	cas.failureURL = '/denied.jsp'
+	cas.defaultTargetURL = '/'
+	cas.fullLoginURL = 'https://localhost:443/cas/login'
+	cas.fullServiceURL = 'https://localhost:443/cas'
+	cas.authenticationProviderKey = 'cas_key_changeme'
+	cas.userDetailsService = 'userDetailsService'
+	cas.sendRenew = false
+	cas.proxyReceptorUrl = '/secure/receptor'
+	cas.filterProcessesUrl = '/j_spring_cas_security_check'
 }

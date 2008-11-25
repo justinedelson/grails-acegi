@@ -1,3 +1,5 @@
+import grails.util.GrailsUtil
+
 import org.codehaus.groovy.grails.commons.ControllerArtefactHandler
 
 import org.codehaus.groovy.grails.plugins.springsecurity.AuthenticatedVetoableDecisionManager
@@ -65,7 +67,7 @@ import org.springframework.web.filter.DelegatingFilterProxy
  */
 class AcegiGrailsPlugin {
 
-	def version = '0.3.1-20081005-SNAPSHOT'
+	def version = '0.3.1-20081125-SNAPSHOT'
 	def author = 'Tsuyoshi Yamamoto'
 	def authorEmail = 'tyama@xmldo.jp'
 	def title = 'Grails Spring Security 2.0 Plugin'
@@ -84,85 +86,34 @@ class AcegiGrailsPlugin {
 
 		def conf = AuthorizeTools.getSecurityConfig()
 		if (!conf || !conf.active) {
-			//log.info('[active=false] Spring Security not loaded')
 			println '[active=false] Spring Security not loaded'
 			return
 		}
 
-		//log.info('loading security config ...')
 		println 'loading security config ...'
 
 		createRefList.delegate = delegate
 
-		def filterNames = conf.filterNames
-		if (!filterNames) {
-			filterNames = []
-			filterNames << 'httpSessionContextIntegrationFilter'
-			filterNames << 'logoutFilter'
-			filterNames << 'authenticationProcessingFilter'
-			if (conf.useOpenId) {
-				filterNames << 'openIDAuthenticationProcessingFilter'
-			}
-			if (conf.basicProcessingFilter) {
-				filterNames << 'basicProcessingFilter'
-			}
-			filterNames << 'securityContextHolderAwareRequestFilter'
-			filterNames << 'rememberMeProcessingFilter'
-			filterNames << 'anonymousProcessingFilter'
-			filterNames << 'exceptionTranslationFilter'
-			filterNames << 'filterInvocationInterceptor'
-			if (conf.switchUserProcessingFilter) {
-				filterNames << 'switchUserProcessingFilter'
-			}
-		}
-
 		/** springSecurityFilterChain */
-		springSecurityFilterChain(FilterChainProxy) {
-			filterInvocationDefinitionSource = """
-				CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON
-				PATTERN_TYPE_APACHE_ANT
-				/**=${filterNames.join(',')}
-				"""
+		configureFilterChain.delegate = delegate
+		configureFilterChain conf
+
+		// OpenID
+		if (conf.useOpenId) {
+			configureOpenId.delegate = delegate
+			configureOpenId conf
 		}
 
-		if (conf.useOpenId) {
-			/** OpenId */
-			openIDAuthProvider(org.codehaus.groovy.grails.plugins.springsecurity.openid.GrailsOpenIdAuthenticationProvider) {
-				userDetailsService = ref('userDetailsService')
-			}
-			openIDStore(org.openid4java.consumer.InMemoryConsumerAssociationStore) {}
-			openIDNonceVerifier(org.openid4java.consumer.InMemoryNonceVerifier, conf.openIdNonceMaxSeconds) {} // 300 seconds
-			openIDConsumerManager(org.openid4java.consumer.ConsumerManager) {
-				nonceVerifier = ref('openIDNonceVerifier')
-			}
-			openIDConsumer(org.springframework.security.ui.openid.consumers.OpenID4JavaConsumer, openIDConsumerManager) {}
-			openIDAuthenticationProcessingFilter(org.springframework.security.ui.openid.OpenIDAuthenticationProcessingFilter) {
-				authenticationManager = ref('authenticationManager')
-				authenticationFailureUrl = conf.authenticationFailureUrl //'/login/authfail?login_error=1' // /spring_security_login?login_error
-				defaultTargetUrl = conf.defaultTargetUrl // '/'
-				filterProcessesUrl = '/j_spring_openid_security_check' // not configurable
-				rememberMeServices = ref('rememberMeServices')
-				consumer = ref('openIDConsumer')
-			}
-		}
+		// logout
+		configureLogout.delegate = delegate
+		configureLogout conf
+
+		// Basic Auth
+		configureBasicAuth.delegate = delegate
+		configureBasicAuth conf
 
 		/** httpSessionContextIntegrationFilter */
 		httpSessionContextIntegrationFilter(HttpSessionContextIntegrationFilter) {}
-
-		securityContextLogoutHandler(SecurityContextLogoutHandler) {}
-		def logoutHandlerNames = conf.logoutHandlerNames
-		if (!logoutHandlerNames) {
-			logoutHandlerNames = ['rememberMeServices', 'securityContextLogoutHandler']
-		}
-
-		def logoutHandlers = createRefList(logoutHandlerNames)
-		def afterLogoutUrl = conf.afterLogoutUrl // '/'
-
-		/** logoutFilter */
-		logoutFilter(LogoutFilterFactoryBean) {
-			logoutSuccessUrl = afterLogoutUrl
-			handlers = logoutHandlers
-		}
 
 		/** authenticationProcessingFilter */
 		authenticationProcessingFilter(GrailsAuthenticationProcessingFilter) {
@@ -173,15 +124,6 @@ class AcegiGrailsPlugin {
 			filterProcessesUrl = conf.filterProcessesUrl // '/j_spring_security_check'
 			rememberMeServices = ref('rememberMeServices')
 			authenticateService = ref('authenticateService')
-		}
-
-		// Basic Auth
-		basicProcessingFilter(BasicProcessingFilter) {
-			authenticationManager = ref('authenticationManager')
-			authenticationEntryPoint = ref('basicProcessingFilterEntryPoint')
-		}
-		basicProcessingFilterEntryPoint(BasicProcessingFilterEntryPoint) {
-			realmName = conf.realmName // 'Grails Realm'
 		}
 
 		/** securityContextHolderAwareRequestFilter */
@@ -221,27 +163,20 @@ class AcegiGrailsPlugin {
 			}
 		}
 
-		authenticationEntryPoint(WithAjaxAuthenticationProcessingFilterEntryPoint) {
-			loginFormUrl = conf.loginFormUrl // '/login/auth'
-			forceHttps = conf.forceHttps // 'false'
-			ajaxLoginFormUrl = conf.ajaxLoginFormUrl // '/login/authAjax'
-			if (conf.ajaxHeader) {
-				ajaxHeader = conf.ajaxHeader //default: X-Requested-With
+		if (!conf.useNtlm) {
+			authenticationEntryPoint(WithAjaxAuthenticationProcessingFilterEntryPoint) {
+				loginFormUrl = conf.loginFormUrl // '/login/auth'
+				forceHttps = conf.forceHttps // 'false'
+				ajaxLoginFormUrl = conf.ajaxLoginFormUrl // '/login/authAjax'
+				if (conf.ajaxHeader) {
+					ajaxHeader = conf.ajaxHeader //default: X-Requested-With
+				}
 			}
 		}
 
-		roleVoter(RoleVoter) {}
-		authenticatedVoter(AuthenticatedVoter) {}
-		def decisionVoterNames = conf.decisionVoterNames
-		if (!decisionVoterNames) {
-			decisionVoterNames = ['roleVoter', 'authenticatedVoter']
-		}
-		def decisionVoterList = createRefList(decisionVoterNames)
-		/** accessDecisionManager */
-		accessDecisionManager(AuthenticatedVetoableDecisionManager) {
-			allowIfAllAbstainDecisions = false
-			decisionVoters = decisionVoterList
-		}
+		// voters
+		configureVoters.delegate = delegate
+		configureVoters conf
 
 		/** filterInvocationInterceptor */
 		filterInvocationInterceptor(FilterSecurityInterceptor) {
@@ -271,30 +206,9 @@ class AcegiGrailsPlugin {
 			key = conf.rememberMeKey
 		}
 
-		def providerNames = conf.providerNames
-		if (!providerNames) {
-			providerNames = []
-			if (conf.useKerberos) {
-				providerNames << 'kerberosAuthProvider'
-			}
-			if (conf.useLdap) {
-				providerNames << 'ldapAuthProvider'
-			}
-			else {
-				providerNames << 'daoAuthenticationProvider'
-				if (conf.useOpenId) {
-					providerNames << 'openIDAuthProvider'
-				}
-			}
-			providerNames << 'anonymousAuthenticationProvider'
-			providerNames << 'rememberMeAuthenticationProvider'
-		}
-
-		def providerList = createRefList(providerNames)
-		/** authenticationManager */
-		authenticationManager(ProviderManager) {
-			providers = providerList
-		}
+		// authenticationManager
+		configureAuthenticationManager.delegate = delegate
+		configureAuthenticationManager conf
 
 		/** daoAuthenticationProvider */
 		daoAuthenticationProvider(DaoAuthenticationProvider) {
@@ -310,6 +224,7 @@ class AcegiGrailsPlugin {
 			}
 		}
 
+		// user details cache
 		if (conf.cacheUsers) {
 			userCache(EhCacheBasedUserCache) {
 				cache = ref('securityUserCache')
@@ -343,33 +258,237 @@ class AcegiGrailsPlugin {
 		daacc(DefaultAdvisorAutoProxyCreator) {}
 
 		// experiment on Annotation and MethodSecurityInterceptor for secure services
-		serviceSecureAnnotation(SecurityAnnotationAttributes) {}
-		serviceSecureAnnotationODS(MethodDefinitionAttributes) {
-			attributes = ref('serviceSecureAnnotation')
+		configureAnnotatedServices.delegate = delegate
+		configureAnnotatedServices conf
+
+		// simple email service
+		configureMail.delegate = delegate
+		configureMail conf
+
+		// Switch User
+		if (conf.switchUserProcessingFilter) {
+			switchUserProcessingFilter(SwitchUserProcessingFilter) {
+				userDetailsService = ref('userDetailsService')
+				switchUserUrl = conf.swswitchUserUrl
+				exitUserUrl = conf.swexitUserUrl
+				targetUrl = conf.swtargetUrl
+			}
 		}
+
+		// LDAP
+		if (conf.useLdap) {
+			configureLdap.delegate = delegate
+			configureLdap conf
+		}
+
+		// SecurityEventListener
+		securityEventListener(SecurityEventListener) {
+			authenticateService = ref('authenticateService')
+		}
+
+		// Kerberos
+		if (conf.useKerberos) {
+			configureKerberos.delegate = delegate
+			configureKerberos conf
+		}
+
+		// NTLM
+		if (conf.useNtlm) {
+			configureNtlm.delegate = delegate
+			configureNtlm conf
+		}
+
+		// CAS
+		if (conf.useCAS) {
+			configureCAS.delegate = delegate
+			configureCAS conf
+		}
+	}
+
+	// OpenID
+	private def configureOpenId = { conf ->
+		openIDAuthProvider(org.codehaus.groovy.grails.plugins.springsecurity.openid.GrailsOpenIdAuthenticationProvider) {
+			userDetailsService = ref('userDetailsService')
+		}
+		openIDStore(org.openid4java.consumer.InMemoryConsumerAssociationStore) {}
+		openIDNonceVerifier(org.openid4java.consumer.InMemoryNonceVerifier, conf.openIdNonceMaxSeconds) {} // 300 seconds
+		openIDConsumerManager(org.openid4java.consumer.ConsumerManager) {
+			nonceVerifier = openIDNonceVerifier
+		}
+		openIDConsumer(org.springframework.security.ui.openid.consumers.OpenID4JavaConsumer, openIDConsumerManager) {}
+		openIDAuthenticationProcessingFilter(org.springframework.security.ui.openid.OpenIDAuthenticationProcessingFilter) {
+			authenticationManager = ref('authenticationManager')
+			authenticationFailureUrl = conf.authenticationFailureUrl //'/login/authfail?login_error=1' // /spring_security_login?login_error
+			defaultTargetUrl = conf.defaultTargetUrl // '/'
+			filterProcessesUrl = '/j_spring_openid_security_check' // not configurable
+			rememberMeServices = ref('rememberMeServices')
+			consumer = openIDConsumer
+		}
+	}
+
+	private def configureCAS = { conf ->
+		String casHost = conf.cas.casServer ?: 'localhost'
+		int casPort = (conf.cas.casServerPort ?: '443').toInteger()
+		String casFilterProcessesUrl = conf.cas.filterProcessesUrl ?: '/j_spring_cas_security_check'
+		boolean sendRenew = Boolean.valueOf(conf.cas.sendRenew ?: false)
+		String proxyReceptorUrl = conf.cas.proxyReceptorUrl ?: '/secure/receptor'
+		String applicationHost = System.getProperty('server.host') ?: 'localhost'
+		int applicationPort = (System.getProperty('server.port') ?: 8080).toInteger()
+		String appName = application.metadata['app.name']
+		String casHttp = conf.cas.casServerSecure ? 'https' : 'http'
+		String localHttp = conf.cas.localhostSecure ? 'https' : 'http'
+
+		proxyGrantingTicketStorage(org.jasig.cas.client.proxy.ProxyGrantingTicketStorageImpl)
+
+		casProcessingFilter(org.springframework.security.ui.cas.CasProcessingFilter) {
+			authenticationManager = ref('authenticationManager')
+			authenticationFailureUrl = conf.cas.failureURL ?: '/denied.jsp'
+			defaultTargetUrl = conf.cas.defaultTargetURL ?: '/'
+			filterProcessesUrl = casFilterProcessesUrl
+			proxyGrantingTicketStorage = proxyGrantingTicketStorage
+			proxyReceptorUrl = proxyReceptorUrl
+		}
+
+		casServiceProperties(org.springframework.security.ui.cas.ServiceProperties) {
+			service = "$localHttp://$applicationHost:$applicationPort/$appName$casFilterProcessesUrl"
+			sendRenew = sendRenew
+		}
+
+		String casLoginURL = conf.cas.fullLoginURL ?: "$casHttp://$casHost:$casPort/cas/login"
+		authenticationEntryPoint(org.springframework.security.ui.cas.CasProcessingFilterEntryPoint) {
+			loginUrl = casLoginURL
+			serviceProperties = casServiceProperties
+		}
+
+		String casServiceURL = conf.cas.fullServiceURL ?: "$casHttp://$casHost:$casPort/cas"
+		cas20ServiceTicketValidator(org.jasig.cas.client.validation.Cas20ServiceTicketValidator, casServiceURL) {
+			proxyGrantingTicketStorage = proxyGrantingTicketStorage
+			proxyCallbackUrl = "$localHttp://$applicationHost:$applicationPort/$appName$proxyReceptorUrl"
+		}
+
+		// the CAS authentication provider key doesn't need to be anything special, it just identifies individual providers
+		// so that they can identify tokens it previously authenticated
+		String casAuthenticationProviderKey = conf.cas.authenticationProviderKey ?: appName + System.currentTimeMillis()
+		casAuthenticationProvider(org.springframework.security.providers.cas.CasAuthenticationProvider) {
+			userDetailsService = ref(conf.cas.userDetailsService ?: 'userDetailsService')
+			serviceProperties = casServiceProperties
+			ticketValidator = cas20ServiceTicketValidator
+			key = casAuthenticationProviderKey
+		}
+	}
+
+	private def configureLogout = { conf ->
+
+		securityContextLogoutHandler(SecurityContextLogoutHandler) {}
+		def logoutHandlerNames = conf.logoutHandlerNames
+		if (!logoutHandlerNames) {
+			logoutHandlerNames = ['rememberMeServices', 'securityContextLogoutHandler']
+		}
+
+		def logoutHandlers = createRefList(logoutHandlerNames)
+		def afterLogoutUrl = conf.afterLogoutUrl // '/'
+
+		/** logoutFilter */
+		logoutFilter(LogoutFilterFactoryBean) {
+			logoutSuccessUrl = afterLogoutUrl
+			handlers = logoutHandlers
+		}
+	}
+
+	private def configureBasicAuth = { conf ->
+
+		basicProcessingFilterEntryPoint(BasicProcessingFilterEntryPoint) {
+			realmName = conf.realmName // 'Grails Realm'
+		}
+		basicProcessingFilter(BasicProcessingFilter) {
+			authenticationManager = ref('authenticationManager')
+			authenticationEntryPoint = basicProcessingFilterEntryPoint
+		}
+	}
+
+	private def configureVoters = { conf ->
+
+		roleVoter(RoleVoter) {}
+
+		authenticatedVoter(AuthenticatedVoter) {}
+
+		def decisionVoterNames = conf.decisionVoterNames
+		if (!decisionVoterNames) {
+			decisionVoterNames = ['authenticatedVoter', 'roleVoter']
+		}
+		def decisionVoterList = createRefList(decisionVoterNames)
+		/** accessDecisionManager */
+		accessDecisionManager(AuthenticatedVetoableDecisionManager) {
+			allowIfAllAbstainDecisions = false
+			decisionVoters = decisionVoterList
+		}
+	}
+
+	private def configureAuthenticationManager = { conf ->
+
+		def providerNames = conf.providerNames
+		if (!providerNames) {
+			providerNames = []
+			if (conf.useKerberos) {
+				providerNames << 'kerberosAuthProvider'
+			}
+			if (conf.useCAS) {
+				providerNames << 'casAuthenticationProvider'
+			}
+			if (conf.useLdap) {
+				providerNames << 'ldapAuthProvider'
+			}
+
+			if (providerNames.empty) {
+				providerNames << 'daoAuthenticationProvider'
+				if (conf.useOpenId) {
+					providerNames << 'openIDAuthProvider'
+				}
+			}
+
+			providerNames << 'anonymousAuthenticationProvider'
+			providerNames << 'rememberMeAuthenticationProvider'
+		}
+
+		def providerList = createRefList(providerNames)
+		/** authenticationManager */
+		authenticationManager(ProviderManager) {
+			providers = providerList
+		}
+	}
+
+	private def configureAnnotatedServices = { conf ->
+
+		serviceSecureAnnotation(SecurityAnnotationAttributes) {}
+
+		serviceSecureAnnotationODS(MethodDefinitionAttributes) {
+			attributes = serviceSecureAnnotation
+		}
+
 		/** securityInteceptor */
 		securityInteceptor(QuietMethodSecurityInterceptor) {
 			validateConfigAttributes = false
 			authenticationManager = ref('authenticationManager')
 			accessDecisionManager = ref('accessDecisionManager')
-			objectDefinitionSource = ref('serviceSecureAnnotationODS')
+			objectDefinitionSource = serviceSecureAnnotationODS
 			throwException = true
 		}
 
-		//load Services which have Annotations
+		// load Services which have Annotations
 		application.serviceClasses.each { serviceClass ->
 			if (hasAnnotation(serviceClass.clazz)) {
 				"${serviceClass.propertyName}Sec"(BeanNameAutoProxyCreator) {
-					beanNames = "${serviceClass.propertyName}"
+					beanNames = serviceClass.propertyName
 					interceptorNames = ['securityInteceptor']
 					proxyTargetClass = true
 				}
 			}
 		}
+	}
 
-		//load simple java mail settings
-		def useMail = conf.useMail
-		if (useMail) {
+	private def configureMail = { conf ->
+
+		if (conf.useMail) {
 			mailSender(JavaMailSenderImpl) {
 				host = conf.mailHost
 				username = conf.mailUsername
@@ -385,96 +504,118 @@ class AcegiGrailsPlugin {
 				from = conf.mailFrom
 			}
 		}
+	}
 
-		//Switch User
-		if (conf.switchUserProcessingFilter) {
-			switchUserProcessingFilter(SwitchUserProcessingFilter) {
-				userDetailsService = ref('userDetailsService')
-				switchUserUrl = conf.swswitchUserUrl
-				exitUserUrl = conf.swexitUserUrl
-				targetUrl = conf.swtargetUrl
-			}
+	private def configureLdap = { conf ->
+
+		contextSource(DefaultSpringSecurityContextSource, conf.ldapServer) {
+			userDn = conf.ldapManagerDn
+			password = conf.ldapManagerPassword
 		}
 
-		// LDAP
-		if (conf.useLdap) {
-			contextSource(DefaultSpringSecurityContextSource, conf.ldapServer) {
-				userDn = conf.ldapManagerDn
-				password = conf.ldapManagerPassword
-			}
+		ldapUserSearch(FilterBasedLdapUserSearch, conf.ldapSearchBase, conf.ldapSearchFilter, contextSource) {
+			searchSubtree = conf.ldapSearchSubtree
+		}
 
-			ldapUserSearch(FilterBasedLdapUserSearch, conf.ldapSearchBase, conf.ldapSearchFilter, ref('contextSource')) {
+		ldapAuthenticator(BindAuthenticator, contextSource) {
+			userSearch = ldapUserSearch
+		}
+
+		ldapUserDetailsMapper(GrailsLdapUserDetailsMapper) {
+			userDetailsService = ref('userDetailsService')
+			authenticateService = ref('authenticateService')
+			passwordAttributeName = conf.ldapPasswordAttributeName // 'userPassword'
+		}
+
+		if (conf.ldapRetrieveGroupRoles) {
+			ldapAuthoritiesPopulator(DefaultLdapAuthoritiesPopulator, contextSource, conf.ldapGroupSearchBase) {
+				groupRoleAttribute = conf.ldapGroupRoleAttribute
+				groupSearchFilter = conf.ldapGroupSearchFilter
 				searchSubtree = conf.ldapSearchSubtree
 			}
-
-			ldapAuthenticator(BindAuthenticator, ref('contextSource')) {
-				userSearch = ref('ldapUserSearch')
-			}
-			ldapUserDetailsMapper(GrailsLdapUserDetailsMapper) {
-				grailsDaoImpl = ref('userDetailsService')
-				authenticateService = ref('authenticateService')
-				passwordAttributeName = conf.ldapPasswordAttributeName // 'userPassword'
-			}
-			if (conf.ldapRetrieveGroupRoles) {
-				ldapAuthoritiesPopulator(DefaultLdapAuthoritiesPopulator, ref('contextSource'), conf.ldapGroupSearchBase) {
-					groupRoleAttribute = conf.ldapGroupRoleAttribute
-					groupSearchFilter = conf.ldapGroupSearchFilter
-					searchSubtree = conf.ldapSearchSubtree
-				}
-				ldapAuthProvider(LdapAuthenticationProvider, ref('ldapAuthenticator'), ref('ldapAuthoritiesPopulator')) {
-					userDetailsContextMapper = ref('ldapUserDetailsMapper')
-				}
-			}
-			else {
-				// use the NullAuthoritiesPopulator
-				ldapAuthProvider(LdapAuthenticationProvider, ref('ldapAuthenticator')) {
-					userDetailsContextMapper = ref('ldapUserDetailsMapper')
-				}
+			ldapAuthProvider(LdapAuthenticationProvider, ldapAuthenticator, ldapAuthoritiesPopulator) {
+				userDetailsContextMapper = ldapUserDetailsMapper
 			}
 		}
-
-/*
-		// CAS
-		if (conf.useCAS) {
-			serviceProperties(org.acegisecurity.ui.cas.ServiceProperties) {
-				service = 'https://localhost:8443/contacts-cas/j_acegi_cas_security_check'
-				sendRenew = false
-			}
-
-			casProcessingFilter(org.acegisecurity.ui.cas.CasProcessingFilter) {
-				authenticationManager = ref('authenticationManager')
-				authenticationFailureUrl = '/casfailed.jsp'
-				defaultTargetUrl = '/'
-				filterProcessesUrl = '/j_acegi_cas_security_check'
-			}
-
-			casProcessingFilterEntryPoint(org.acegisecurity.ui.cas.CasProcessingFilterEntryPoint) {
-				loginUrl = 'https://localhost:8443/cas/login'
-				serviceProperties = ref('serviceProperties')
+		else {
+			// use the NullAuthoritiesPopulator
+			ldapAuthProvider(LdapAuthenticationProvider, ldapAuthenticator) {
+				userDetailsContextMapper = ldapUserDetailsMapper
 			}
 		}
-*/
-		// SecurityEventListener
-		securityEventListener(SecurityEventListener) {
+	}
+
+	private def configureKerberos = { conf ->
+
+		jaasNameCallbackHandler(org.springframework.security.providers.jaas.JaasNameCallbackHandler)
+
+		jaasPasswordCallbackHandler(org.springframework.security.providers.jaas.JaasPasswordCallbackHandler)
+
+		kerberosAuthProvider(org.codehaus.groovy.grails.plugins.springsecurity.kerberos.GrailsKerberosAuthenticationProvider) {
 			authenticateService = ref('authenticateService')
+			userDetailsService = ref('userDetailsService')
+			loginConfig = conf.kerberosLoginConfigFile
+			loginContextName = "KrbAuthentication"
+			callbackHandlers = [jaasNameCallbackHandler, jaasPasswordCallbackHandler]
+			authorityGranters = []
 		}
 
-		// Kerberos
-		if (conf.useKerberos) {
-			jaasNameCallbackHandler(org.springframework.security.providers.jaas.JaasNameCallbackHandler)
-			jaasPasswordCallbackHandler(org.springframework.security.providers.jaas.JaasPasswordCallbackHandler)
+		//TODO: Improve
+		System.setProperty('java.security.krb5.realm', conf.kerberosRealm)
+		System.setProperty('java.security.krb5.kdc', conf.kerberosKdc)
+	}
 
-			kerberosAuthProvider(org.codehaus.groovy.grails.plugins.springsecurity.kerberos.GrailsKerberosAuthenticationProvider) {
-				authenticateService = ref('authenticateService')
-				userDetailsService = ref('userDetailsService')
-				loginConfig = conf.kerberosLoginConfigFile
-				loginContextName = "KrbAuthentication"
-				callbackHandlers = [ref('jaasNameCallbackHandler'), ref('jaasPasswordCallbackHandler')]
-				authorityGranters = []
+	private def configureNtlm = { conf ->
+
+		ntlmFilter(org.springframework.security.ui.ntlm.NtlmProcessingFilter) {
+			stripDomain = conf.ntlmStripDomain // true
+			retryOnAuthFailure = conf.ntlmRetryOnAuthFailure // true
+			defaultDomain = conf.ntlmDefaultDomain
+			netbiosWINS = conf.ntlmWinsServere
+			authenticationManager = ref('authenticationManager')
+		}
+
+		//println "Using NtlmProcessingFilterEntryPoint"
+		authenticationEntryPoint(org.springframework.security.ui.ntlm.NtlmProcessingFilterEntryPoint) {
+			authenticationFailureUrl = conf.authenticationFailureUrl
+		}
+	}
+
+	private def configureFilterChain = { conf ->
+
+		def filterNames = conf.filterNames
+		if (!filterNames) {
+			filterNames = ['httpSessionContextIntegrationFilter',
+			               'logoutFilter',
+			               'authenticationProcessingFilter']
+			if (conf.useCAS) {
+				filterNames << 'casProcessingFilter'
 			}
-			//TODO: Improve
-			System.setProperty('java.security.krb5.realm', conf.kerberosRealm)
-			System.setProperty('java.security.krb5.kdc', conf.kerberosKdc)
+			if (conf.useOpenId) {
+				filterNames << 'openIDAuthenticationProcessingFilter'
+			}
+			if (conf.basicProcessingFilter) {
+				filterNames << 'basicProcessingFilter'
+			}
+			if (conf.useNtlm) {
+				filterNames << 'ntlmFilter'
+			}
+			filterNames << 'securityContextHolderAwareRequestFilter'
+			filterNames << 'rememberMeProcessingFilter'
+			filterNames << 'anonymousProcessingFilter'
+			filterNames << 'exceptionTranslationFilter'
+			filterNames << 'filterInvocationInterceptor'
+			if (conf.switchUserProcessingFilter) {
+				filterNames << 'switchUserProcessingFilter'
+			}
+		}
+
+		springSecurityFilterChain(FilterChainProxy) {
+			filterInvocationDefinitionSource = """
+				CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON
+				PATTERN_TYPE_APACHE_ANT
+				/**=${filterNames.join(',')}
+				"""
 		}
 	}
 
@@ -492,6 +633,7 @@ class AcegiGrailsPlugin {
 		// we add the filter(s) right after the last context-param
 		def contextParam = xml.'context-param'
 
+		// the name of the filter matches the name of the Spring bean that it delegates to
 		contextParam[contextParam.size() - 1] + {
 			'filter' {
 				'filter-name'('springSecurityFilterChain')
@@ -499,35 +641,13 @@ class AcegiGrailsPlugin {
 			}
 		}
 
-		if (conf.useCAS) {
-			contextParam[contextParam.size() - 1] + {
-				'filter' {
-					'filter-name'('CAS Processing Filter')
-					'filter-class'(FilterToBeanProxy.name)
-				}
-//			  <init-param>
-//			    <param-name>targetClass</param-name>
-//			    <param-value>org.acegisecurity.ui.cas.CasProcessingFilter</param-value>
-//			  </init-param>
-			}
-		}
-
-		// and the filter-mapping(s) right after the last filter
-		def filter = xml.'filter'
-
-		filter[filter.size() - 1] + {
+		// add the filter-mapping after the Spring character encoding filter
+		findMappingLocation.delegate = delegate
+		def mappingLocation = findMappingLocation(xml)
+		mappingLocation + {
 			'filter-mapping'{
 				'filter-name'('springSecurityFilterChain')
 				'url-pattern'('/*')
-			}
-		}
-
-		if (conf.useCAS) {
-			filter[filter.size() - 1] + {
-				'filter-mapping'{
-					'filter-name'('CAS Processing Filter')
-					'url-pattern'('/*')
-				}
 			}
 		}
 
@@ -539,6 +659,40 @@ class AcegiGrailsPlugin {
 				}
 			}
 		}
+	}
+
+	private def findMappingLocation = { xml ->
+
+		// find the location to insert the filter-mapping; needs to be after the 'charEncodingFilter'
+		// which may not exist. should also be before the sitemesh filter.
+		// thanks to the JSecurity plugin for the logic.
+
+		def mappingLocation = xml.'filter-mapping'.find { it.'filter-name'.text() == 'charEncodingFilter' }
+		if (mappingLocation) {
+			return mappingLocation
+		}
+
+		// no 'charEncodingFilter'; try to put it before sitemesh
+		int i = 0
+		int siteMeshIndex = -1
+		xml.'filter-mapping'.each {
+			if (it.'filter-name'.text().equalsIgnoreCase('sitemesh')) {
+				siteMeshIndex = i
+			}
+			i++
+		}
+		if (siteMeshIndex > 0) {
+			return xml.'filter-mapping'[siteMeshIndex - 1]
+		}
+
+		if (siteMeshIndex == 0 || xml.'filter-mapping'.size() == 0) {
+			def filters = xml.'filter'
+			return filters[filters.size() - 1]
+		}
+
+		// neither filter found
+		def filters = xml.'filter'
+		return filters[filters.size() - 1]
 	}
 
 	def doWithDynamicMethods = { ctx ->
