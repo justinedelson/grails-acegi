@@ -95,7 +95,7 @@ class RegisterController {
 		if (params.passwd && params.passwd.length() > 0
 				&& params.repasswd && params.repasswd.length() > 0) {
 			if (params.passwd == params.repasswd) {
-				person.passwd = authenticateService.passwordEncoder(params.passwd)
+				person.passwd = authenticateService.encodePassword(params.passwd)
 			}
 			else {
 				person.passwd = ''
@@ -160,7 +160,7 @@ class RegisterController {
 			return
 		}
 
-		def pass = authenticateService.passwordEncoder(params.passwd)
+		def pass = authenticateService.encodePassword(params.passwd)
 		person.passwd = pass
 		person.enabled = true
 		person.emailShow = true

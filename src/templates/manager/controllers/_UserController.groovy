@@ -62,7 +62,7 @@ class ${personClassName}Controller {
 			return
 		}
 
-		[person: person, authorityList: ${authorityClassName}.list(params)]
+		[person: person, authorityList: ${authorityClassName}.list()]
 	}
 
 	/**
@@ -80,7 +80,7 @@ class ${personClassName}Controller {
 		def oldPassword = person.passwd
 		person.properties = params
 		if (!params.passwd.equals(oldPassword)) {
-			person.passwd = authenticateService.passwordEncoder(params.passwd)
+			person.passwd = authenticateService.encodePassword(params.passwd)
 		}
 		if (person.save()) {
 			${authorityClassName}.findAll().each { it.removeFromPeople(person) }
@@ -88,14 +88,14 @@ class ${personClassName}Controller {
 			redirect(action: show, id: person.id)
 		}
 		else {
-			render(view: 'edit', model: [person: person])
+			render(view: 'edit', model: [person: person, authorityList: ${authorityClassName}.list()])
 		}
 	}
 
 	def create = {
 		def person = new ${personClassName}()
 		person.properties = params
-		[person: person, authorityList: ${authorityClassName}.list(params)]
+		[person: person, authorityList: ${authorityClassName}.list()]
 	}
 
 	/**
@@ -105,13 +105,13 @@ class ${personClassName}Controller {
 
 		def person = new ${personClassName}()
 		person.properties = params
-		person.passwd = authenticateService.passwordEncoder(params.passwd)
+		person.passwd = authenticateService.encodePassword(params.passwd)
 		if (person.save()) {
 			addRoles(person)
 			redirect(action: show, id: person.id)
 		}
 		else {
-			render(view: 'create', model: [authorityList: ${authorityClassName}.list(params), person: person])
+			render(view: 'create', model: [authorityList: ${authorityClassName}.list(), person: person])
 		}
 	}
 
