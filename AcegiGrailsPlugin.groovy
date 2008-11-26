@@ -194,6 +194,7 @@ class AcegiGrailsPlugin {
 				requestMapClass = conf.requestMapClass
 				requestMapPathFieldName = conf.requestMapPathField
 				requestMapConfigAttributeField = conf.requestMapConfigAttributeField
+				sessionFactory = ref('sessionFactory')
 			}
 		}
 
@@ -248,6 +249,7 @@ class AcegiGrailsPlugin {
 			loginUserDomainClass = conf.loginUserDomainClass
 			relationalAuthoritiesField = conf.relationalAuthorities
 			authoritiesMethodName = conf.getAuthoritiesMethod
+			sessionFactory = ref('sessionFactory')
 		}
 
 		/** loggerListener ( log4j.logger.org.springframework.security=info,stdout ) */

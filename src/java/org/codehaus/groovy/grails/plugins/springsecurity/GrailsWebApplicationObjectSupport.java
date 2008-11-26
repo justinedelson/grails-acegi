@@ -30,7 +30,17 @@ import org.springframework.web.context.support.WebApplicationObjectSupport;
  */
 public abstract class GrailsWebApplicationObjectSupport extends WebApplicationObjectSupport {
 
-	private final Logger logger = Logger.getLogger(getClass());
+	private final Logger _log = Logger.getLogger(getClass());
+
+	private SessionFactory _sessionFactory;
+
+	/**
+	 * Dependency injection for Hibernate session factory.
+	 * @param sessionFactory  the factory
+	 */
+	public void setSessionFactory(final SessionFactory sessionFactory) {
+		_sessionFactory = sessionFactory;
+	}
 
 	/**
 	 * Holds the session created or existing session and a flag indicating whether it was
@@ -64,12 +74,12 @@ public abstract class GrailsWebApplicationObjectSupport extends WebApplicationOb
 		Session session;
 		boolean existing;
 		if (TransactionSynchronizationManager.hasResource(sessionFactory)) {
-			logger.debug("Session already has transaction attached");
+			_log.debug("Session already has transaction attached");
 			existing = true;
 			session = ((SessionHolder)TransactionSynchronizationManager.getResource(sessionFactory)).getSession();
 		}
 		else {
-			logger.debug("Session does not have transaction attached... Creating new one");
+			_log.debug("Session does not have transaction attached... Creating new one");
 			existing = false;
 			session = SessionFactoryUtils.getSession(sessionFactory, true);
 			SessionHolder sessionHolder = new SessionHolder(session);
@@ -90,10 +100,14 @@ public abstract class GrailsWebApplicationObjectSupport extends WebApplicationOb
 		SessionFactory sessionFactory = getSessionFactory();
 		SessionHolder sessionHolder = (SessionHolder)TransactionSynchronizationManager.unbindResource(sessionFactory);
 		SessionFactoryUtils.releaseSession(sessionHolder.getSession(), sessionFactory);
-		logger.debug("Session released");
+		_log.debug("Session released");
 	}
 
 	private SessionFactory getSessionFactory() {
-		return (SessionFactory)getWebApplicationContext().getBean("sessionFactory");
+		if (_sessionFactory == null) {
+			// should be set via DI, but for backwards compatibility lookup the standard bean
+			_sessionFactory  = (SessionFactory)getWebApplicationContext().getBean("sessionFactory");
+		}
+		return _sessionFactory;
 	}
 }
