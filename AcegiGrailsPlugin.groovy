@@ -585,6 +585,10 @@ class AcegiGrailsPlugin {
 
 	private def configureFilterChain = { conf ->
 
+		String prefix =
+			'CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON\n' +
+			'PATTERN_TYPE_APACHE_ANT\n'
+
 		def filterNames = conf.filterNames
 		if (!filterNames) {
 			filterNames = ['httpSessionContextIntegrationFilter',
@@ -611,13 +615,31 @@ class AcegiGrailsPlugin {
 				filterNames << 'switchUserProcessingFilter'
 			}
 		}
+		String joinedFilters = filterNames.join(',')
 
+		String definitionSource
+		if (conf.filterInvocationDefinitionSource) {
+			// if the entire string is set in the config, use that
+			definitionSource = conf.filterInvocationDefinitionSource
+		}
+		else if (conf.filterInvocationDefinitionSourceMap) {
+			// otherwise if there's a map of configs, use those
+			definitionSource = prefix
+			conf.filterInvocationDefinitionSourceMap.each { key, value ->
+				if (value == 'JOINED_FILTERS') {
+					// special case to use either the filters defined by
+					// conf.filterNames or the filters defined by config settings
+					value = joinedFilters
+				}
+				definitionSource += "$key=$value\n"
+			}
+		}
+		else {
+			// otherwise build the default string - all urls guarded by all filters
+			definitionSource = "$prefix\n/**=$joinedFilters"
+		}
 		springSecurityFilterChain(FilterChainProxy) {
-			filterInvocationDefinitionSource = """
-				CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON
-				PATTERN_TYPE_APACHE_ANT
-				/**=${filterNames.join(',')}
-				"""
+			filterInvocationDefinitionSource = definitionSource
 		}
 	}
 
