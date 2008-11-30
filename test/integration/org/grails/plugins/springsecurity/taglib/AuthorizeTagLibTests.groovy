@@ -3,11 +3,14 @@ package org.grails.plugins.springsecurity.taglib
 import grails.test.GroovyPagesTestCase
 
 import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
+import org.codehaus.groovy.grails.plugins.springsecurity.GrailsUserImpl
+
 import org.grails.plugins.springsecurity.test.TestingAuthenticationToken
 
 import org.springframework.security.Authentication
 import org.springframework.security.GrantedAuthority
 import org.springframework.security.context.SecurityContextHolder as SCH
+import org.springframework.security.userdetails.User
 
 /**
  * Integration tests for <code>AuthorizeTagLib</code>.
@@ -26,10 +29,10 @@ class AuthorizeTagLibTests extends GroovyPagesTestCase {
 	void testIfAllGranted() {
 		String body = 'the_content'
 
-		authenticate('role1')
+		authenticate 'role1'
 		assertOutputEquals '', "<g:ifAllGranted role='role1,role2'>${body}</g:ifAllGranted>"
 
-		authenticate('role2,role1')
+		authenticate 'role2,role1'
 		assertOutputEquals body, "<g:ifAllGranted role='role1,role2'>${body}</g:ifAllGranted>"
 	}
 
@@ -39,10 +42,10 @@ class AuthorizeTagLibTests extends GroovyPagesTestCase {
 	void testIfNotGrantedMissingRole() {
 		String body = 'the_content'
 
-		authenticate('role1')
+		authenticate 'role1'
 		assertOutputEquals '', "<g:ifNotGranted role='role1,role2'>${body}</g:ifNotGranted>"
 
-		authenticate('role3')
+		authenticate 'role3'
 		assertOutputEquals body, "<g:ifNotGranted role='role1,role2'>${body}</g:ifNotGranted>"
 	}
 
@@ -52,10 +55,10 @@ class AuthorizeTagLibTests extends GroovyPagesTestCase {
 	void testIfAnyGranted() {
 		String body = 'the_content'
 
-		authenticate('role3')
+		authenticate 'role3'
 		assertOutputEquals '', "<g:ifAnyGranted role='role1,role2'>${body}</g:ifAnyGranted>"
 
-		authenticate('role2')
+		authenticate 'role2'
 		assertOutputEquals body, "<g:ifAnyGranted role='role1,role2'>${body}</g:ifAnyGranted>"
 	}
 
@@ -67,7 +70,7 @@ class AuthorizeTagLibTests extends GroovyPagesTestCase {
 
 		assertOutputEquals '', "<g:isLoggedIn role='role1,role2'>${body}</g:isLoggedIn>"
 
-		authenticate('role1')
+		authenticate 'role1'
 		assertOutputEquals body, "<g:isLoggedIn role='role1,role2'>${body}</g:isLoggedIn>"
 	}
 
@@ -79,32 +82,57 @@ class AuthorizeTagLibTests extends GroovyPagesTestCase {
 
 		assertOutputEquals body, "<g:isNotLoggedIn role='role1,role2'>${body}</g:isNotLoggedIn>"
 
-		authenticate('role1')
+		authenticate 'role1'
 		assertOutputEquals '', "<g:isNotLoggedIn role='role1,role2'>${body}</g:isNotLoggedIn>"
 	}
 
 	/**
-	 * Test loggedInUserInfo().
+	 * Test loggedInUserInfo() for a principal that has a 'domainClass' property.
 	 */
-	void testLoggedInUserInfo() {
+	void testLoggedInUserInfoWithDomainClass() {
 		String fullName = 'First Last'
 		_user.fullName = fullName
 
 		assertOutputEquals '', "<g:loggedInUserInfo field='fullName'/>"
 
-		authenticate('role1')
+		def principal = new HasDomainClass('username', fullName, 'role1', _user)
+		authenticate principal, 'role1'
+
 		assertOutputEquals fullName, "<g:loggedInUserInfo field='fullName'/>"
 	}
 
-	private void authenticate(roles) {
+	/**
+	 * Test loggedInUserInfo() for a principal that doesn't have a 'domainClass' property.
+	 */
+	void testLoggedInUserInfoWithoutDomainClass() {
+		String fullName = 'First Last'
+		_user.fullName = fullName
+
+		assertOutputEquals '', "<g:loggedInUserInfo field='fullName'/>"
+
+		def principal = new NoDomainClass('username', fullName, 'role1')
+		authenticate principal, 'role1'
+
+		assertOutputEquals fullName, "<g:loggedInUserInfo field='fullName'/>"
+	}
+
+	private void authenticate(String roles) {
 
 		def principal = new Expando()
 		principal.domainClass = _user
 
+		authenticate principal, roles
+	}
+
+	private void authenticate(principal, String roles) {
 		Authentication authentication = new TestingAuthenticationToken(
-				principal, null, AuthorizeTools.parseAuthoritiesString(roles) as GrantedAuthority[])
+				principal, null, parseRoles(roles))
 		authentication.authenticated = true
 		SCH.context.authentication = authentication
+	}
+
+	private GrantedAuthority[] parseRoles(String roles) {
+		return AuthorizeTools.parseAuthoritiesString(roles)
 	}
 
 	/**
@@ -115,5 +143,36 @@ class AuthorizeTagLibTests extends GroovyPagesTestCase {
 	protected void tearDown() {
 		super.tearDown()
 		SCH.context.authentication = null
+	}
+}
+
+class NoDomainClass extends User {
+
+	private final String _fullName
+
+	NoDomainClass(String username, String fullName, String roles) {
+		super(username, 'password', true, true, true, true,
+				AuthorizeTools.parseAuthoritiesString(roles) as GrantedAuthority[])
+		_fullName = fullName
+	}
+
+	String getFullName() {
+		return _fullName
+	}
+}
+
+class HasDomainClass extends GrailsUserImpl {
+
+	private final String _fullName
+
+	HasDomainClass(String username, String fullName, String roles, domainClass) {
+		super(username, 'password', true, true, true, true,
+				AuthorizeTools.parseAuthoritiesString(roles) as GrantedAuthority[],
+				domainClass)
+				_fullName = fullName
+	}
+
+	String getFullName() {
+		return _fullName
 	}
 }

@@ -64,11 +64,28 @@ class AuthorizeTagLib {
 	 */
 	def loggedInUserInfo = { attrs, body ->
 		if (isAuthenticated()) {
-			out << SCH.context.authentication.principal.domainClass?."${attrs.field}"
+			def source = determineSource()
+			out << source."$attrs.field"
 		}
 		else {
 			out << body()
 		}
+	}
+
+	private def determineSource() {
+		def principal = SCH.context.authentication.principal
+		def source
+
+		// check to see if it's a GrailsUser/GrailsUserImpl/subclass,
+		// or otherwise has a 'domainClass' property
+		if (principal.metaClass.respondsTo(principal, 'getDomainClass')) {
+			source = principal.domainClass
+		}
+		if (!source) {
+			source = principal
+		}
+
+		return source
 	}
 
 	def isLoggedIn = { attrs, body ->
