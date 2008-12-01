@@ -33,6 +33,9 @@ class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements UserDet
 
 	private final Logger logger = Logger.getLogger(getClass())
 
+	def authenticateService
+
+	// dependency-injected fields
 	String loginUserDomainClass
 	String usernameFieldName
 	String passwordFieldName
@@ -59,6 +62,10 @@ class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements UserDet
 	 */
 	UserDetails loadUserByUsername(String username, boolean loadRoles)
 			throws UsernameNotFoundException, DataAccessException {
+
+		if (authenticateService.securityConfig.security.useNtlm) {
+			username = username.toLowerCase()
+		}
 
 		GrailsWebApplicationObjectSupport.SessionContainer container = setUpSession()
 		try {

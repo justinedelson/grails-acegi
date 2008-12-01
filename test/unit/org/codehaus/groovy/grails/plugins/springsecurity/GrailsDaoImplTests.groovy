@@ -29,19 +29,20 @@ class GrailsDaoImplTests extends AbstractSecurityTest {
 		EasyMock.expect(query.list()).andReturn([])
 		EasyMock.expect(query.setProperties([username: username])).andReturn(query)
 
-		EasyMock.replay(session, query)
+		EasyMock.replay session, query
 
-		GrailsWebApplicationObjectSupport.SessionContainer container =
- 			new GrailsWebApplicationObjectSupport.SessionContainer(session, true)
+		def container = new GrailsWebApplicationObjectSupport.SessionContainer(session, true)
 
 		// replace definition to avoid going to the database
 		_dao.metaClass.setUpSession = { -> container }
+
+		_dao.authenticateService = [securityConfig: [security: [useNtlm: false]]]
 
 		shouldFail(UsernameNotFoundException) {
 			_dao.loadUserByUsername(username)
 		}
 
-		EasyMock.verify(session, query)
+		EasyMock.verify session, query
 	}
 
 	/**
@@ -58,10 +59,9 @@ class GrailsDaoImplTests extends AbstractSecurityTest {
 		EasyMock.expect(query.setProperties([username: username])).andReturn(query)
 		EasyMock.expect(query.list()).andReturn([user])
 
-		EasyMock.replay(session, query)
+		EasyMock.replay session, query
 
-		GrailsWebApplicationObjectSupport.SessionContainer container =
- 			new GrailsWebApplicationObjectSupport.SessionContainer(session, true)
+		def container = new GrailsWebApplicationObjectSupport.SessionContainer(session, true)
 
 		// replace definition to avoid going to the database
 		_dao.metaClass.setUpSession = { -> container }
@@ -69,12 +69,14 @@ class GrailsDaoImplTests extends AbstractSecurityTest {
 		_dao.authoritiesMethodName = 'getRoles'
 		user.getRoles = { -> [] }
 
+		_dao.authenticateService = [securityConfig: [security: [useNtlm: false]]]
+
 		def message = shouldFail(UsernameNotFoundException) {
 			_dao.loadUserByUsername(username)
 		}
 		assertEquals 'User has no GrantedAuthority', message
 
-		EasyMock.verify(session, query)
+		EasyMock.verify session, query
 	}
 
 	/**
@@ -91,10 +93,9 @@ class GrailsDaoImplTests extends AbstractSecurityTest {
 		EasyMock.expect(query.setProperties([username: username])).andReturn(query)
 		EasyMock.expect(query.list()).andReturn([user])
 
-		EasyMock.replay(session, query)
+		EasyMock.replay session, query
 
-		GrailsWebApplicationObjectSupport.SessionContainer container =
- 			new GrailsWebApplicationObjectSupport.SessionContainer(session, true)
+		def container = new GrailsWebApplicationObjectSupport.SessionContainer(session, true)
 
 		// replace definition to avoid going to the database
 		_dao.metaClass.setUpSession = { -> container }
@@ -106,10 +107,48 @@ class GrailsDaoImplTests extends AbstractSecurityTest {
 		_dao.enabledFieldName = 'enabled'
 		user.enabled = true 
 
+		_dao.authenticateService = [securityConfig: [security: [useNtlm: false]]]
+
 		UserDetails details = _dao.loadUserByUsername(username)
 		assertNotNull details
 
-		EasyMock.verify(session, query)
+		EasyMock.verify session, query
+	}
+
+	/**
+	 * Test loadUserByUsername() when NTLM is enabled.
+	 */
+	void testLoadUserByUsernameNTLM() {
+
+		String username = 'a_USER'
+		def user = new Expando()
+
+		Session session = EasyMock.createMock(Session)
+		Query query = EasyMock.createMock(Query)
+		EasyMock.expect(session.createQuery((String)EasyMock.anyObject())).andReturn(query)
+		EasyMock.expect(query.setProperties([username: username.toLowerCase()])).andReturn(query)
+		EasyMock.expect(query.list()).andReturn([user])
+
+		EasyMock.replay session, query
+
+		def container = new GrailsWebApplicationObjectSupport.SessionContainer(session, true)
+
+		// replace definition to avoid going to the database
+		_dao.metaClass.setUpSession = { -> container }
+
+		_dao.authoritiesMethodName = 'getRoles'
+		user.getRoles = { -> ['role1'] }
+		_dao.passwordFieldName = 'password'
+		user.password = 'passw0rd'
+		_dao.enabledFieldName = 'enabled'
+		user.enabled = true 
+
+		_dao.authenticateService = [securityConfig: [security: [useNtlm: true]]]
+
+		UserDetails details = _dao.loadUserByUsername(username)
+		assertNotNull details
+
+		EasyMock.verify session, query
 	}
 
 	/**
@@ -149,6 +188,6 @@ class GrailsDaoImplTests extends AbstractSecurityTest {
 	@Override
 	protected void tearDown() {
 		super.tearDown()
-		removeMetaClassMethods(GrailsDaoImpl)
+		removeMetaClassMethods GrailsDaoImpl
 	}
 }

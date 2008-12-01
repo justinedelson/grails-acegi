@@ -44,7 +44,6 @@ import org.springframework.security.ui.webapp.AuthenticationProcessingFilter
 import org.springframework.security.providers.ProviderManager
 import org.springframework.security.providers.anonymous.AnonymousAuthenticationProvider
 import org.springframework.security.providers.anonymous.AnonymousProcessingFilter
-import org.springframework.security.providers.dao.DaoAuthenticationProvider
 import org.springframework.security.providers.dao.cache.EhCacheBasedUserCache
 import org.springframework.security.providers.dao.cache.NullUserCache
 import org.springframework.security.providers.encoding.MessageDigestPasswordEncoder
@@ -212,7 +211,7 @@ class AcegiGrailsPlugin {
 		configureAuthenticationManager conf
 
 		/** daoAuthenticationProvider */
-		daoAuthenticationProvider(DaoAuthenticationProvider) {
+		daoAuthenticationProvider(GrailsDaoAuthenticationProvider) {
 			userDetailsService = ref('userDetailsService')
 			passwordEncoder = ref('passwordEncoder')
 			userCache = ref('userCache')
@@ -250,6 +249,7 @@ class AcegiGrailsPlugin {
 			relationalAuthoritiesField = conf.relationalAuthorities
 			authoritiesMethodName = conf.getAuthoritiesMethod
 			sessionFactory = ref('sessionFactory')
+			authenticateService = ref('authenticateService')
 		}
 
 		/** loggerListener ( log4j.logger.org.springframework.security=info,stdout ) */
@@ -570,15 +570,15 @@ class AcegiGrailsPlugin {
 	private def configureNtlm = { conf ->
 
 		ntlmFilter(org.springframework.security.ui.ntlm.NtlmProcessingFilter) {
-			stripDomain = conf.ntlmStripDomain // true
-			retryOnAuthFailure = conf.ntlmRetryOnAuthFailure // true
-			defaultDomain = conf.ntlmDefaultDomain
-			netbiosWINS = conf.ntlmWinsServere
+			stripDomain = conf.ntlm.stripDomain // true
+			retryOnAuthFailure = conf.ntlm.retryOnAuthFailure // true
+			defaultDomain = conf.ntlm.defaultDomain
+			netbiosWINS = conf.ntlm.netbiosWINS
+			forceIdentification = conf.ntlm.forceIdentification // false
 			authenticationManager = ref('authenticationManager')
 		}
-
-		//println "Using NtlmProcessingFilterEntryPoint"
-		authenticationEntryPoint(org.springframework.security.ui.ntlm.NtlmProcessingFilterEntryPoint) {
+	
+		authenticationEntryPoint(org.codehaus.groovy.grails.plugins.springsecurity.GrailsNtlmProcessingFilterEntryPoint) {
 			authenticationFailureUrl = conf.authenticationFailureUrl
 		}
 	}
@@ -603,13 +603,16 @@ class AcegiGrailsPlugin {
 			if (conf.basicProcessingFilter) {
 				filterNames << 'basicProcessingFilter'
 			}
-			if (conf.useNtlm) {
-				filterNames << 'ntlmFilter'
+			if (!conf.useNtlm) {
+				// seems to remove NTLM authentication tokens
+            	filterNames << 'securityContextHolderAwareRequestFilter'
 			}
-			filterNames << 'securityContextHolderAwareRequestFilter'
 			filterNames << 'rememberMeProcessingFilter'
 			filterNames << 'anonymousProcessingFilter'
 			filterNames << 'exceptionTranslationFilter'
+			if (conf.useNtlm) {
+				filterNames << 'ntlmFilter'
+			}
 			filterNames << 'filterInvocationInterceptor'
 			if (conf.switchUserProcessingFilter) {
 				filterNames << 'switchUserProcessingFilter'

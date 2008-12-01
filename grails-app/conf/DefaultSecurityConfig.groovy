@@ -151,4 +151,12 @@ security {
 	cas.sendRenew = false
 	cas.proxyReceptorUrl = '/secure/receptor'
 	cas.filterProcessesUrl = '/j_spring_cas_security_check'
+
+	// NTML
+	useNtlm = false
+	ntlm.stripDomain = true
+	ntlm.retryOnAuthFailure = true
+	ntlm.forceIdentification = false
+	ntlm.defaultDomain = null // set in SecurityConfig.groovy
+	ntlm.netbiosWINS = null // set in SecurityConfig.groovy
 }
