@@ -22,7 +22,7 @@
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
 
-includeTargets << new File("$acegiPluginDir/scripts/SecurityTargets.groovy")
+includeTargets << new File("$acegiPluginDir/scripts/_SecurityTargets.groovy")
 
 pluginTemplatePath = "$templateDir/manager"
 

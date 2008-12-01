@@ -5,7 +5,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * Uses a <code>ThreadLocal</code> to store the current request.
  *
- * @author Burt
+ * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
 public class SecurityRequestHolder {
 

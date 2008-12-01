@@ -6,6 +6,7 @@ import org.codehaus.groovy.grails.plugins.springsecurity.AuthenticatedVetoableDe
 import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsAccessDeniedHandlerImpl
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsAuthenticationProcessingFilter
+import org.codehaus.groovy.grails.plugins.springsecurity.GrailsDaoAuthenticationProvider
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsDaoImpl
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsFilterInvocationDefinition
 import org.codehaus.groovy.grails.plugins.springsecurity.LogoutFilterFactoryBean
@@ -66,7 +67,7 @@ import org.springframework.web.filter.DelegatingFilterProxy
  */
 class AcegiGrailsPlugin {
 
-	def version = '0.3.1-20081125-SNAPSHOT'
+	def version = '0.3.1-20081201-SNAPSHOT'
 	def author = 'Tsuyoshi Yamamoto'
 	def authorEmail = 'tyama@xmldo.jp'
 	def title = 'Grails Spring Security 2.0 Plugin'
