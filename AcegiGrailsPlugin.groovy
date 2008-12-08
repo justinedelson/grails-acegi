@@ -14,24 +14,18 @@ import org.codehaus.groovy.grails.plugins.springsecurity.QuietMethodSecurityInte
 import org.codehaus.groovy.grails.plugins.springsecurity.SecurityAnnotationAttributes
 import org.codehaus.groovy.grails.plugins.springsecurity.SecurityEventListener
 import org.codehaus.groovy.grails.plugins.springsecurity.WithAjaxAuthenticationProcessingFilterEntryPoint
-import org.codehaus.groovy.grails.plugins.springsecurity.ldap.GrailsLdapUserDetailsMapper
 
 import org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator
 import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator
 import org.springframework.beans.factory.config.RuntimeBeanReference
 import org.springframework.cache.ehcache.EhCacheFactoryBean
 import org.springframework.cache.ehcache.EhCacheManagerFactoryBean
-import org.springframework.mail.SimpleMailMessage
-import org.springframework.mail.javamail.JavaMailSenderImpl
 import org.springframework.security.annotation.Secured
 import org.springframework.security.context.HttpSessionContextIntegrationFilter
 import org.springframework.security.context.SecurityContextHolder as SCH
 import org.springframework.security.event.authentication.LoggerListener
 import org.springframework.security.intercept.method.MethodDefinitionAttributes
 import org.springframework.security.intercept.web.FilterSecurityInterceptor
-import org.springframework.security.ldap.DefaultSpringSecurityContextSource
-import org.springframework.security.ldap.populator.DefaultLdapAuthoritiesPopulator
-import org.springframework.security.ldap.search.FilterBasedLdapUserSearch
 import org.springframework.security.ui.ExceptionTranslationFilter
 import org.springframework.security.ui.basicauth.BasicProcessingFilter
 import org.springframework.security.ui.basicauth.BasicProcessingFilterEntryPoint
@@ -48,8 +42,6 @@ import org.springframework.security.providers.anonymous.AnonymousProcessingFilte
 import org.springframework.security.providers.dao.cache.EhCacheBasedUserCache
 import org.springframework.security.providers.dao.cache.NullUserCache
 import org.springframework.security.providers.encoding.MessageDigestPasswordEncoder
-import org.springframework.security.providers.ldap.LdapAuthenticationProvider
-import org.springframework.security.providers.ldap.authenticator.BindAuthenticator
 import org.springframework.security.providers.rememberme.RememberMeAuthenticationProvider
 import org.springframework.security.util.FilterChainProxy
 import org.springframework.security.util.FilterToBeanProxy
@@ -492,7 +484,7 @@ class AcegiGrailsPlugin {
 	private def configureMail = { conf ->
 
 		if (conf.useMail) {
-			mailSender(JavaMailSenderImpl) {
+			mailSender(org.springframework.mail.javamail.JavaMailSenderImpl) {
 				host = conf.mailHost
 				username = conf.mailUsername
 				password = conf.mailPassword
@@ -503,7 +495,7 @@ class AcegiGrailsPlugin {
 				}
 			}
 
-			mailMessage(SimpleMailMessage) {
+			mailMessage(org.springframework.mail.SimpleMailMessage) {
 				from = conf.mailFrom
 			}
 		}
@@ -511,38 +503,43 @@ class AcegiGrailsPlugin {
 
 	private def configureLdap = { conf ->
 
-		contextSource(DefaultSpringSecurityContextSource, conf.ldapServer) {
+		contextSource(org.springframework.security.ldap.DefaultSpringSecurityContextSource, conf.ldapServer) {
 			userDn = conf.ldapManagerDn
 			password = conf.ldapManagerPassword
 		}
 
-		ldapUserSearch(FilterBasedLdapUserSearch, conf.ldapSearchBase, conf.ldapSearchFilter, contextSource) {
+		ldapUserSearch(org.springframework.security.ldap.search.FilterBasedLdapUserSearch,
+			           conf.ldapSearchBase, conf.ldapSearchFilter, contextSource) {
 			searchSubtree = conf.ldapSearchSubtree
 		}
 
-		ldapAuthenticator(BindAuthenticator, contextSource) {
+		ldapAuthenticator(org.springframework.security.providers.ldap.authenticator.BindAuthenticator,
+			              contextSource) {
 			userSearch = ldapUserSearch
 		}
 
-		ldapUserDetailsMapper(GrailsLdapUserDetailsMapper) {
+		ldapUserDetailsMapper(org.codehaus.groovy.grails.plugins.springsecurity.ldap.GrailsLdapUserDetailsMapper) {
 			userDetailsService = ref('userDetailsService')
 			authenticateService = ref('authenticateService')
 			passwordAttributeName = conf.ldapPasswordAttributeName // 'userPassword'
 		}
 
 		if (conf.ldapRetrieveGroupRoles) {
-			ldapAuthoritiesPopulator(DefaultLdapAuthoritiesPopulator, contextSource, conf.ldapGroupSearchBase) {
+			ldapAuthoritiesPopulator(org.springframework.security.ldap.populator.DefaultLdapAuthoritiesPopulator,
+				                     contextSource, conf.ldapGroupSearchBase) {
 				groupRoleAttribute = conf.ldapGroupRoleAttribute
 				groupSearchFilter = conf.ldapGroupSearchFilter
 				searchSubtree = conf.ldapSearchSubtree
 			}
-			ldapAuthProvider(LdapAuthenticationProvider, ldapAuthenticator, ldapAuthoritiesPopulator) {
+			ldapAuthProvider(org.springframework.security.providers.ldap.LdapAuthenticationProvider,
+				             ldapAuthenticator, ldapAuthoritiesPopulator) {
 				userDetailsContextMapper = ldapUserDetailsMapper
 			}
 		}
 		else {
 			// use the NullAuthoritiesPopulator
-			ldapAuthProvider(LdapAuthenticationProvider, ldapAuthenticator) {
+			ldapAuthProvider(org.springframework.security.providers.ldap.LdapAuthenticationProvider,
+				             ldapAuthenticator) {
 				userDetailsContextMapper = ldapUserDetailsMapper
 			}
 		}

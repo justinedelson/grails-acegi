@@ -9,20 +9,20 @@ import org.springframework.security.context.SecurityContextHolder as SCH
  */
 class RegisterController {
 
-	def emailerService
 	def authenticateService
 	def daoAuthenticationProvider
+	def emailerService
 
 	def allowedMethods = [save: 'POST', update: 'POST']
 
 	/**
-	 * User Registration Top page
+	 * User Registration Top page.
 	 */
 	def index = {
 
 		// skip if already logged in
-		if (authenticateService.userDomain()) {
-			redirect(action: 'show')
+		if (authenticateService.isLoggedIn()) {
+			redirect action: show
 			return
 		}
 
@@ -32,7 +32,7 @@ class RegisterController {
 			return [person: person]
 		}
 
-		redirect(uri: '/')
+		redirect uri: '/'
 	}
 
 	/**
@@ -40,13 +40,13 @@ class RegisterController {
 	 */
 	def show = {
 
-		//get user id from session's domain class.
+		// get user id from session's domain class.
 		def user = authenticateService.userDomain()
 		if (user) {
-			render(view: 'show', model: [person: ${personClassName}.get(user.id)])
+			render view: 'show', model: [person: ${personClassName}.get(user.id)]
 		}
 		else {
-			redirect(action: 'index')
+			redirect action: index
 		}
 	}
 
@@ -63,7 +63,7 @@ class RegisterController {
 
 		if (!person) {
 			flash.message = "[Illegal Access] User not found with id \${params.id}"
-			redirect(action: 'index')
+			redirect action: index
 			return
 		}
 
@@ -81,17 +81,17 @@ class RegisterController {
 			person = ${personClassName}.get(user.id)
 		}
 		else {
-			redirect(action: 'index')
+			redirect action: index
 			return
 		}
 
 		if (!person) {
 			flash.message = "[Illegal Access] User not found with id \${params.id}"
-			redirect(action: 'index', id: params.id)
+			redirect action: index, id: params.id
 			return
 		}
 
-		//if user want to change password. leave passwd field blank, passwd will not change.
+		// if user want to change password. leave passwd field blank, passwd will not change.
 		if (params.passwd && params.passwd.length() > 0
 				&& params.repasswd && params.repasswd.length() > 0) {
 			if (params.passwd == params.repasswd) {
@@ -100,7 +100,7 @@ class RegisterController {
 			else {
 				person.passwd = ''
 				flash.message = 'The passwords you entered do not match.'
-				render(view: 'edit', model: [person: person])
+				render view: 'edit', model: [person: person]
 				return
 			}
 		}
@@ -115,10 +115,10 @@ class RegisterController {
 		}
 
 		if (person.save()) {
-			redirect(action: 'show', id: person.id)
+			redirect action: show, id: person.id
 		}
 		else {
-			render(view: 'edit', model: [person: person])
+			render view: 'edit', model: [person: person]
 		}
 	 }
 
@@ -127,8 +127,9 @@ class RegisterController {
 	 */
 	def save = {
 
-		if (authenticateService.userDomain() != null) {
-			redirect(action: 'show')
+		// skip if already logged in
+		if (authenticateService.isLoggedIn()) {
+			redirect action: show
 			return
 		}
 
@@ -142,21 +143,21 @@ class RegisterController {
 		if (!role) {
 			person.passwd = ''
 			flash.message = 'Default Role not found.'
-			render(view: 'index', model: [person: person])
+			render view: 'index', model: [person: person]
 			return
 		}
 
 		if (params.captcha.toUpperCase() != session.captcha) {
 			person.passwd = ''
 			flash.message = 'Access code did not match.'
-			render(view: 'index', model: [person: person])
+			render view: 'index', model: [person: person]
 			return
 		}
 
 		if (params.passwd != params.repasswd) {
 			person.passwd = ''
 			flash.message = 'The passwords you entered do not match.'
-			render(view: 'index', model: [person: person])
+			render view: 'index', model: [person: person]
 			return
 		}
 
@@ -185,7 +186,7 @@ class RegisterController {
 					subject: "[\${request.contextPath}] Account Signed Up",
 					text: emailContent // 'text' is the email body
 				]
-      			emailerService.sendEmails([email])
+				emailerService.sendEmails [email]
 			}
 
 			person.save(flush: true)
@@ -193,11 +194,11 @@ class RegisterController {
 			def auth = new AuthToken(person.username, params.passwd)
 			def authtoken = daoAuthenticationProvider.authenticate(auth)
 			SCH.context.authentication = authtoken
-			redirect(uri: '/')
+			redirect uri: '/'
 		}
 		else {
 			person.passwd = ''
-			render(view: 'index', model: [person: person])
+			render view: 'index', model: [person: person]
 		}
 	}
 }
