@@ -67,7 +67,7 @@ import org.springframework.web.filter.DelegatingFilterProxy
  */
 class AcegiGrailsPlugin {
 
-	def version = '0.3.1-20081201-SNAPSHOT'
+	def version = '0.4'
 	def author = 'Tsuyoshi Yamamoto'
 	def authorEmail = 'tyama@xmldo.jp'
 	def title = 'Grails Spring Security 2.0 Plugin'

@@ -33,6 +33,7 @@ import org.springframework.security.userdetails.UserDetails
  * for to use from the controllers and a taglib.
  *
  * @author T.Yamamoto
+ * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
 class AuthenticateService {
 
@@ -40,18 +41,21 @@ class AuthenticateService {
 
 	private securityConfig
 
+	// dependency injection for the password encoder
+	def passwordEncoder
+
 	/**
 	 * @deprecated You can invoke tags from controllers (since grails-0.6)
-   	*/
-   	boolean ifAllGranted(role) {
+	 */
+	boolean ifAllGranted(role) {
 		return AuthorizeTools.ifAllGranted(role)
 	}
 
 	/**
-   	 * @deprecated You can invoke tags from controllers (since grails-0.6)
-   	 */
-   	boolean ifNotGranted(role) {
-   		return AuthorizeTools.ifNotGranted(role)
+	 * @deprecated You can invoke tags from controllers (since grails-0.6)
+	 */
+	boolean ifNotGranted(role) {
+		return AuthorizeTools.ifNotGranted(role)
 	}
 
 	/**
@@ -63,7 +67,7 @@ class AuthenticateService {
 
 	/**
 	 * Get the currently logged in user's principal.
-	 * @return  the principal or <code>null</code> if not logged in
+	 * @return the principal or <code>null</code> if not logged in
 	 */
 	def principal() {
 		return SCH?.context?.authentication?.principal
@@ -71,7 +75,7 @@ class AuthenticateService {
 
 	/**
 	 * Get the currently logged in user's domain class.
-	 * @return  the domain object or <code>null</code> if not logged in
+	 * @return the domain object or <code>null</code> if not logged in
 	 */
 	def userDomain() {
 		return isLoggedIn() ? principal().domainClass : null
@@ -79,7 +83,7 @@ class AuthenticateService {
 
 	/**
 	 * Load the security configuration.
-	 * @return  the config
+	 * @return the config
 	 */
 	ConfigObject getSecurityConfig() {
 		if (securityConfig == null) {
@@ -91,24 +95,20 @@ class AuthenticateService {
 	/**
 	 * returns a MessageDigest password.
 	 * (changes algorithm method dynamically by param of config)
-	 * @deprecated  use <code>encodePassword</code> instead
+	 * @deprecated use <code>encodePassword</code> instead
 	 */
 	String passwordEncoder(String passwd) {
 		return encodePassword(passwd)
 	}
 
 	String encodePassword(String passwd) {
-		def securityConfig = getSecurityConfig()
-		String algorithm = securityConfig.algorithm
-		def encodeHashAsBase64 = securityConfig.encodeHashAsBase64
-		def encoder = new MessageDigestPasswordEncoder(algorithm, encodeHashAsBase64)
-		return encoder.encodePassword(passwd, null)
+		return passwordEncoder.encodePassword(passwd, null)
 	}
 
 	/**
 	 * Check if the request was triggered by an Ajax call.
-	 * @param request  the request
-	 * @return  <code>true</code> if Ajax
+	 * @param request the request
+	 * @return <code>true</code> if Ajax
 	 */
 	boolean isAjax(request) {
 
@@ -124,7 +124,8 @@ class AuthenticateService {
 		}
 
 		// check the SavedRequest's headers
-		def savedRequest = request.session[AbstractProcessingFilter.SPRING_SECURITY_SAVED_REQUEST_KEY]
+		def savedRequest = request.session.getAttribute(
+				AbstractProcessingFilter.SPRING_SECURITY_SAVED_REQUEST_KEY)
 		if (savedRequest) {
 			return savedRequest.getHeaderValues(ajaxHeader).hasNext()
 		}
@@ -134,7 +135,7 @@ class AuthenticateService {
 
 	/**
 	 * Quick check to see if the current user is logged in.
-	 * @return  <code>true</code> if the principal is a <code>UserDetails</code> or subclass
+	 * @return <code>true</code> if the principal is a <code>UserDetails</code> or subclass
 	 */
 	boolean isLoggedIn() {
 		return principal() instanceof UserDetails

@@ -1,16 +1,34 @@
+/*
+ * Copyright 2007 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.grails.plugins.springsecurity.service
 
 import org.codehaus.groovy.grails.plugins.springsecurity.AbstractSecurityTest
-import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
+import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools as AT
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsUserImpl
+
 import org.grails.plugins.springsecurity.test.TestingAuthenticationToken
 
+import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.security.Authentication
 import org.springframework.security.GrantedAuthority
 import org.springframework.security.context.SecurityContextHolder as SCH
+import org.springframework.security.ui.AbstractProcessingFilter as APF
 
 /**
- * Unit tests for AuthenticateServiceTests.
+ * Unit tests for AuthenticateService.
  *
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
@@ -18,6 +36,18 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 
 	private final AuthenticateService _service = new AuthenticateService()
 	private final _user = new Object() // domain class instance
+
+	private final MockHttpServletRequest _request = new MockHttpServletRequest()
+
+	/**
+	 * {@inheritDoc}
+	 * @see junit.framework.TestCase#setUp()
+	 */
+	@Override
+	protected void setUp() {
+		super.setUp()
+		_service.metaClass.getRequest = { -> _request }
+	}
 
 	/**
 	 * Test transactional.
@@ -90,31 +120,69 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 	}
 
 	/**
+	 * Test encodePassword().
+	 */
+	void testEncodePassword() {
+		_service.passwordEncoder = [encodePassword: { String pwd, Object salt -> pwd + '_encoded' }]
+		assertEquals 'passw0rd_encoded', _service.encodePassword('passw0rd')
+	}
+
+	/**
 	 * Test passwordEncoder().
 	 */
 	void testPasswordEncoder() {
-		def config = [algorithm: 'SHA', encodeHashAsBase64: false]
-		_service.metaClass.getSecurityConfig = { -> config }
+		_service.passwordEncoder = [encodePassword: { String pwd, Object salt -> pwd + '_encoded' }]
+		assertEquals 'passw0rd_encoded', _service.passwordEncoder('passw0rd')
+	}
 
-		assertEquals '7c6a61c68ef8b9b6b061b28c348bc1ed7921cb53', _service.passwordEncoder('passw0rd')
+	void testIsAjaxUsingParameterFalse() {
+		assertFalse _service.isAjax(_request)
+	}
 
-		config.encodeHashAsBase64 = true
-		assertEquals 'fGphxo74ubawYbKMNIvB7Xkhy1M=',
-			_service.passwordEncoder('passw0rd').toString()
+	void testIsAjaxUsingParameterTrue() {
 
-		config.algorithm = 'SHA-256'
+		_request.setParameter('ajax', 'true')
 
-		config.encodeHashAsBase64 = false
-		assertEquals '8f0e2f76e22b43e2855189877e7dc1e1e7d98c226c95db247cd1d547928334a9',
-			_service.passwordEncoder('passw0rd')
+		assertTrue _service.isAjax(_request)
+	}
 
-		config.encodeHashAsBase64 = true
-		assertEquals 'jw4vduIrQ+KFUYmHfn3B4efZjCJsldskfNHVR5KDNKk=',
-			_service.passwordEncoder('passw0rd').toString()
+	void testIsAjaxUsingHeaderFalse() {
+
+		_service.metaClass.getSecurityConfig = { -> [ajaxHeader: 'ajaxHeader'] }
+
+		assertFalse _service.isAjax(_request)
+	}
+
+	void testIsAjaxUsingHeaderTrue() {
+
+		_service.metaClass.getSecurityConfig = { -> [ajaxHeader: 'ajaxHeader'] }
+		_request.addHeader('ajaxHeader', 'foo')
+
+		assertTrue _service.isAjax(_request)
+	}
+
+	void testIsAjaxUsingSavedRequestFalse() {
+
+		_service.metaClass.getSecurityConfig = { -> [ajaxHeader: 'ajaxHeader'] }
+
+		def savedRequest = [getHeaderValues: { String name -> [].iterator() }]
+		_request.session.setAttribute(APF.SPRING_SECURITY_SAVED_REQUEST_KEY, savedRequest)
+
+		assertFalse _service.isAjax(_request)
+	}
+
+	void testIsAjaxUsingSavedRequestTrue() {
+
+		_service.metaClass.getSecurityConfig = { -> [ajaxHeader: 'ajaxHeader'] }
+
+		def savedRequest = [getHeaderValues: { String name -> ['x'].iterator() }]
+		_request.session.setAttribute(APF.SPRING_SECURITY_SAVED_REQUEST_KEY, savedRequest)
+
+		assertTrue _service.isAjax(_request)
 	}
 
 	private void authenticate(roles) {
-		GrantedAuthority[] authorities = AuthorizeTools.parseAuthoritiesString(roles) as GrantedAuthority[]
+		GrantedAuthority[] authorities = AT.parseAuthoritiesString(roles) as GrantedAuthority[]
 		def principal = new GrailsUserImpl(
 				'username', 'password', true, true, true,
 				true, authorities, _user)
@@ -131,6 +199,7 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 	@Override
 	protected void tearDown() {
 		super.tearDown()
-		removeMetaClassMethods(AuthenticateService)
+		removeMetaClassMethods AuthenticateService
+		fixMetaClass _service
 	}
 }
