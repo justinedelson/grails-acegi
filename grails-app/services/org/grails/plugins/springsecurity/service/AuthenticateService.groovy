@@ -118,7 +118,7 @@ class AuthenticateService {
 		}
 
 		// check the current request's headers
-		String ajaxHeader = getSecurityConfig().ajaxHeader
+		String ajaxHeader = getSecurityConfig().security.ajaxHeader
 		if (request.getHeader(ajaxHeader) != null) {
 			return true
 		}

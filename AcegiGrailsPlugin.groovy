@@ -59,7 +59,7 @@ import org.springframework.web.filter.DelegatingFilterProxy
  */
 class AcegiGrailsPlugin {
 
-	def version = '0.4'
+	def version = '0.4.1'
 	def author = 'Tsuyoshi Yamamoto'
 	def authorEmail = 'tyama@xmldo.jp'
 	def title = 'Grails Spring Security 2.0 Plugin'
@@ -76,7 +76,7 @@ class AcegiGrailsPlugin {
 
 	def doWithSpring = {
 
-		def conf = AuthorizeTools.getSecurityConfig()
+		def conf = AuthorizeTools.getSecurityConfig().security
 		if (!conf || !conf.active) {
 			println '[active=false] Spring Security not loaded'
 			return
@@ -650,7 +650,7 @@ class AcegiGrailsPlugin {
 
 	def doWithWebDescriptor = { xml ->
 
-		def conf = AuthorizeTools.getSecurityConfig()
+		def conf = AuthorizeTools.getSecurityConfig().security
 		if (!conf || !conf.active) {
 			return
 		}

@@ -148,14 +148,14 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 
 	void testIsAjaxUsingHeaderFalse() {
 
-		_service.metaClass.getSecurityConfig = { -> [ajaxHeader: 'ajaxHeader'] }
+		_service.metaClass.getSecurityConfig = { -> [security: [ajaxHeader: 'ajaxHeader']] }
 
 		assertFalse _service.isAjax(_request)
 	}
 
 	void testIsAjaxUsingHeaderTrue() {
 
-		_service.metaClass.getSecurityConfig = { -> [ajaxHeader: 'ajaxHeader'] }
+		_service.metaClass.getSecurityConfig = { -> [security: [ajaxHeader: 'ajaxHeader']] }
 		_request.addHeader('ajaxHeader', 'foo')
 
 		assertTrue _service.isAjax(_request)
@@ -163,7 +163,7 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 
 	void testIsAjaxUsingSavedRequestFalse() {
 
-		_service.metaClass.getSecurityConfig = { -> [ajaxHeader: 'ajaxHeader'] }
+		_service.metaClass.getSecurityConfig = { -> [security: [ajaxHeader: 'ajaxHeader']] }
 
 		def savedRequest = [getHeaderValues: { String name -> [].iterator() }]
 		_request.session.setAttribute(APF.SPRING_SECURITY_SAVED_REQUEST_KEY, savedRequest)
@@ -173,7 +173,7 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 
 	void testIsAjaxUsingSavedRequestTrue() {
 
-		_service.metaClass.getSecurityConfig = { -> [ajaxHeader: 'ajaxHeader'] }
+		_service.metaClass.getSecurityConfig = { -> [security: [ajaxHeader: 'ajaxHeader']] }
 
 		def savedRequest = [getHeaderValues: { String name -> ['x'].iterator() }]
 		_request.session.setAttribute(APF.SPRING_SECURITY_SAVED_REQUEST_KEY, savedRequest)

@@ -140,6 +140,6 @@ class AuthorizeTools {
 			config = defaultConfig
 		}
 
-		return config.security
+		return config
 	}
 }

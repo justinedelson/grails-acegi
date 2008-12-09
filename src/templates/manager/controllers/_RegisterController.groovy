@@ -186,7 +186,7 @@ class RegisterController {
 					subject: "[\${request.contextPath}] Account Signed Up",
 					text: emailContent // 'text' is the email body
 				]
-				emailerService.sendEmails [email]
+				emailerService.sendEmails([email])
 			}
 
 			person.save(flush: true)

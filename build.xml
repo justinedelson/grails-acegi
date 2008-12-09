@@ -100,6 +100,7 @@
 		<delete dir='web-app/js'/>
 		<delete dir='web-app/META-INF'/>
 		<delete dir='web-app/plugins'/>
+		<delete dir='docs'/>
 	</target>
 
 	<target name='coverage' description='Run unit tests with code coverage' depends='clean'>
