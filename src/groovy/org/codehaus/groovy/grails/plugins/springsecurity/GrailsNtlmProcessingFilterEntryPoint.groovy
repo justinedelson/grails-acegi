@@ -43,7 +43,7 @@ class GrailsNtlmProcessingFilterEntryPoint extends NtlmProcessingFilterEntryPoin
 		if (!(authException instanceof NtlmBaseException
 				|| authException instanceof BadCredentialsException)) {
 
-	        request.session.setAttribute STATE_ATTR, BEGIN
+	        req.session.setAttribute STATE_ATTR, BEGIN
 
 			HttpServletResponse response = (HttpServletResponse)res
 
