@@ -14,10 +14,7 @@
  */
 package org.codehaus.groovy.grails.plugins.springsecurity;
 
-import groovy.util.ConfigObject;
-
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Map;
 
 import javax.servlet.FilterChain;
@@ -26,9 +23,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-
-import org.grails.plugins.springsecurity.service.AuthenticateService;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.security.AccessDeniedException;
@@ -50,7 +44,6 @@ public class IpAddressFilter extends SpringSecurityFilter implements Initializin
 	private final AntPathMatcher _pathMatcher = new AntPathMatcher();
 
 	private Map<String, String> _restrictions;
-	private AuthenticateService _authenticateService;
 
 	/**
 	 * {@inheritDoc}
@@ -88,44 +81,17 @@ public class IpAddressFilter extends SpringSecurityFilter implements Initializin
 	 * {@inheritDoc}
 	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
 	 */
-	@SuppressWarnings("unchecked")
 	public void afterPropertiesSet() {
-		Assert.notNull(_authenticateService, "authenticateService is required");
-
-		_restrictions = (Map<String, String>)getConfigProperty(
-				_authenticateService.getSecurityConfig(), "security.ipRestrictions");
-		if (_restrictions == null) {
-			_restrictions = Collections.emptyMap();
-		}
+		Assert.notNull(_restrictions, "ipRestrictions is required");
 	}
 
 	/**
-	 * Dependency injection for the authentication service.
-	 * @param service  the service
+	 * Dependency injection for the ip/pattern restriction map.
+	 * @param restrictions  the map
 	 */
 	@Required
-	public void setAuthenticateService(final AuthenticateService service) {
-		_authenticateService = service;
-	}
-
-	private Object getConfigProperty(final ConfigObject configObject, final String path) {
-
-		ConfigObject current = configObject;
-		String[] parts = path.split("\\.");
-
-		// navigate down to the last element, returning null if any level isn't
-		// a ConfigObject or doesn't exist (don't auto-create like ConfigObject does).
-		for (int i = 0; i < parts.length - 1; i++) {
-			Object thing = current.get(parts[i]);
-			if (thing instanceof ConfigObject) {
-				current = (ConfigObject)thing;
-			}
-			else {
-				return null;
-			}
-		}
-
-		return current.get(parts[parts.length - 1]);
+	public void setIpRestrictions(final Map<String, String> restrictions) {
+		_restrictions = restrictions;
 	}
 
 	private boolean isAllowed(final String ip, final String requestURI) {

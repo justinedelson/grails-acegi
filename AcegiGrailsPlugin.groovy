@@ -9,6 +9,7 @@ import org.codehaus.groovy.grails.plugins.springsecurity.GrailsAuthenticationPro
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsDaoAuthenticationProvider
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsDaoImpl
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsFilterInvocationDefinition
+import org.codehaus.groovy.grails.plugins.springsecurity.IpAddressFilter
 import org.codehaus.groovy.grails.plugins.springsecurity.LogoutFilterFactoryBean
 import org.codehaus.groovy.grails.plugins.springsecurity.QuietMethodSecurityInterceptor
 import org.codehaus.groovy.grails.plugins.springsecurity.SecurityAnnotationAttributes
@@ -71,7 +72,7 @@ class AcegiGrailsPlugin {
 		'CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON\n' +
 		'PATTERN_TYPE_APACHE_ANT\n'
 
-	def version = '0.4.1'
+	def version = '0.5-SNAPSHOT'
 	def author = 'Tsuyoshi Yamamoto'
 	def authorEmail = 'tyama@xmldo.jp'
 	def title = 'Grails Spring Security 2.0 Plugin'
@@ -329,6 +330,12 @@ class AcegiGrailsPlugin {
 		if (useSecureChannel(conf)) {
 			configureChannelProcessingFilter.delegate = delegate
 			configureChannelProcessingFilter conf
+		}
+
+		// IP filter
+		if (conf.ipRestrictions) {
+			configureIpFilter.delegate = delegate
+			configureIpFilter conf
 		}
 	}
 
@@ -622,37 +629,60 @@ class AcegiGrailsPlugin {
 		def filterNames = conf.filterNames
 		if (!filterNames) {
 			filterNames = []
+
 			if (useSecureChannel(conf)) {
 				filterNames << 'channelProcessingFilter' // CHANNEL_FILTER
 			}
+
 			// CONCURRENT_SESSION_FILTER
+
 			filterNames << 'httpSessionContextIntegrationFilter' // HTTP_SESSION_CONTEXT_FILTER
+
 			filterNames << 'logoutFilter' // LOGOUT_FILTER
+
+			if (conf.ipRestrictions) {
+				filterNames << 'ipAddressFilter'
+			}
+			
 			// X509_FILTER
+
 			// PRE_AUTH_FILTER
+
 			if (conf.useCAS) {
 				filterNames << 'casProcessingFilter' // CAS_PROCESSING_FILTER
 			}
+
 			filterNames << 'authenticationProcessingFilter' // AUTHENTICATION_PROCESSING_FILTER
+
 			if (conf.useOpenId) {
 				filterNames << 'openIDAuthenticationProcessingFilter' // OPENID_PROCESSING_FILTER
 			}
+
 			// LOGIN_PAGE_FILTER
+
 			if (conf.basicProcessingFilter) {
 				filterNames << 'basicProcessingFilter' // BASIC_PROCESSING_FILTER
 			}
+
 			if (!conf.useNtlm) {
 				// seems to remove NTLM authentication tokens
             	filterNames << 'securityContextHolderAwareRequestFilter' // SERVLET_API_SUPPORT_FILTER
 			}
+
 			filterNames << 'rememberMeProcessingFilter' // REMEMBER_ME_FILTER
+
 			filterNames << 'anonymousProcessingFilter' // ANONYMOUS_FILTER
+
 			filterNames << 'exceptionTranslationFilter' // EXCEPTION_TRANSLATION_FILTER
+
 			if (conf.useNtlm) {
 				filterNames << 'ntlmFilter' // NTLM_FILTER
 			}
+
 			// SESSION_FIXATION_FILTER
+
 			filterNames << 'filterInvocationInterceptor' // FILTER_SECURITY_INTERCEPTOR
+
 			if (conf.switchUserProcessingFilter) {
 				filterNames << 'switchUserProcessingFilter' // SWITCH_USER_FILTER
 			}
@@ -726,6 +756,12 @@ class AcegiGrailsPlugin {
 		channelProcessingFilter(ChannelProcessingFilter) {
 			channelDecisionManager = channelDecisionManager
 			filterInvocationDefinitionSource = definitionSource
+		}
+	}
+
+	private def configureIpFilter = { conf ->
+		ipAddressFilter(IpAddressFilter) {
+			ipRestrictions = conf.ipRestrictions
 		}
 	}
 
