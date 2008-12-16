@@ -78,14 +78,14 @@ security {
 	 * see example below
 	 */
 	requestMapString = """
-	CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON
-	PATTERN_TYPE_APACHE_ANT
+		CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON
+		PATTERN_TYPE_APACHE_ANT
 
-	/login/**=IS_AUTHENTICATED_ANONYMOUSLY
-	/admin/**=ROLE_USER
-	/book/test/**=IS_AUTHENTICATED_FULLY
-	/book/**=ROLE_SUPERVISOR
-	/**=IS_AUTHENTICATED_ANONYMOUSLY
+		/login/**=IS_AUTHENTICATED_ANONYMOUSLY
+		/admin/**=ROLE_USER
+		/book/test/**=IS_AUTHENTICATED_FULLY
+		/book/**=ROLE_SUPERVISOR
+		/**=IS_AUTHENTICATED_ANONYMOUSLY
 	"""
 
 	// basic auth
@@ -122,6 +122,13 @@ security {
 	ldapSearchSubtree = true
 	ldapGroupRoleAttribute = 'cn'
 	ldapPasswordAttributeName = 'userPassword'
+	ldapServer = 'ldap://localhost:389' // 'ldap://ad.example.com', 'ldap://monkeymachine:389/dc=acegisecurity,dc=org'
+	ldapManagerDn = 'cn=admin,dc=example,dc=com'
+	ldapManagerPassword = 'secret'
+	ldapSearchBase = 'dc=example,dc=com' // 'ou=users,dc=example,dc=com'
+	ldapSearchFilter = '(uid={0})' //, '(mailNickname={0})'
+	ldapGroupSearchBase = 'ou=groups,dc=example,dc=com'
+	ldapGroupSearchFilter = 'uniquemember={0}'
 
 	// Kerberos
 	useKerberos = false
@@ -135,14 +142,6 @@ security {
 
 	// user caching
 	cacheUsers = true
-
-	// port mappings
-	httpPort = 8080
-	httpsPort = 8443
-
-	// secure channel filter (http/https)
-	secureChannelDefinitionSource = ''
-	channelConfig = [secure: [], insecure: []]
 
 	// CAS
 	useCAS = false
@@ -167,4 +166,15 @@ security {
 	ntlm.forceIdentification = false
 	ntlm.defaultDomain = null // set in SecurityConfig.groovy
 	ntlm.netbiosWINS = null // set in SecurityConfig.groovy
+
+	// port mappings
+	httpPort = 8080
+	httpsPort = 8443
+
+	// secure channel filter (http/https)
+	secureChannelDefinitionSource = ''
+	channelConfig = [secure: [], insecure: []]
+
+	// ip restriction filter
+	ipRestrictions = [:]
 }
