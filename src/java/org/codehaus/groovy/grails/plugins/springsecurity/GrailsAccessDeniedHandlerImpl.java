@@ -1,5 +1,4 @@
-/*
- * Copyright 2007 the original author or authors.
+/* Copyright 2006-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +21,14 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.security.AccessDeniedException;
+import org.springframework.security.context.SecurityContextHolder;
 import org.springframework.security.ui.AbstractProcessingFilter;
 import org.springframework.security.ui.AccessDeniedHandler;
 import org.springframework.security.ui.savedrequest.SavedRequest;
 import org.springframework.security.util.PortResolver;
-import org.springframework.security.util.PortResolverImpl;
-import org.springframework.security.context.SecurityContextHolder;
+import org.springframework.util.Assert;
 
 /**
  * AccessDeniedHandler for redirect to errorPage (not RequestDispatcher#forward).
@@ -36,12 +36,12 @@ import org.springframework.security.context.SecurityContextHolder;
  * @author T.Yamamoto
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
-public class GrailsAccessDeniedHandlerImpl implements AccessDeniedHandler {
+public class GrailsAccessDeniedHandlerImpl implements AccessDeniedHandler, InitializingBean {
 
 	private String errorPage;
 	private String ajaxErrorPage;
 	private String ajaxHeader = WithAjaxAuthenticationProcessingFilterEntryPoint.AJAX_HEADER;
-	private PortResolver portResolver = new PortResolverImpl();
+	private PortResolver portResolver;
 
 	/**
 	 * {@inheritDoc}
@@ -137,5 +137,22 @@ public class GrailsAccessDeniedHandlerImpl implements AccessDeniedHandler {
 	 */
 	public void setAjaxHeader(final String header) {
 		ajaxHeader = header;
+	}
+
+	/**
+	 * Dependency injection for the port resolver
+	 * @param resolver  the resolver
+	 */
+	public void setPortResolver(final PortResolver resolver) {
+		portResolver = resolver;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
+	 */
+	public void afterPropertiesSet() {
+		Assert.notNull(ajaxHeader, "ajaxHeader is required");
+		Assert.notNull(portResolver, "portResolver is required");
 	}
 }

@@ -136,6 +136,14 @@ security {
 	// user caching
 	cacheUsers = true
 
+	// port mappings
+	httpPort = 8080
+	httpsPort = 8443
+
+	// secure channel filter (http/https)
+	secureChannelDefinitionSource = ''
+	channelConfig = [secure: [], insecure: []]
+
 	// CAS
 	useCAS = false
 	cas.casServer = 'localhost'
@@ -152,7 +160,7 @@ security {
 	cas.proxyReceptorUrl = '/secure/receptor'
 	cas.filterProcessesUrl = '/j_spring_cas_security_check'
 
-	// NTML
+	// NTLM
 	useNtlm = false
 	ntlm.stripDomain = true
 	ntlm.retryOnAuthFailure = true

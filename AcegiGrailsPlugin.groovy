@@ -36,6 +36,8 @@ import org.springframework.security.ui.rememberme.TokenBasedRememberMeServices
 import org.springframework.security.ui.session.HttpSessionEventPublisher
 import org.springframework.security.ui.switchuser.SwitchUserProcessingFilter
 import org.springframework.security.ui.webapp.AuthenticationProcessingFilter
+import org.springframework.security.util.PortMapperImpl
+import org.springframework.security.util.PortResolverImpl
 import org.springframework.security.providers.ProviderManager
 import org.springframework.security.providers.anonymous.AnonymousAuthenticationProvider
 import org.springframework.security.providers.anonymous.AnonymousProcessingFilter
@@ -43,6 +45,12 @@ import org.springframework.security.providers.dao.cache.EhCacheBasedUserCache
 import org.springframework.security.providers.dao.cache.NullUserCache
 import org.springframework.security.providers.encoding.MessageDigestPasswordEncoder
 import org.springframework.security.providers.rememberme.RememberMeAuthenticationProvider
+import org.springframework.security.securechannel.ChannelDecisionManagerImpl
+import org.springframework.security.securechannel.ChannelProcessingFilter
+import org.springframework.security.securechannel.InsecureChannelProcessor
+import org.springframework.security.securechannel.RetryWithHttpEntryPoint
+import org.springframework.security.securechannel.RetryWithHttpsEntryPoint
+import org.springframework.security.securechannel.SecureChannelProcessor
 import org.springframework.security.util.FilterChainProxy
 import org.springframework.security.util.FilterToBeanProxy
 import org.springframework.security.vote.AuthenticatedVoter
@@ -58,6 +66,10 @@ import org.springframework.web.filter.DelegatingFilterProxy
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
 class AcegiGrailsPlugin {
+
+	private static final String DEFINITION_SOURCE_PREFIX =
+		'CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON\n' +
+		'PATTERN_TYPE_APACHE_ANT\n'
 
 	def version = '0.4.1'
 	def author = 'Tsuyoshi Yamamoto'
@@ -105,7 +117,7 @@ class AcegiGrailsPlugin {
 		configureBasicAuth conf
 
 		/** httpSessionContextIntegrationFilter */
-		httpSessionContextIntegrationFilter(HttpSessionContextIntegrationFilter) {}
+		httpSessionContextIntegrationFilter(HttpSessionContextIntegrationFilter)
 
 		/** authenticationProcessingFilter */
 		authenticationProcessingFilter(GrailsAuthenticationProcessingFilter) {
@@ -119,7 +131,9 @@ class AcegiGrailsPlugin {
 		}
 
 		/** securityContextHolderAwareRequestFilter */
-		securityContextHolderAwareRequestFilter(SecurityContextHolderAwareRequestFilter) {}
+		securityContextHolderAwareRequestFilter(SecurityContextHolderAwareRequestFilter) {
+			portResolver = ref('portResolver')
+		}
 
 		/** rememberMeProcessingFilter */
 		rememberMeProcessingFilter(RememberMeProcessingFilter) {
@@ -146,10 +160,12 @@ class AcegiGrailsPlugin {
 		exceptionTranslationFilter(ExceptionTranslationFilter) {
 			authenticationEntryPoint = ref('authenticationEntryPoint')
 			accessDeniedHandler = ref('accessDeniedHandler')
+			portResolver = ref('portResolver')
 		}
 		accessDeniedHandler(GrailsAccessDeniedHandlerImpl) {
 			errorPage = conf.errorPage == 'null' ? null : conf.errorPage // '/login/denied' or 403
 			ajaxErrorPage = conf.ajaxErrorPage
+			portResolver = ref('portResolver')
 			if (conf.ajaxHeader) {
 				ajaxHeader = conf.ajaxHeader //default: X-Requested-With
 			}
@@ -163,6 +179,8 @@ class AcegiGrailsPlugin {
 				if (conf.ajaxHeader) {
 					ajaxHeader = conf.ajaxHeader //default: X-Requested-With
 				}
+				portMapper = ref('portMapper')
+				portResolver = ref('portResolver')
 			}
 		}
 
@@ -226,7 +244,7 @@ class AcegiGrailsPlugin {
 				cacheManager = ref('cacheManager')
 				cacheName = 'userCache'
 			}
-			cacheManager(EhCacheManagerFactoryBean) {}
+			cacheManager(EhCacheManagerFactoryBean)
 		}
 		else {
 			userCache(NullUserCache)
@@ -247,10 +265,18 @@ class AcegiGrailsPlugin {
 
 		/** loggerListener ( log4j.logger.org.springframework.security=info,stdout ) */
 		if (conf.useLogger) {
-			loggerListener(LoggerListener) {}
+			loggerListener(LoggerListener)
 		}
 
-		daacc(DefaultAdvisorAutoProxyCreator) {}
+		// port mappings for channel security, etc.
+		portMapper(PortMapperImpl) {
+			portMappings = [(conf.httpPort.toString()) : conf.httpsPort.toString()]
+	    }
+		portResolver(PortResolverImpl) {
+			portMapper = portMapper
+		}
+
+		daacc(DefaultAdvisorAutoProxyCreator)
 
 		// experiment on Annotation and MethodSecurityInterceptor for secure services
 		configureAnnotatedServices.delegate = delegate
@@ -298,6 +324,16 @@ class AcegiGrailsPlugin {
 			configureCAS.delegate = delegate
 			configureCAS conf
 		}
+		
+		// channel (http/https) security
+		if (useSecureChannel(conf)) {
+			configureChannelProcessingFilter.delegate = delegate
+			configureChannelProcessingFilter conf
+		}
+	}
+
+	private boolean useSecureChannel(conf) {
+		return conf.secureChannelDefinitionSource || conf.channelConfig.secure || conf.channelConfig.insecure
 	}
 
 	// OpenID
@@ -305,12 +341,12 @@ class AcegiGrailsPlugin {
 		openIDAuthProvider(org.codehaus.groovy.grails.plugins.springsecurity.openid.GrailsOpenIdAuthenticationProvider) {
 			userDetailsService = ref('userDetailsService')
 		}
-		openIDStore(org.openid4java.consumer.InMemoryConsumerAssociationStore) {}
-		openIDNonceVerifier(org.openid4java.consumer.InMemoryNonceVerifier, conf.openIdNonceMaxSeconds) {} // 300 seconds
+		openIDStore(org.openid4java.consumer.InMemoryConsumerAssociationStore)
+		openIDNonceVerifier(org.openid4java.consumer.InMemoryNonceVerifier, conf.openIdNonceMaxSeconds) // 300 seconds
 		openIDConsumerManager(org.openid4java.consumer.ConsumerManager) {
 			nonceVerifier = openIDNonceVerifier
 		}
-		openIDConsumer(org.springframework.security.ui.openid.consumers.OpenID4JavaConsumer, openIDConsumerManager) {}
+		openIDConsumer(org.springframework.security.ui.openid.consumers.OpenID4JavaConsumer, openIDConsumerManager)
 		openIDAuthenticationProcessingFilter(org.springframework.security.ui.openid.OpenIDAuthenticationProcessingFilter) {
 			authenticationManager = ref('authenticationManager')
 			authenticationFailureUrl = conf.authenticationFailureUrl //'/login/authfail?login_error=1' // /spring_security_login?login_error
@@ -374,7 +410,7 @@ class AcegiGrailsPlugin {
 
 	private def configureLogout = { conf ->
 
-		securityContextLogoutHandler(SecurityContextLogoutHandler) {}
+		securityContextLogoutHandler(SecurityContextLogoutHandler)
 		def logoutHandlerNames = conf.logoutHandlerNames
 		if (!logoutHandlerNames) {
 			logoutHandlerNames = ['rememberMeServices', 'securityContextLogoutHandler']
@@ -403,9 +439,9 @@ class AcegiGrailsPlugin {
 
 	private def configureVoters = { conf ->
 
-		roleVoter(RoleVoter) {}
+		roleVoter(RoleVoter)
 
-		authenticatedVoter(AuthenticatedVoter) {}
+		authenticatedVoter(AuthenticatedVoter)
 
 		def decisionVoterNames = conf.decisionVoterNames
 		if (!decisionVoterNames) {
@@ -454,7 +490,7 @@ class AcegiGrailsPlugin {
 
 	private def configureAnnotatedServices = { conf ->
 
-		serviceSecureAnnotation(SecurityAnnotationAttributes) {}
+		serviceSecureAnnotation(SecurityAnnotationAttributes)
 
 		serviceSecureAnnotationODS(MethodDefinitionAttributes) {
 			attributes = serviceSecureAnnotation
@@ -583,37 +619,42 @@ class AcegiGrailsPlugin {
 
 	private def configureFilterChain = { conf ->
 
-		String prefix =
-			'CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON\n' +
-			'PATTERN_TYPE_APACHE_ANT\n'
-
 		def filterNames = conf.filterNames
 		if (!filterNames) {
-			filterNames = ['httpSessionContextIntegrationFilter',
-			               'logoutFilter',
-			               'authenticationProcessingFilter']
+			filterNames = []
+			if (useSecureChannel(conf)) {
+				filterNames << 'channelProcessingFilter' // CHANNEL_FILTER
+			}
+			// CONCURRENT_SESSION_FILTER
+			filterNames << 'httpSessionContextIntegrationFilter' // HTTP_SESSION_CONTEXT_FILTER
+			filterNames << 'logoutFilter' // LOGOUT_FILTER
+			// X509_FILTER
+			// PRE_AUTH_FILTER
 			if (conf.useCAS) {
-				filterNames << 'casProcessingFilter'
+				filterNames << 'casProcessingFilter' // CAS_PROCESSING_FILTER
 			}
+			filterNames << 'authenticationProcessingFilter' // AUTHENTICATION_PROCESSING_FILTER
 			if (conf.useOpenId) {
-				filterNames << 'openIDAuthenticationProcessingFilter'
+				filterNames << 'openIDAuthenticationProcessingFilter' // OPENID_PROCESSING_FILTER
 			}
+			// LOGIN_PAGE_FILTER
 			if (conf.basicProcessingFilter) {
-				filterNames << 'basicProcessingFilter'
+				filterNames << 'basicProcessingFilter' // BASIC_PROCESSING_FILTER
 			}
 			if (!conf.useNtlm) {
 				// seems to remove NTLM authentication tokens
-            	filterNames << 'securityContextHolderAwareRequestFilter'
+            	filterNames << 'securityContextHolderAwareRequestFilter' // SERVLET_API_SUPPORT_FILTER
 			}
-			filterNames << 'rememberMeProcessingFilter'
-			filterNames << 'anonymousProcessingFilter'
-			filterNames << 'exceptionTranslationFilter'
+			filterNames << 'rememberMeProcessingFilter' // REMEMBER_ME_FILTER
+			filterNames << 'anonymousProcessingFilter' // ANONYMOUS_FILTER
+			filterNames << 'exceptionTranslationFilter' // EXCEPTION_TRANSLATION_FILTER
 			if (conf.useNtlm) {
-				filterNames << 'ntlmFilter'
+				filterNames << 'ntlmFilter' // NTLM_FILTER
 			}
-			filterNames << 'filterInvocationInterceptor'
+			// SESSION_FIXATION_FILTER
+			filterNames << 'filterInvocationInterceptor' // FILTER_SECURITY_INTERCEPTOR
 			if (conf.switchUserProcessingFilter) {
-				filterNames << 'switchUserProcessingFilter'
+				filterNames << 'switchUserProcessingFilter' // SWITCH_USER_FILTER
 			}
 		}
 		String joinedFilters = filterNames.join(',')
@@ -625,7 +666,7 @@ class AcegiGrailsPlugin {
 		}
 		else if (conf.filterInvocationDefinitionSourceMap) {
 			// otherwise if there's a map of configs, use those
-			definitionSource = prefix
+			definitionSource = DEFINITION_SOURCE_PREFIX
 			conf.filterInvocationDefinitionSourceMap.each { key, value ->
 				if (value == 'JOINED_FILTERS') {
 					// special case to use either the filters defined by
@@ -637,9 +678,53 @@ class AcegiGrailsPlugin {
 		}
 		else {
 			// otherwise build the default string - all urls guarded by all filters
-			definitionSource = "$prefix\n/**=$joinedFilters"
+			definitionSource = "$DEFINITION_SOURCE_PREFIX\n/**=$joinedFilters"
 		}
 		springSecurityFilterChain(FilterChainProxy) {
+			filterInvocationDefinitionSource = definitionSource
+		}
+	}
+
+	private def configureChannelProcessingFilter = { conf ->
+
+		retryWithHttpEntryPoint(RetryWithHttpEntryPoint) {
+			portMapper = ref('portMapper')
+			portResolver = ref('portResolver')
+		}
+
+		retryWithHttpsEntryPoint(RetryWithHttpsEntryPoint) {
+			portMapper = ref('portMapper')
+			portResolver = ref('portResolver')
+		}
+
+		secureChannelProcessor(SecureChannelProcessor) {
+			entryPoint = retryWithHttpsEntryPoint
+		}
+
+		insecureChannelProcessor(InsecureChannelProcessor) {
+			entryPoint = retryWithHttpEntryPoint
+		}
+
+		channelDecisionManager(ChannelDecisionManagerImpl) {
+			channelProcessors = [insecureChannelProcessor, secureChannelProcessor]
+		}  
+
+		String definitionSource
+		if (conf.secureChannelDefinitionSource) {
+			// if the entire string is set in the config, use that
+			definitionSource = conf.secureChannelDefinitionSource
+		}
+		else {
+			definitionSource = DEFINITION_SOURCE_PREFIX
+			conf.channelConfig.secure.each { pattern ->
+				definitionSource += "$pattern=REQUIRES_SECURE_CHANNEL\n"
+			}
+			conf.channelConfig.insecure.each { pattern ->
+				definitionSource += "$pattern=REQUIRES_INSECURE_CHANNEL\n"
+			}
+		}
+		channelProcessingFilter(ChannelProcessingFilter) {
+			channelDecisionManager = channelDecisionManager
 			filterInvocationDefinitionSource = definitionSource
 		}
 	}
