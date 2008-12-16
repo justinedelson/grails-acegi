@@ -18,6 +18,7 @@ import org.easymock.EasyMock
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.security.AccessDeniedException
+import org.springframework.security.util.PortResolverImpl
 
 /**
  * Unit tests for GrailsAccessDeniedHandlerImpl.
@@ -31,6 +32,16 @@ class GrailsAccessDeniedHandlerImplTests extends AbstractSecurityTest {
 	private final _response = new MockHttpServletResponse()
 	private final String _message = 'denied'
 	private final _e = new AccessDeniedException(_message)
+
+	/**
+	 * {@inheritDoc}
+	 * @see junit.framework.TestCase#setUp()
+	 */
+	@Override
+	protected void setUp() {
+		super.setUp()
+		_handler.portResolver = new PortResolverImpl()
+	}
 
 	/**
 	 * Test handle() when there's no error page set.
