@@ -49,13 +49,14 @@ class IpAddressFilterTests extends GroovyTestCase {
 
 		_filter.ipRestrictions = ['/foo/**': '127.0.0.1',
 		                          '/bar/**': '10.**',
-		                          '/wahoo/**': '10.10.200.63']
+		                          '/wahoo/**': '10.10.200.63',
+		                          '/masked/**': '192.168.1.0/24']
 
 		def request = new MockHttpServletRequest()
 		def response = new MockHttpServletResponse()
 		def chain = EasyMock.createMock(FilterChain)
 		chain.doFilter(request, response)
-		EasyMock.expectLastCall().times(4)
+		EasyMock.expectLastCall().times(5)
 		EasyMock.replay chain
 
 		request.remoteAddr = '127.0.0.1'
@@ -74,6 +75,10 @@ class IpAddressFilterTests extends GroovyTestCase {
 		request.requestURI = '/my/united/states/of/whatever'
 		_filter.doFilterHttp request, response, chain
 
+		request.remoteAddr = '192.168.1.123'
+		request.requestURI = '/masked/shouldsucceed'
+		_filter.doFilterHttp request, response, chain
+
 		EasyMock.verify chain
 	}
 
@@ -81,27 +86,56 @@ class IpAddressFilterTests extends GroovyTestCase {
 
 		_filter.ipRestrictions = ['/foo/**': '127.0.0.1',
 		                          '/bar/**': '10.**',
-		                          '/wahoo/**': '10.10.200.63']
+		                          '/wahoo/**': '10.10.200.63',
+		                          '/masked/**': '192.168.1.0/24']
 
 		def request = new MockHttpServletRequest()
-		def response = new MockHttpServletResponse()
+		def response
 		def chain = EasyMock.createMock(FilterChain)
 		EasyMock.replay chain
 
 		request.remoteAddr = '63.161.169.137'
 
 		request.requestURI = '/foo/bar?x=123'
-		shouldFail(AccessDeniedException) {
-			_filter.doFilterHttp request, response, chain
-		}
+		response = new MockHttpServletResponse()
+		_filter.doFilterHttp request, response, chain
+		assertEquals 404, response.status
 
 		request.requestURI = '/bar/foo?x=123'
-		shouldFail(AccessDeniedException) {
-			_filter.doFilterHttp request, response, chain
-		}
+		response = new MockHttpServletResponse()
+		_filter.doFilterHttp request, response, chain
+		assertEquals 404, response.status
 
 		request.requestURI = '/wahoo/list'
-		shouldFail(AccessDeniedException) {
+		response = new MockHttpServletResponse()
+		_filter.doFilterHttp request, response, chain
+		assertEquals 404, response.status
+
+		request.requestURI = '/masked/shouldfail'
+		response = new MockHttpServletResponse()
+		_filter.doFilterHttp request, response, chain
+		assertEquals 404, response.status
+
+		EasyMock.verify chain
+	}
+
+	void testDoFilterMixIPv6IPv4() {
+
+		_filter.ipRestrictions = ['/foo/**': '127.0.0.1',
+		                          '/bar/**': '10.**',
+		                          '/wahoo/**': '10.10.200.63',
+		                          '/masked/**': '192.168.1.0/24']
+
+		def request = new MockHttpServletRequest()
+		def response
+		def chain = EasyMock.createMock(FilterChain)
+		EasyMock.replay chain
+
+		request.remoteAddr = 'fa:db8:85a3::8a2e:370:7334'
+
+		request.requestURI = '/masked/bar?x=123'
+		response = new MockHttpServletResponse()
+		shouldFail(IllegalArgumentException) {
 			_filter.doFilterHttp request, response, chain
 		}
 
