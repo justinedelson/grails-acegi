@@ -24,7 +24,7 @@ import org.springframework.security.userdetails.UsernameNotFoundException
 import org.springframework.dao.DataAccessException
 
 /**
- * UserDetailsService with GrailsDomainClass Data Access Object.
+ * {@link UserDetailsService} with {@link GrailsDomainClass} Data Access Object.
  * @author Tsuyoshi Yamamoto
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
@@ -55,7 +55,7 @@ class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements UserDet
 	 * Load a user by username, optionally not loading roles.
 	 * @param username  the login name
 	 * @param loadRoles  if <code>true</code> load roles from the database
-	 * @return the user if found, otherwise throws <code>UsernameNotFoundException</code>
+	 * @return the user if found, otherwise throws {@link UsernameNotFoundException}
 	 * @throws UsernameNotFoundException  if the user isn't found
 	 * @throws DataAccessException  if there's a database problem
 	 */
@@ -98,21 +98,21 @@ class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements UserDet
 
 	protected def loadDomainUser(username, session) throws UsernameNotFoundException, DataAccessException {
 
-		def query = session.createQuery(
+		List users = session.createQuery(
 				"from $loginUserDomainClass where $usernameFieldName=:username")
-		query.setProperties([username: username])
-		def users = query/*.setCacheable(true)*/.list()
+				.setString('username', username)
+				.list()
 
 		if (users.empty) {
-			logger.error("User not found: ${username}")
-			throw new UsernameNotFoundException("User not found.", username)
+			logger.error "User not found: $username"
+			throw new UsernameNotFoundException("User not found", username)
 		}
 
 		return users[0]
     }
 
 	/**
-	 * Create the UserDetails instance. Subclasses can override to inherit core functionality
+	 * Create the {@link UserDetails} instance. Subclasses can override to inherit core functionality
 	 * but determine the concrete class without reimplementing the entire class.
 	 * @param username the username
 	 * @param password the password
@@ -130,7 +130,7 @@ class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements UserDet
 	}
 
 	protected GrantedAuthority[] createRolesByAuthoritiesMethod(user, String username) {
-		def authorities = user."$authoritiesMethodName"()
+		Set authorities = user."$authoritiesMethodName"()
 		assertNotEmpty authorities, username
 
 		authorities.collect { roleName -> new GrantedAuthorityImpl(roleName) } as GrantedAuthority[]
@@ -139,7 +139,7 @@ class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements UserDet
 	protected GrantedAuthority[] createRolesByRelationalAuthorities(user, String username) {
 		// get authorities from LoginUser [LoginUser]--M:M--[Authority]
 
-		def authorities = user."$relationalAuthoritiesField"
+		Set authorities = user."$relationalAuthoritiesField"
 		assertNotEmpty authorities, username
 
 		authorities.collect { item -> new GrantedAuthorityImpl(item."$authorityFieldName") } as GrantedAuthority[]
