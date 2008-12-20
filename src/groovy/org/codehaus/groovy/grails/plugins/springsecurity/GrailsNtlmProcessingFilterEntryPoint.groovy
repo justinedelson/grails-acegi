@@ -36,6 +36,12 @@ class GrailsNtlmProcessingFilterEntryPoint extends NtlmProcessingFilterEntryPoin
 	private final String STATE_ATTR = NtlmProcessingFilter.@STATE_ATTR
 	private final Integer BEGIN = NtlmProcessingFilter.@BEGIN
 
+	/**
+	 * {@inheritDoc}
+	 * @see org.springframework.security.ui.ntlm.NtlmProcessingFilterEntryPoint#commence(
+	 * 	javax.servlet.ServletRequest, javax.servlet.ServletResponse,
+	 * 	org.springframework.security.AuthenticationException)
+	 */
 	@Override
 	void commence(ServletRequest req, ServletResponse res, AuthenticationException authException) throws IOException, ServletException {
 
@@ -43,7 +49,7 @@ class GrailsNtlmProcessingFilterEntryPoint extends NtlmProcessingFilterEntryPoin
 		if (!(authException instanceof NtlmBaseException
 				|| authException instanceof BadCredentialsException)) {
 
-	        req.session.setAttribute STATE_ATTR, BEGIN
+			req.session.setAttribute STATE_ATTR, BEGIN
 
 			HttpServletResponse response = (HttpServletResponse)res
 

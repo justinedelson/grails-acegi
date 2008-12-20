@@ -22,13 +22,13 @@ import org.springframework.security.providers.openid.OpenIDAuthenticationToken
 import org.springframework.security.userdetails.UserDetails
 import org.springframework.security.userdetails.UserDetailsService
 /**
- * Subclass that returns a <code>GrailsOpenIdAuthenticationToken</code>.
+ * Subclass that returns a {@link GrailsOpenIdAuthenticationToken}.
  *
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
 class GrailsOpenIdAuthenticationProvider extends OpenIDAuthenticationProvider {
 
-	private def _userDetailsService
+	private _userDetailsService
 
 	/**
 	 * {@inheritDoc}

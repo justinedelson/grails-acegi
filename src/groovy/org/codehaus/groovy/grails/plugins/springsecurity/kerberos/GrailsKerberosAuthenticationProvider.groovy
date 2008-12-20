@@ -21,7 +21,7 @@ import org.springframework.security.providers.jaas.JaasAuthenticationProvider
 import org.springframework.security.providers.jaas.JaasAuthenticationToken
 
 /**
- * Kerberos AuthenticationProvider.
+ * Kerberos {@link AuthenticationProvider}.
  *
  * @author <a href='mailto:mmornati@byte-code.com'>Marco Mornati</a>
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
@@ -56,7 +56,7 @@ class GrailsKerberosAuthenticationProvider extends JaasAuthenticationProvider {
 	}
 
 	private GrantedAuthority[] mergeDatabaseRoles(details, GrantedAuthority[] authorities) {
-		def merged = []
+		List merged = []
 		if (authorities) {
 			merged.addAll(authorities as List)
 		}

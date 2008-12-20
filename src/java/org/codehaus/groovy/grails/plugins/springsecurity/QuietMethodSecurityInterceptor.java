@@ -19,9 +19,9 @@ import org.springframework.security.intercept.InterceptorStatusToken;
 import org.springframework.security.intercept.method.aopalliance.MethodSecurityInterceptor;
 
 /**
- * MethodSecurityInterceptor without throws Exceptions if Method Access is
- * denied returns null
- * 
+ * {@link MethodSecurityInterceptor} that doesn't throw exceptions if Method Access is
+ * denied, returns <code>null</code> instead.
+ *
  * @author T.Yamamoto
  */
 public class QuietMethodSecurityInterceptor extends MethodSecurityInterceptor {

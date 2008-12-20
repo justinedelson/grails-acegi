@@ -23,7 +23,7 @@ import org.springframework.security.vote.AbstractAccessDecisionManagerimport or
 /**
  * Uses the affirmative-based logic for roles, i.e. any in the list will grant access, but allows
  * an authenticated voter to 'veto' access. This allows specification of roles and
- * IS_AUTHENTICATED_FULLY on one line in SecurityConfig.groovy.
+ * <code>IS_AUTHENTICATED_FULLY</code> on one line in SecurityConfig.groovy.
  *
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
@@ -47,7 +47,7 @@ class AuthenticatedVetoableDecisionManager extends AbstractAccessDecisionManager
 	}
 
 	/**
-	 * Allow any <code>AuthenticatedVoter</code> to veto. If any voter denies,
+	 * Allow any {@link AuthenticatedVoter} to veto. If any voter denies,
 	 * throw an exception; if any grant, return <code>true</code>;
 	 * otherwise return <code>false</code> if all abstain.
 	 */
@@ -72,9 +72,9 @@ class AuthenticatedVetoableDecisionManager extends AbstractAccessDecisionManager
 	}
 
 	/**
-	 * Check the other (non-<code>AuthenticatedVoter</code>) voters. If any voter grants,
-	 * return true. If any voter denies, throw exception. Otherwise return false to indicate
-	 * that all abstained.
+	 * Check the other (non-{@link AuthenticatedVoter}) voters. If any voter grants,
+	 * return true. If any voter denies, throw exception. Otherwise return <code>false</code>
+	 * to indicate that all abstained.
 	 */
 	private boolean checkOtherVoters(authentication, object, config) {
 		int deny = 0

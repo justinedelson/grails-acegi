@@ -33,7 +33,7 @@ class AuthorizeTools {
 	 * @return  the names
 	 */
 	static Set<String> authoritiesToRoles(authorities) {
-		def roles = new HashSet()
+		def roles = [] as Set
 		authorities.each { authority ->
 			if (null == authority.authority) {
 				throw new IllegalArgumentException(
@@ -50,29 +50,28 @@ class AuthorizeTools {
 	 * Get the current user's authorities.
 	 * @return  a list of authorities (empty if not authenticated).
 	 */
-	static def getPrincipalAuthorities() {
+	static List getPrincipalAuthorities() {
 		def currentUser = SCH.context.authentication
 		if (null == currentUser) {
-			return Collections.EMPTY_LIST
+			return Collections.emptyList()
 		}
 
-		if (null == currentUser.authorities || currentUser.authorities.length == 0) {
-			return Collections.EMPTY_LIST
+		if (!currentUser.authorities) {
+			return Collections.emptyList()
 		}
 
 		return Arrays.asList(currentUser.authorities)
 	}
 
 	/**
-	 * Split the role names and create <code>GrantedAuthority</code>s for each.
+	 * Split the role names and create {@link GrantedAuthority}s for each.
 	 * @param authorizationsString  comma-delimited role names
 	 * @return authorities (possibly empty)
 	 */
 	static Set<GrantedAuthority> parseAuthoritiesString(String authorizationsString) {
-		def requiredAuthorities = new HashSet()
-		def authorities = STU.commaDelimitedListToStringArray(authorizationsString)
-		authorities.each { auth ->
-			requiredAuthorities.add(new GrantedAuthorityImpl(auth))
+		def requiredAuthorities = [] as Set
+		STU.commaDelimitedListToStringArray(authorizationsString).each { auth ->
+			requiredAuthorities << new GrantedAuthorityImpl(auth)
 		}
 
 		return requiredAuthorities
@@ -124,18 +123,16 @@ class AuthorizeTools {
 		try {
 			userConfig = slurper.parse(classLoader.loadClass('SecurityConfig'))
 		}
-		catch (Exception ignored) {
+		catch (e) {
 			// ignored, use defaults
 		}
 
 		ConfigObject config
 		ConfigObject defaultConfig = slurper.parse(classLoader.loadClass('DefaultSecurityConfig'))
 		if (userConfig) {
-			//log.info('using user SecurityConfig')
 			config = defaultConfig.merge(userConfig)
 		}
 		else {
-			//log.info('using DefaultSecurityConfig')
 			config = defaultConfig
 		}
 

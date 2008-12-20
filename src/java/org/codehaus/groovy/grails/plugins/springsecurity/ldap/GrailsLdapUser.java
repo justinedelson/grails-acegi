@@ -21,7 +21,7 @@ import org.codehaus.groovy.grails.plugins.springsecurity.GrailsUserImpl;
 import org.springframework.security.userdetails.ldap.LdapUserDetails;
 
 /**
- * A <code>GrailsUser</code> for use in LDAP authentication.
+ * A {@link GrailsUser} for use in LDAP authentication.
  *
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */

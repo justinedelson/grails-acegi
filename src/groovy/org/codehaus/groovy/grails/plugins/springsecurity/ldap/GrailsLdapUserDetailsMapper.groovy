@@ -23,15 +23,15 @@ import org.springframework.security.userdetails.ldap.LdapUserDetails
 import org.springframework.security.userdetails.ldap.LdapUserDetailsMapper
 
 /**
- * Extends the default to return a <code>GrailsLdapUser</code> implementing
- * both <code>GrailsUser</code> and <code>LdapUserDetails</code>.
+ * Extends the default to return a {@link GrailsLdapUser} implementing
+ * both {@link GrailsUser} and {@link LdapUserDetails}.
  *
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
 class GrailsLdapUserDetailsMapper extends LdapUserDetailsMapper {
 
 	/**
-	 * Dependency injection for the user service.
+	 * Dependency injection for the user details service.
 	 */
 	def userDetailsService
 
@@ -58,7 +58,7 @@ class GrailsLdapUserDetailsMapper extends LdapUserDetailsMapper {
 	}
 
 	private GrantedAuthority[] mergeDatabaseRoles(details, GrantedAuthority[] authorities) {
-		def merged = []
+		List merged = []
 		if (authorities) {
 			merged.addAll(authorities as List)
 		}

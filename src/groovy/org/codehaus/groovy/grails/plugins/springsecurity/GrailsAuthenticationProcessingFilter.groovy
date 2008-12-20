@@ -24,8 +24,8 @@ import org.springframework.security.AuthenticationException
 import org.springframework.security.ui.webapp.AuthenticationProcessingFilter
 
 /**
- * Extends the default <code>AuthenticationProcessingFilter</code> to override the sendRedirect() logic and
- * always send absolute redirects.
+ * Extends the default {@link AuthenticationProcessingFilter} to override the <code>sendRedirect()</code>
+ * logic and always send absolute redirects.
  *
  * @author Tsuyoshi Yamamoto
  */
@@ -39,7 +39,7 @@ class GrailsAuthenticationProcessingFilter extends AuthenticationProcessingFilte
 	/**
 	 * Dependency injection for the Ajax auth fail url.
 	 */
-	def ajaxAuthenticationFailureUrl
+	String ajaxAuthenticationFailureUrl
 
 	/**
 	 * {@inheritDoc}
@@ -74,6 +74,11 @@ class GrailsAuthenticationProcessingFilter extends AuthenticationProcessingFilte
 		RedirectUtils.sendRedirect(request, response, url);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * @see org.springframework.security.ui.AbstractProcessingFilter#determineFailureUrl(
+	 * 	javax.servlet.http.HttpServletRequest, org.springframework.security.AuthenticationException)
+	 */
 	@Override
 	protected String determineFailureUrl(HttpServletRequest request, AuthenticationException failed) {
 		String url = super.determineFailureUrl(request, failed)

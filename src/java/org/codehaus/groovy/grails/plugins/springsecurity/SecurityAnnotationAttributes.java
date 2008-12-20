@@ -27,7 +27,7 @@ import org.springframework.security.SecurityConfig;
 import org.springframework.security.annotation.Secured;
 
 /**
- * Re-implementation of Acegi's <code>SecurityAnnotationAttributes</code> as a temporary
+ * Re-implementation of Acegi's {@link SecurityAnnotationAttributes} as a temporary
  * fix until I can figure out how to do this correctly in 2.0.
  *
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>

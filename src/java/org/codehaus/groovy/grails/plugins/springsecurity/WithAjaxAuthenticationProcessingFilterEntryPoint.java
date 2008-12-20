@@ -21,7 +21,7 @@ import org.springframework.security.AuthenticationException;
 import org.springframework.security.ui.webapp.AuthenticationProcessingFilterEntryPoint;
 
 /**
- * AuthenticationProcessingFilterEntryPoint with Ajax login form option if
+ * {@link AuthenticationProcessingFilterEntryPoint} with Ajax login form option if
  * Method Access is denied returns <code>null</code>.
  *
  * @author T.Yamamoto

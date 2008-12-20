@@ -14,23 +14,14 @@
  */
 package org.grails.plugins.springsecurity.service
 
-import java.security.MessageDigest
-
-import grails.util.GrailsUtil
-
-import org.apache.commons.codec.binary.Hex
-
 import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
 
 import org.springframework.security.context.SecurityContextHolder as SCH
-import org.springframework.security.providers.encoding.MessageDigestPasswordEncoder
-import org.springframework.security.ui.AbstractProcessingFilter
+import org.springframework.security.ui.AbstractProcessingFilter as APF
 import org.springframework.security.userdetails.UserDetails
 
 /**
- * Rewrote to the Groovy from Java source of
- * org.acegisecurity.taglibs.authz.AuthorizeTag
- * for to use from the controllers and a taglib.
+ * Authentication utility methods.
  *
  * @author T.Yamamoto
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
@@ -41,7 +32,7 @@ class AuthenticateService {
 
 	private securityConfig
 
-	// dependency injection for the password encoder
+	/** dependency injection for the password encoder */
 	def passwordEncoder
 
 	/**
@@ -124,8 +115,7 @@ class AuthenticateService {
 		}
 
 		// check the SavedRequest's headers
-		def savedRequest = request.session.getAttribute(
-				AbstractProcessingFilter.SPRING_SECURITY_SAVED_REQUEST_KEY)
+		def savedRequest = request.session.getAttribute(APF.SPRING_SECURITY_SAVED_REQUEST_KEY)
 		if (savedRequest) {
 			return savedRequest.getHeaderValues(ajaxHeader).hasNext()
 		}
@@ -135,7 +125,7 @@ class AuthenticateService {
 
 	/**
 	 * Quick check to see if the current user is logged in.
-	 * @return <code>true</code> if the principal is a <code>UserDetails</code> or subclass
+	 * @return <code>true</code> if the principal is a {@link UserDetails} or subclass
 	 */
 	boolean isLoggedIn() {
 		return principal() instanceof UserDetails

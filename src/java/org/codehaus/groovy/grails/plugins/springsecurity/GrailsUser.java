@@ -17,8 +17,7 @@ package org.codehaus.groovy.grails.plugins.springsecurity;
 import org.springframework.security.userdetails.UserDetails;
 
 /**
- *
- * Extends Spring Security's User class to set Grails Domain
+ * Extends Spring Security's {@link UserDetails} interface to set Grails Domain
  * Class at login, to load auth class from context.
  *
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>

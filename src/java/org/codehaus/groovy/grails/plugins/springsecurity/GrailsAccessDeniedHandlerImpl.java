@@ -31,7 +31,7 @@ import org.springframework.security.util.PortResolver;
 import org.springframework.util.Assert;
 
 /**
- * AccessDeniedHandler for redirect to errorPage (not RequestDispatcher#forward).
+ * {@link AccessDeniedHandler} for redirect to errorPage (not RequestDispatcher#forward).
  *
  * @author T.Yamamoto
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>

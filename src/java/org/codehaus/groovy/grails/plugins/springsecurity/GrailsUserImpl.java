@@ -15,10 +15,11 @@
 package org.codehaus.groovy.grails.plugins.springsecurity;
 
 import org.springframework.security.GrantedAuthority;
+import org.springframework.security.providers.dao.DaoAuthenticationProvider;
 import org.springframework.security.userdetails.User;
 
 /**
- * Extends Spring Security's User class to set Grails Domain Class at login,
+ * Extends Spring Security's {@link User} class to set Grails Domain Class at login,
  * to load auth class from context.
  *
  * @author T.Yamamoto
@@ -33,9 +34,9 @@ public class GrailsUserImpl extends User implements GrailsUser {
 	/**
 	 * Constructor.
 	 * @param username the username presented to the
-	 *        <code>DaoAuthenticationProvider</code>
+	 *        {@link DaoAuthenticationProvider}
 	 * @param password the password that should be presented to the
-	 *        <code>DaoAuthenticationProvider</code>
+	 *        {@link DaoAuthenticationProvider}
 	 * @param enabled set to <code>true</code> if the user is enabled
 	 * @param accountNonExpired set to <code>true</code> if the account has not
 	 *        expired
@@ -50,7 +51,7 @@ public class GrailsUserImpl extends User implements GrailsUser {
 	 *
 	 * @throws IllegalArgumentException if a <code>null</code> value was passed
 	 *         either as a parameter or as an element in the
-	 *         <code>GrantedAuthority[]</code> array
+	 *         {@link GrantedAuthority}[] array
 	 */
 	public GrailsUserImpl(
 			final String username, final String password, final boolean enabled,

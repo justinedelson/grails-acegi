@@ -24,7 +24,7 @@ import org.springframework.security.ui.logout.LogoutFilter
 import org.springframework.security.ui.logout.LogoutHandler
 
 /**
- * Configures a <code>LogoutFilter</code> given a list of <code>LogoutHandler</code>s.
+ * Configures a {@link LogoutFilter} given a list of {@link LogoutHandler}s.
  *
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
@@ -85,12 +85,20 @@ class LogoutFilterFactoryBean implements FactoryBean, InitializingBean {
 	}
 }
 
+/**
+ * Overrides the default redirect behavior to use {@link RedirectUtils#sendRedirect(HttpServletRequest, HttpServletResponse, String)}.
+ */
 class FixRedirectLogoutFilter extends LogoutFilter {
 
 	FixRedirectLogoutFilter(String logoutSuccessUrl, LogoutHandler[] handlers) {
 		super(logoutSuccessUrl, handlers)
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * @see org.springframework.security.ui.logout.LogoutFilter#sendRedirect(
+	 * 	javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.lang.String)
+	 */
 	@Override
 	protected void sendRedirect(
 			HttpServletRequest request,

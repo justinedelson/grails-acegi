@@ -17,7 +17,7 @@ package org.codehaus.groovy.grails.plugins.springsecurity;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Uses a <code>ThreadLocal</code> to store the current request.
+ * Uses a {@link ThreadLocal} to store the current request.
  *
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
