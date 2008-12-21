@@ -84,7 +84,7 @@ class LogoutFilterFactoryBeanTests extends AbstractSecurityTest {
 
 		// not a logout url, so chain.doFilter() is called
 		filter.doFilterHttp(request1, response1, chain1)
-		assertNull response1.redirectedUrl 
+		assertNull response1.redirectedUrl
 
 		filter.doFilterHttp(request2, response2, chain2)
 		assertNotNull response2.redirectedUrl

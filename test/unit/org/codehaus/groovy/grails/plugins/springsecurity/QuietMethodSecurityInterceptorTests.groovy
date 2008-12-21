@@ -14,7 +14,7 @@
  */
 package org.codehaus.groovy.grails.plugins.springsecurity
 
-import org.aopalliance.intercept.MethodInvocation 
+import org.aopalliance.intercept.MethodInvocation
 import org.easymock.EasyMock
 import org.springframework.security.AccessDeniedException
 import org.springframework.security.AfterInvocationManager

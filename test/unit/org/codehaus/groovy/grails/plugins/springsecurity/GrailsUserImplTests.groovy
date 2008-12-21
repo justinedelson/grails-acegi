@@ -29,7 +29,7 @@ class GrailsUserImplTests extends AbstractSecurityTest {
 	 * Simple test of the constructor.
 	 */
 	void testConstructor() {
-		
+
 		String username = 'the_username'
 		String password = 'the_password'
 		boolean enabled = true

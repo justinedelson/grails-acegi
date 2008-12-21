@@ -160,7 +160,6 @@
 		<copy file='UrlMappings.groovy' todir='../../${testproject}/grails-app/conf' overwrite='true'/>
 
 		<echo>
-			
 		Now run 'cd ../../${testproject}' and then run 'grails run-webtest' to execute WebTests.
 		</echo>
 	</target>

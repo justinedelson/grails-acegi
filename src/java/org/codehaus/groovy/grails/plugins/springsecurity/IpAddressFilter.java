@@ -109,7 +109,7 @@ public class IpAddressFilter extends SpringSecurityFilter implements Initializin
 			if (!_pathMatcher.match(uriPattern, requestURI)) {
 				continue;
 			}
-			
+
 			String ipPattern = entry.getValue();
 			if (ipPattern.contains("/")) {
 				try {

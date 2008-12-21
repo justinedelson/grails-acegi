@@ -41,7 +41,8 @@ class GrailsDaoImplTests extends AbstractSecurityTest {
 		Query query = EasyMock.createMock(Query)
 		EasyMock.expect(session.createQuery((String)EasyMock.anyObject())).andReturn(query)
 		EasyMock.expect(query.list()).andReturn([])
-		EasyMock.expect(query.setProperties([username: username])).andReturn(query)
+		EasyMock.expect(query.setString('username', username)).andReturn(query)
+		EasyMock.expect(query.setCacheable(true)).andReturn(query)
 
 		EasyMock.replay session, query
 
@@ -70,7 +71,8 @@ class GrailsDaoImplTests extends AbstractSecurityTest {
 		Session session = EasyMock.createMock(Session)
 		Query query = EasyMock.createMock(Query)
 		EasyMock.expect(session.createQuery((String)EasyMock.anyObject())).andReturn(query)
-		EasyMock.expect(query.setProperties([username: username])).andReturn(query)
+		EasyMock.expect(query.setString('username', username)).andReturn(query)
+		EasyMock.expect(query.setCacheable(true)).andReturn(query)
 		EasyMock.expect(query.list()).andReturn([user])
 
 		EasyMock.replay session, query
@@ -104,7 +106,8 @@ class GrailsDaoImplTests extends AbstractSecurityTest {
 		Session session = EasyMock.createMock(Session)
 		Query query = EasyMock.createMock(Query)
 		EasyMock.expect(session.createQuery((String)EasyMock.anyObject())).andReturn(query)
-		EasyMock.expect(query.setProperties([username: username])).andReturn(query)
+		EasyMock.expect(query.setString('username', username)).andReturn(query)
+		EasyMock.expect(query.setCacheable(true)).andReturn(query)
 		EasyMock.expect(query.list()).andReturn([user])
 
 		EasyMock.replay session, query
@@ -119,7 +122,7 @@ class GrailsDaoImplTests extends AbstractSecurityTest {
 		_dao.passwordFieldName = 'password'
 		user.password = 'passw0rd'
 		_dao.enabledFieldName = 'enabled'
-		user.enabled = true 
+		user.enabled = true
 
 		_dao.authenticateService = [securityConfig: [security: [useNtlm: false]]]
 
@@ -140,7 +143,8 @@ class GrailsDaoImplTests extends AbstractSecurityTest {
 		Session session = EasyMock.createMock(Session)
 		Query query = EasyMock.createMock(Query)
 		EasyMock.expect(session.createQuery((String)EasyMock.anyObject())).andReturn(query)
-		EasyMock.expect(query.setProperties([username: username.toLowerCase()])).andReturn(query)
+		EasyMock.expect(query.setString('username', username.toLowerCase())).andReturn(query)
+		EasyMock.expect(query.setCacheable(true)).andReturn(query)
 		EasyMock.expect(query.list()).andReturn([user])
 
 		EasyMock.replay session, query
@@ -155,7 +159,7 @@ class GrailsDaoImplTests extends AbstractSecurityTest {
 		_dao.passwordFieldName = 'password'
 		user.password = 'passw0rd'
 		_dao.enabledFieldName = 'enabled'
-		user.enabled = true 
+		user.enabled = true
 
 		_dao.authenticateService = [securityConfig: [security: [useNtlm: true]]]
 
@@ -175,8 +179,10 @@ class GrailsDaoImplTests extends AbstractSecurityTest {
 
 		def authorities = _dao.createRolesByAuthoritiesMethod(user, 'foo')
 		assertEquals 2, authorities.size()
-		assertEquals 'role1', authorities[0].authority
-		assertEquals 'role2', authorities[1].authority
+
+		def roleNames = authorities.collect { it.authority }
+		assertTrue roleNames.contains('role1')
+		assertTrue roleNames.contains('role2')
 	}
 
 	/**
