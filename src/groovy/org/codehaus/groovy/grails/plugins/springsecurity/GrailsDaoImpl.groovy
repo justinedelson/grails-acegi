@@ -1,3 +1,4 @@
+/**
 /* Copyright 2006-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -101,6 +102,7 @@ class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements UserDet
 		List users = session.createQuery(
 				"from $loginUserDomainClass where $usernameFieldName=:username")
 				.setString('username', username)
+				.setCacheable(true)
 				.list()
 
 		if (users.empty) {
