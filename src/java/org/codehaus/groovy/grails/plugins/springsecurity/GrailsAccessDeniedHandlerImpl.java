@@ -23,6 +23,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.security.AccessDeniedException;
+import org.springframework.security.Authentication;
+import org.springframework.security.AuthenticationTrustResolver;
+import org.springframework.security.AuthenticationTrustResolverImpl;
 import org.springframework.security.context.SecurityContextHolder;
 import org.springframework.security.ui.AbstractProcessingFilter;
 import org.springframework.security.ui.AccessDeniedHandler;
@@ -42,6 +45,7 @@ public class GrailsAccessDeniedHandlerImpl implements AccessDeniedHandler, Initi
 	private String ajaxErrorPage;
 	private String ajaxHeader = WithAjaxAuthenticationProcessingFilterEntryPoint.AJAX_HEADER;
 	private PortResolver portResolver;
+	private final AuthenticationTrustResolver authenticationTrustResolver = new AuthenticationTrustResolverImpl();
 
 	/**
 	 * {@inheritDoc}
@@ -55,7 +59,7 @@ public class GrailsAccessDeniedHandlerImpl implements AccessDeniedHandler, Initi
 		HttpServletRequest request = (HttpServletRequest)req;
 		HttpServletResponse response = (HttpServletResponse)res;
 
-		if (e != null && isLoggedIn()) {
+		if (e != null && isLoggedIn() && authenticationTrustResolver.isRememberMe(getAuthentication())) {
 			// user has a cookie but is getting bounced because of IS_AUTHENTICATED_FULLY,
 			// so Acegi won't save the original request
 			request.getSession().setAttribute(
@@ -102,11 +106,15 @@ public class GrailsAccessDeniedHandlerImpl implements AccessDeniedHandler, Initi
 	}
 
 	private boolean isLoggedIn() {
-		if (SecurityContextHolder.getContext() == null
-				|| SecurityContextHolder.getContext().getAuthentication() == null) {
+		if (getAuthentication() == null) {
 			return false;
 		}
-		return !(SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof String);
+		return !(getAuthentication().getPrincipal() instanceof String);
+	}
+
+	private Authentication getAuthentication() {
+		return SecurityContextHolder.getContext() == null ? null
+				: SecurityContextHolder.getContext().getAuthentication();
 	}
 
 	/**
@@ -140,7 +148,7 @@ public class GrailsAccessDeniedHandlerImpl implements AccessDeniedHandler, Initi
 	}
 
 	/**
-	 * Dependency injection for the port resolver
+	 * Dependency injection for the port resolver.
 	 * @param resolver  the resolver
 	 */
 	public void setPortResolver(final PortResolver resolver) {

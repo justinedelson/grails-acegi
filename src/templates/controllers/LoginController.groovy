@@ -1,7 +1,6 @@
 import org.codehaus.groovy.grails.plugins.springsecurity.RedirectUtils
 import org.grails.plugins.springsecurity.service.AuthenticateService
 
-import org.springframework.security.AuthenticationTrustResolver
 import org.springframework.security.AuthenticationTrustResolverImpl
 import org.springframework.security.DisabledException
 import org.springframework.security.context.SecurityContextHolder as SCH
@@ -28,7 +27,7 @@ class LoginController {
 	 */
 	def openIDAuthenticationProcessingFilter
 
-	private final AuthenticationTrustResolver authenticationTrustResolver = new AuthenticationTrustResolverImpl()
+	private final authenticationTrustResolver = new AuthenticationTrustResolverImpl()
 
 	def index = {
 		if (isLoggedIn()) {
@@ -98,7 +97,7 @@ class LoginController {
 	 * Show denied page.
 	 */
 	def denied = {
-		if (isLoggedIn()) {
+		if (isLoggedIn() && authenticationTrustResolver.isRememberMe(SCH.context?.authentication)) {
 			// have cookie but the page is guarded with IS_AUTHENTICATED_FULLY
 			redirect action: full, params: params
 		}
