@@ -28,6 +28,7 @@
 
 			<g:form method="post" >
 				<input type="hidden" name="id" value="\${requestmap?.id}" />
+				<input type="hidden" name="version" value="\${requestmap.version}" />
 				<div class="dialog">
 					<table>
 					<tbody>

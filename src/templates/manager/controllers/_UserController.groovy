@@ -77,6 +77,14 @@ class ${personClassName}Controller {
 			return
 		}
 
+		long version = params.version.toLong()
+		if (person.version > version) {
+			person.errors.rejectValue 'version', "person.optimistic.locking.failure",
+				"Another user has updated this ${personClassName} while you were editing."
+			render(view: 'edit', model: [person: person, authorityList: ${authorityClassName}.list()])
+			return
+		}
+
 		def oldPassword = person.passwd
 		person.properties = params
 		if (!params.passwd.equals(oldPassword)) {

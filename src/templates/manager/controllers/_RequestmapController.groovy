@@ -61,6 +61,14 @@ class ${requestmapClassName}Controller {
 			return
 		}
 
+		long version = params.version.toLong()
+		if (requestmap.version > version) {
+			requestmap.errors.rejectValue 'version', "requestmap.optimistic.locking.failure",
+				"Another user has updated this ${requestmapClassName} while you were editing."
+			render view: 'edit', model: [requestmap: requestmap]
+			return
+		}
+
 		updateFromParams(requestmap)
 		if (requestmap.save()) {
 			redirect(action: show, id: requestmap.id)

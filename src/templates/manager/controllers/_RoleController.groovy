@@ -67,6 +67,14 @@ class ${authorityClassName}Controller {
 			return
 		}
 
+		long version = params.version.toLong()
+		if (authority.version > version) {
+			authority.errors.rejectValue 'version', 'authority.optimistic.locking.failure',
+				'Another user has updated this ${authorityClassName} while you were editing.'
+			render view: 'edit', model: [authority: authority]
+			return
+		}
+
 		String oldRole = authority.authority
 		authority.properties = params
 		String role = params.authority

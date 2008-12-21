@@ -26,6 +26,7 @@
 			</div>
 			<g:form method="post">
 				<input type="hidden" name="id" value="\${authority?.id}" />
+				<input type="hidden" name="version" value="\${authority.version}" />
 				<div class="dialog">
 					<table>
 					<tbody>

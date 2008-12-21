@@ -30,6 +30,7 @@
 
 			<g:form method="post">
 				<input type="hidden" name="id" value="\${person?.id}" />
+				<input type="hidden" name="version" value="\${person.version}" />
 				<div class="dialog">
 					<table>
 					<tbody>
