@@ -33,7 +33,7 @@ import org.springframework.security.ui.AbstractProcessingFilter as APF
  */
 class AuthenticateServiceTests extends AbstractSecurityTest {
 
-	private final AuthenticateService _service = new AuthenticateService()
+	private _service
 	private final _user = new Object() // domain class instance
 
 	private final MockHttpServletRequest _request = new MockHttpServletRequest()
@@ -45,6 +45,7 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 	@Override
 	protected void setUp() {
 		super.setUp()
+		_service = new AuthenticateService()
 		_service.metaClass.getRequest = { -> _request }
 	}
 
@@ -153,7 +154,6 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 	}
 
 	void testIsAjaxUsingHeaderTrue() {
-
 		_service.metaClass.getSecurityConfig = { -> [security: [ajaxHeader: 'ajaxHeader']] }
 		_request.addHeader('ajaxHeader', 'foo')
 

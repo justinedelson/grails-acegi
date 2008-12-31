@@ -28,7 +28,19 @@ import org.springframework.security.userdetails.UsernameNotFoundException
  */
 class GrailsDaoImplTests extends AbstractSecurityTest {
 
-	private final GrailsDaoImpl _dao = new GrailsDaoImpl()
+	private _dao
+
+	/**
+	 * {@inheritDoc}
+	 * @see junit.framework.TestCase#setUp()
+	 */
+	@Override
+	protected void setUp() {
+		super.setUp()
+		_dao = new GrailsDaoImpl()
+		_dao.loginUserDomainClass = 'User'
+		_dao.usernameFieldName = 'username'
+	}
 
 	/**
 	 * Test loadUserByUsername() when user not found.
@@ -39,7 +51,7 @@ class GrailsDaoImplTests extends AbstractSecurityTest {
 
 		Session session = EasyMock.createMock(Session)
 		Query query = EasyMock.createMock(Query)
-		EasyMock.expect(session.createQuery((String)EasyMock.anyObject())).andReturn(query)
+		EasyMock.expect(session.createQuery('from User where username=:username')).andReturn(query)
 		EasyMock.expect(query.list()).andReturn([])
 		EasyMock.expect(query.setString('username', username)).andReturn(query)
 		EasyMock.expect(query.setCacheable(true)).andReturn(query)
@@ -70,7 +82,7 @@ class GrailsDaoImplTests extends AbstractSecurityTest {
 
 		Session session = EasyMock.createMock(Session)
 		Query query = EasyMock.createMock(Query)
-		EasyMock.expect(session.createQuery((String)EasyMock.anyObject())).andReturn(query)
+		EasyMock.expect(session.createQuery('from User where username=:username')).andReturn(query)
 		EasyMock.expect(query.setString('username', username)).andReturn(query)
 		EasyMock.expect(query.setCacheable(true)).andReturn(query)
 		EasyMock.expect(query.list()).andReturn([user])
@@ -105,7 +117,7 @@ class GrailsDaoImplTests extends AbstractSecurityTest {
 
 		Session session = EasyMock.createMock(Session)
 		Query query = EasyMock.createMock(Query)
-		EasyMock.expect(session.createQuery((String)EasyMock.anyObject())).andReturn(query)
+		EasyMock.expect(session.createQuery('from User where username=:username')).andReturn(query)
 		EasyMock.expect(query.setString('username', username)).andReturn(query)
 		EasyMock.expect(query.setCacheable(true)).andReturn(query)
 		EasyMock.expect(query.list()).andReturn([user])
@@ -142,7 +154,7 @@ class GrailsDaoImplTests extends AbstractSecurityTest {
 
 		Session session = EasyMock.createMock(Session)
 		Query query = EasyMock.createMock(Query)
-		EasyMock.expect(session.createQuery((String)EasyMock.anyObject())).andReturn(query)
+		EasyMock.expect(session.createQuery('from User where username=:username')).andReturn(query)
 		EasyMock.expect(query.setString('username', username.toLowerCase())).andReturn(query)
 		EasyMock.expect(query.setCacheable(true)).andReturn(query)
 		EasyMock.expect(query.list()).andReturn([user])
