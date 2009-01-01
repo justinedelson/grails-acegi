@@ -9,7 +9,7 @@ class ${personClassName}Controller {
 	def authenticateService
 
 	// the delete, save and update actions only accept POST requests
-	def allowedMethods = [delete: 'POST', save: 'POST', update: 'POST']
+	static Map allowedMethods = [delete: 'POST', save: 'POST', update: 'POST']
 
 	def index = {
 		redirect(action: list, params: params)

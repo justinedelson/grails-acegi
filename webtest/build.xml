@@ -24,6 +24,16 @@
 		</classpath>
 	</taskdef>
 
+	<!-- Presetdefs -->
+
+	<presetdef name='def.copy'>
+		<copy
+			preservelastmodified='true'
+			includeEmptyDirs='false'
+			overwrite='true'
+		/>
+	</presetdef>
+
 	<!-- Macrodefs -->
 
 	<macrodef name='grails'>
@@ -31,8 +41,10 @@
 		<attribute name='environment' default='dev' />
 		<attribute name='dir' default='../../${testproject}' />
 		<element name='args' optional='true' />
+		<element name='preargs' optional='true' />
 		<sequential>
 			<exec executable='${grails}' dir='@{dir}' failonerror='true'>
+				<preargs />
 				<arg value='@{environment}'/>
 				<arg value='@{action}'/>
 				<args />
@@ -69,30 +81,39 @@
 
 		<!-- setup bin-groovy -->
 		<mkdir dir='../../${testproject}/.settings' />
-		<copy file='org.codehaus.groovy.eclipse.preferences.prefs'
+		<def.copy file='org.codehaus.groovy.eclipse.preferences.prefs'
 			todir='../../${testproject}/.settings'
 		/>
 
 		<!-- install plugins -->
 		<mkdir dir='../../${testproject}/plugins' />
 		<grails action='install-plugin'>
+			<preargs><arg value='-Dgrails.plugins.dir=plugins'/></preargs>
 			<args><arg value='${basedir}/grails-webtest-${version.webtest}.zip'/></args>
 		</grails>
 		<grails action='install-plugin'>
+			<preargs><arg value='-Dgrails.plugins.dir=plugins'/></preargs>
 			<args><arg value='${basedir}/../grails-acegi-${version.plugin}.zip'/></args>
 		</grails>
 
 		<!-- run the scripts to create user, role, controllers, etc. -->
 		<grails action='create-auth-domains'>
-			<args><arg value='User'/><arg value='Role'/><arg value='Requestmap'/></args>
+			<preargs><arg value='-Dgrails.plugins.dir=plugins'/></preargs>
+			<args>
+				<arg value='User'/>
+				<arg value='Role'/>
+				<arg value='Requestmap'/>
+			</args>
 		</grails>
-		<grails action='generate-manager'/>
-		<grails action='generate-registration'/>
-
+		<grails action='generate-manager'>
+			<preargs><arg value='-Dgrails.plugins.dir=plugins'/></preargs>
+		</grails>
+		<grails action='generate-registration'>
+			<preargs><arg value='-Dgrails.plugins.dir=plugins'/></preargs>
+		</grails>
 		<!-- setup .classpath -->
-		<copy file='../../${testproject}/.classpath'
+		<def.copy file='../../${testproject}/.classpath'
 			tofile='../../${testproject}/classpath'
-			overwrite='true'
 		/>
 
 		<!-- remove the last two classpath lines -->
@@ -144,23 +165,23 @@
 		<mkdir dir='../../${testproject}/webtest/reports' />
 		<mkdir dir='../../${testproject}/webtest/tests' />
 
-		<copy todir='../../${testproject}/grails-app/controllers'>
+		<def.copy todir='../../${testproject}/grails-app/controllers'>
 			<fileset dir='.'><include name='*Controller.groovy'/></fileset>
-		</copy>
-		<copy todir='../../${testproject}/grails-app/services'>
+		</def.copy>
+		<def.copy todir='../../${testproject}/grails-app/services'>
 			<fileset dir='.'><include name='*Service.groovy'/></fileset>
-		</copy>
-		<copy todir='../../${testproject}/webtest/tests'>
+		</def.copy>
+		<def.copy todir='../../${testproject}/webtest/tests'>
 			<fileset dir='.'><include name='*Test.groovy'/></fileset>
-		</copy>
-		<copy file='TestSuite.groovy' todir='../../${testproject}/webtest/tests' />
-		<copy file='webtest.properties' todir='../../${testproject}/webtest/conf' />
-		<copy file='accessDenied.gsp' todir='../../${testproject}/grails-app/views' />
-		<copy file='BootStrap.groovy' todir='../../${testproject}/grails-app/conf' overwrite='true'/>
-		<copy file='UrlMappings.groovy' todir='../../${testproject}/grails-app/conf' overwrite='true'/>
+		</def.copy>
+		<def.copy file='TestSuite.groovy' todir='../../${testproject}/webtest/tests' />
+		<def.copy file='webtest.properties' todir='../../${testproject}/webtest/conf' />
+		<def.copy file='accessDenied.gsp' todir='../../${testproject}/grails-app/views' />
+		<def.copy file='BootStrap.groovy' todir='../../${testproject}/grails-app/conf' />
+		<def.copy file='UrlMappings.groovy' todir='../../${testproject}/grails-app/conf' />
 
 		<echo>
-		Now run 'cd ../../${testproject}' and then run 'grails run-webtest' to execute WebTests.
+		Now run 'cd ../../${testproject}' and then run 'grails -Dgrails.plugins.dir=plugins run-webtest' to execute WebTests.
 		</echo>
 	</target>
 

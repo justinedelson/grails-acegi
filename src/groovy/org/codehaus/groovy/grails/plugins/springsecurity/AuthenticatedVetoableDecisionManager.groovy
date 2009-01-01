@@ -77,7 +77,7 @@ class AuthenticatedVetoableDecisionManager extends AbstractAccessDecisionManager
 	 * to indicate that all abstained.
 	 */
 	private boolean checkOtherVoters(authentication, object, config) {
-		int deny = 0
+		int denyCount = 0
 		for (AccessDecisionVoter voter in decisionVoters) {
 			if (voter instanceof AuthenticatedVoter) {
 				continue
@@ -88,14 +88,14 @@ class AuthenticatedVetoableDecisionManager extends AbstractAccessDecisionManager
             	case AccessDecisionVoter.ACCESS_GRANTED:
             		return true
             	case AccessDecisionVoter.ACCESS_DENIED:
-            		deny++
+            		denyCount++
             		break
 				default: // abstain
             		break
             }
         }
 
-        if (deny) {
+        if (denyCount) {
             deny()
         }
 

@@ -13,7 +13,7 @@ class RegisterController {
 	def daoAuthenticationProvider
 	def emailerService
 
-	def allowedMethods = [save: 'POST', update: 'POST']
+	static Map allowedMethods = [save: 'POST', update: 'POST']
 
 	/**
 	 * User Registration Top page.

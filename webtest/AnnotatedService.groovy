@@ -2,9 +2,7 @@ import org.springframework.security.annotation.Secured
 
 class AnnotatedService {
 
-	boolean transactional = true
-
-	static scope = 'request'
+	boolean transactional = false
 
 	void allMethod() {
 		println 'allMethod called'
