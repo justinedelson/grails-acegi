@@ -41,10 +41,8 @@
 		<attribute name='environment' default='dev' />
 		<attribute name='dir' default='../../${testproject}' />
 		<element name='args' optional='true' />
-		<element name='preargs' optional='true' />
 		<sequential>
 			<exec executable='${grails}' dir='@{dir}' failonerror='true'>
-				<preargs />
 				<arg value='@{environment}'/>
 				<arg value='@{action}'/>
 				<args />
@@ -86,31 +84,29 @@
 		/>
 
 		<!-- install plugins -->
+
+		<def.copy file='BuildConfig.groovy'
+			todir='../../${testproject}/grails-app/conf'
+		/>
+
 		<mkdir dir='../../${testproject}/plugins' />
 		<grails action='install-plugin'>
-			<preargs><arg value='-Dgrails.plugins.dir=plugins'/></preargs>
 			<args><arg value='${basedir}/grails-webtest-${version.webtest}.zip'/></args>
 		</grails>
 		<grails action='install-plugin'>
-			<preargs><arg value='-Dgrails.plugins.dir=plugins'/></preargs>
 			<args><arg value='${basedir}/../grails-acegi-${version.plugin}.zip'/></args>
 		</grails>
 
 		<!-- run the scripts to create user, role, controllers, etc. -->
 		<grails action='create-auth-domains'>
-			<preargs><arg value='-Dgrails.plugins.dir=plugins'/></preargs>
 			<args>
 				<arg value='User'/>
 				<arg value='Role'/>
 				<arg value='Requestmap'/>
 			</args>
 		</grails>
-		<grails action='generate-manager'>
-			<preargs><arg value='-Dgrails.plugins.dir=plugins'/></preargs>
-		</grails>
-		<grails action='generate-registration'>
-			<preargs><arg value='-Dgrails.plugins.dir=plugins'/></preargs>
-		</grails>
+		<grails action='generate-manager' />
+		<grails action='generate-registration' />
 		<!-- setup .classpath -->
 		<def.copy file='../../${testproject}/.classpath'
 			tofile='../../${testproject}/classpath'
@@ -181,7 +177,7 @@
 		<def.copy file='UrlMappings.groovy' todir='../../${testproject}/grails-app/conf' />
 
 		<echo>
-		Now run 'cd ../../${testproject}' and then run 'grails -Dgrails.plugins.dir=plugins run-webtest' to execute WebTests.
+		Now run 'cd ../../${testproject}' and then run 'grails run-webtest' to execute WebTests.
 		</echo>
 	</target>
 
