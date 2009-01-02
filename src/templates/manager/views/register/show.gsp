@@ -7,7 +7,7 @@
   </head>
   <body>
     <div class="nav">
-      <span class="menuButton"><a href="${createLinkTo(dir:'')}">Home</a></span>
+      <span class="menuButton"><a class='home' href="${createLinkTo(dir:'')}">Home</a></span>
     </div>
     
     <div class="body">
@@ -72,7 +72,7 @@
       <div class="buttons">
         <g:form controller="register">
           <input type="hidden" name="id" value="${person?.id}" />
-          <span class="button"><g:actionSubmit value="Edit" /></span>
+          <span class="button"><g:actionSubmit class='edit' value="Edit" /></span>
         </g:form>
       </div>
       

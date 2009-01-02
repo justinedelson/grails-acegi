@@ -7,7 +7,7 @@
   </head>
   <body>
     <div class="nav">
-      <span class="menuButton"><a href="${createLinkTo(dir:'')}">Home</a></span>
+      <span class="menuButton"><a class='home' href="${createLinkTo(dir:'')}">Home</a></span>
     </div>
     <div class="body">
       <h1>Edit Profile</h1>
@@ -97,7 +97,7 @@
         </div>
 
         <div class="buttons">
-          <span class="button"><g:actionSubmit value="Update" /></span>
+          <span class="button"><g:actionSubmit class='save' value="Update" /></span>
         </div>
 
       </g:form>
