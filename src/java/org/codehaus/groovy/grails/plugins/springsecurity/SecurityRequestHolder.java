@@ -15,15 +15,17 @@
 package org.codehaus.groovy.grails.plugins.springsecurity;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
- * Uses a {@link ThreadLocal} to store the current request.
+ * Uses a {@link ThreadLocal} to store the current request and response.
  *
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
 public final class SecurityRequestHolder {
 
-	private static final ThreadLocal<HttpServletRequest> HOLDER = new ThreadLocal<HttpServletRequest>();
+	private static final ThreadLocal<HttpServletRequest> REQUEST_HOLDER = new ThreadLocal<HttpServletRequest>();
+	private static final ThreadLocal<HttpServletResponse> RESPONSE_HOLDER = new ThreadLocal<HttpServletResponse>();
 
 	private SecurityRequestHolder() {
 		// static only
@@ -33,15 +35,18 @@ public final class SecurityRequestHolder {
 	 * Clear the saved request.
 	 */
 	public static void reset() {
-		HOLDER.set(null);
+		REQUEST_HOLDER.set(null);
+		RESPONSE_HOLDER.set(null);
 	}
 
 	/**
-	 * Set the current request.
+	 * Set the current request and response.
 	 * @param request  the request
+	 * @param response  the response
 	 */
-	public static void setRequest(final HttpServletRequest request) {
-		HOLDER.set(request);
+	public static void set(final HttpServletRequest request, final HttpServletResponse response) {
+		REQUEST_HOLDER.set(request);
+		RESPONSE_HOLDER.set(response);
 	}
 
 	/**
@@ -49,6 +54,14 @@ public final class SecurityRequestHolder {
 	 * @return  the request
 	 */
 	public static HttpServletRequest getRequest() {
-		return HOLDER.get();
+		return REQUEST_HOLDER.get();
+	}
+
+	/**
+	 * Get the current response.
+	 * @return  the response
+	 */
+	public static HttpServletResponse getResponse() {
+		return RESPONSE_HOLDER.get();
 	}
 }

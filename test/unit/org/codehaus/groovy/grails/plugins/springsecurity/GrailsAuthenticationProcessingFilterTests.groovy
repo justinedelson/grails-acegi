@@ -55,10 +55,12 @@ class GrailsAuthenticationProcessingFilterTests extends AbstractSecurityTest {
 	void testDoFilterHttp() {
 
 		HttpServletRequest srhRequest
+		HttpServletResponse srhResponse
 		boolean resetCalled = false
 
-		SecurityRequestHolder.metaClass.'static'.setRequest = { req ->
+		SecurityRequestHolder.metaClass.'static'.set = { HttpServletRequest req, HttpServletResponse res ->
 			srhRequest = req
+			srhResponse = res
 		}
 
 		SecurityRequestHolder.metaClass.'static'.reset = { ->
@@ -68,6 +70,7 @@ class GrailsAuthenticationProcessingFilterTests extends AbstractSecurityTest {
 		_filter.doFilterHttp _request, _response, new MockFilterChain()
 
 		assertSame _request, srhRequest
+		assertSame _response, srhResponse
 		assertTrue resetCalled
 	}
 

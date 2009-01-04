@@ -15,6 +15,7 @@
 package org.codehaus.groovy.grails.plugins.springsecurity
 
 import org.springframework.mock.web.MockHttpServletRequest
+import org.springframework.mock.web.MockHttpServletResponse
 /**
  * Unit tests for <code>SecurityRequestHolder</code>.
  *
@@ -24,19 +25,33 @@ class SecurityRequestHolderTests extends AbstractSecurityTest {
 
 	void testSetAndGet() {
 		def request = new MockHttpServletRequest()
-		assertNull SecurityRequestHolder.getRequest()
-		SecurityRequestHolder.setRequest(request)
-		assertSame request, SecurityRequestHolder.getRequest()
+		def response = new MockHttpServletResponse()
+
+		assertNull SecurityRequestHolder.request
+		assertNull SecurityRequestHolder.response
+
+		SecurityRequestHolder.set request, response
+
+		assertSame request, SecurityRequestHolder.request
+		assertSame response, SecurityRequestHolder.response
 	}
 
 	void testReset() {
 		def request = new MockHttpServletRequest()
-		assertNull SecurityRequestHolder.getRequest()
-		SecurityRequestHolder.setRequest(request)
-		assertSame request, SecurityRequestHolder.getRequest()
+		def response = new MockHttpServletResponse()
+
+		assertNull SecurityRequestHolder.request
+		assertNull SecurityRequestHolder.response
+
+		SecurityRequestHolder.set request, response
+
+		assertSame request, SecurityRequestHolder.request
+		assertSame response, SecurityRequestHolder.response
 
 		SecurityRequestHolder.reset()
-		assertNull SecurityRequestHolder.getRequest()
+
+		assertNull SecurityRequestHolder.request
+		assertNull SecurityRequestHolder.response
 	}
 
 	/**

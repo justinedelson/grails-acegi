@@ -1,5 +1,6 @@
 ${personClassImport}
 ${authorityClassImport}
+import org.springframework.security.userdetails.UserDetails
 
 /**
  * User controller.
@@ -35,8 +36,8 @@ class ${personClassName}Controller {
 		def person = ${personClassName}.get(params.id)
 		if (person) {
 			def authPrincipal = authenticateService.principal()
-			//avoid self-delete if the logged-in user is an admin
-			if (!(authPrincipal instanceof String) && authPrincipal.username == person.username) {
+			// avoid self-delete if the logged-in user is an admin
+			if (authPrincipal instanceof UserDetails && authPrincipal.username == person.username) {
 				flash.message = "You can not delete yourself, please login as another admin and try again"
 			}
 			else {
