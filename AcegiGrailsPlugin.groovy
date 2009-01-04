@@ -32,6 +32,7 @@ import org.springframework.security.ui.basicauth.BasicProcessingFilter
 import org.springframework.security.ui.basicauth.BasicProcessingFilterEntryPoint
 import org.springframework.security.ui.logout.LogoutHandler
 import org.springframework.security.ui.logout.SecurityContextLogoutHandler
+import org.springframework.security.ui.rememberme.NullRememberMeServices
 import org.springframework.security.ui.rememberme.RememberMeProcessingFilter
 import org.springframework.security.ui.rememberme.TokenBasedRememberMeServices
 import org.springframework.security.ui.session.HttpSessionEventPublisher
@@ -109,6 +110,12 @@ class AcegiGrailsPlugin {
 			configureOpenId conf
 		}
 
+		// Facebook Connect
+		if (conf.useFacebook) {
+			configureFacebook.delegate = delegate
+			configureFacebook conf
+		}
+
 		// logout
 		configureLogout.delegate = delegate
 		configureLogout conf
@@ -141,14 +148,21 @@ class AcegiGrailsPlugin {
 			authenticationManager = ref('authenticationManager')
 			rememberMeServices = ref('rememberMeServices')
 		}
+
 		/** rememberMeServices */
-		rememberMeServices(TokenBasedRememberMeServices) {
-			userDetailsService = ref('userDetailsService')
-			key = conf.rememberMeKey
-			cookieName = conf.cookieName
-			alwaysRemember = conf.alwaysRemember
-			tokenValiditySeconds = conf.tokenValiditySeconds
-			parameter = conf.parameter
+		if (conf.useOpenId || conf.useFacebook) {
+			// auth is external, so no password, so cookie isn't possible
+			rememberMeServices(NullRememberMeServices)
+		}
+		else {
+			rememberMeServices(TokenBasedRememberMeServices) {
+				userDetailsService = ref('userDetailsService')
+				key = conf.rememberMeKey
+				cookieName = conf.cookieName
+				alwaysRemember = conf.alwaysRemember
+				tokenValiditySeconds = conf.tokenValiditySeconds
+				parameter = conf.parameter
+			}
 		}
 
 		/** anonymousProcessingFilter */
@@ -364,6 +378,26 @@ class AcegiGrailsPlugin {
 		}
 	}
 
+	// Facebook
+	private def configureFacebook = { conf ->
+		facebookAuthProvider(org.codehaus.groovy.grails.plugins.springsecurity.facebook.FacebookAuthenticationProvider) {
+			userDetailsService = ref('userDetailsService')
+		}
+		facebookAuthenticationProcessingFilter(org.codehaus.groovy.grails.plugins.springsecurity.facebook.FacebookAuthenticationProcessingFilter) {
+			authenticationManager = ref('authenticationManager')
+			authenticationFailureUrl = conf.authenticationFailureUrl //'/login/authfail?login_error=1' // /spring_security_login?login_error
+			defaultTargetUrl = conf.defaultTargetUrl // '/'
+			filterProcessesUrl = conf.facebook.filterProcessesUrl // '/j_spring_facebook_security_check'
+			apiKey = conf.facebook.apiKey
+			secretKey = conf.facebook.secretKey
+			authenticationUrlRoot = conf.facebook.authenticationUrlRoot // http://www.facebook.com/login.php?v=1.0&api_key=
+			rememberMeServices = ref('rememberMeServices')
+		}
+		facebookLogoutHandler(org.codehaus.groovy.grails.plugins.springsecurity.facebook.FacebookLogoutHandler) {
+			apiKey = conf.facebook.apiKey
+		}
+	}
+
 	private def configureCAS = { conf ->
 		String casHost = conf.cas.casServer ?: 'localhost'
 		int casPort = (conf.cas.casServerPort ?: '443').toInteger()
@@ -420,7 +454,14 @@ class AcegiGrailsPlugin {
 		securityContextLogoutHandler(SecurityContextLogoutHandler)
 		def logoutHandlerNames = conf.logoutHandlerNames
 		if (!logoutHandlerNames) {
-			logoutHandlerNames = ['rememberMeServices', 'securityContextLogoutHandler']
+			logoutHandlerNames = []
+			if (conf.useFacebook) {
+				logoutHandlerNames << 'facebookLogoutHandler'
+			}
+			else if (!conf.useOpenId) {
+				logoutHandlerNames << 'rememberMeServices'
+			}
+			logoutHandlerNames << 'securityContextLogoutHandler'
 		}
 
 		def logoutHandlers = createRefList(logoutHandlerNames)
@@ -475,6 +516,9 @@ class AcegiGrailsPlugin {
 			}
 			if (conf.useLdap) {
 				providerNames << 'ldapAuthProvider'
+			}
+			if (conf.useFacebook) {
+				providerNames << 'facebookAuthProvider'
 			}
 
 			if (providerNames.empty) {
@@ -656,6 +700,10 @@ class AcegiGrailsPlugin {
 
 			if (conf.useOpenId) {
 				filterNames << 'openIDAuthenticationProcessingFilter' // OPENID_PROCESSING_FILTER
+			}
+
+			if (conf.useFacebook) {
+				filterNames << 'facebookAuthenticationProcessingFilter'
 			}
 
 			// LOGIN_PAGE_FILTER

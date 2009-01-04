@@ -177,4 +177,11 @@ security {
 
 	// ip restriction filter
 	ipRestrictions = [:]
+
+	// Facebook Connect
+	useFacebook = false
+	facebook.filterProcessesUrl = '/j_spring_facebook_security_check'
+	facebook.authenticationUrlRoot = 'http://www.facebook.com/login.php?v=1.0&api_key='
+	facebook.apiKey = '' // set in SecurityConfig
+	facebook.secretKey = '' // set in SecurityConfig
 }

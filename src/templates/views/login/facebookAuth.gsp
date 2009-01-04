@@ -37,7 +37,6 @@
 	width: 100px;
 }
 #login .inner .login_message {color:red;}
-#login .inner .text_ {width:120px;}
 </style>
 </head>
 
@@ -49,13 +48,7 @@
 			</g:if>
 			<div class='fheader'>Please Login..</div>
 			<form action='${postUrl}' method='POST' id='loginForm' class='cssform'>
-				<p>
-					<label for='j_username'>OpenID Identity</label>
-					<input type='text' class='text_' name='j_username' />
-				</p>
-				<p>
-					<input type='submit' value='Login' />
-				</p>
+				<input type='submit' value='Login with your Facebook account' />
 			</form>
 		</div>
 	</div>

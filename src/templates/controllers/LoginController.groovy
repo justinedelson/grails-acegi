@@ -42,17 +42,31 @@ class LoginController {
 	 * Show the login page.
 	 */
 	def auth = {
-		nocache(response)
+
+		nocache response
+
 		if (isLoggedIn()) {
 			redirect uri: '/'
+			return
 		}
 
-		if (authenticateService.securityConfig.security.useOpenId) {
-			render view: 'openIdAuth'
+		String view
+		String postUrl
+		def config = authenticateService.securityConfig.security
+		if (config.useOpenId) {
+			view = 'openIdAuth'
+			postUrl = "${request.contextPath}/login/openIdAuthenticate"
+		}
+		else if (config.useFacebook) {
+			view = 'facebookAuth'
+			postUrl = "${request.contextPath}${config.facebook.filterProcessesUrl}"
 		}
 		else {
-			render view: 'auth'
+			view = 'auth'
+			postUrl = "${request.contextPath}${config.filterProcessesUrl}"
 		}
+
+		render view: view, model: [postUrl: postUrl]
 	}
 
 	/**
@@ -67,7 +81,7 @@ class LoginController {
 			redirect url: redirectUrl
 		}
 		catch (org.springframework.security.ui.openid.OpenIDConsumerException e) {
-			log.error "Consumer error: ${e.message}", e
+			log.error "Consumer error: $e.message", e
 			redirect url: openIDAuthenticationProcessingFilter.authenticationFailureUrl
 		}
 	}

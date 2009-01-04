@@ -1,8 +1,6 @@
-<html>
-	<head>
-		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
-		<meta name='layout' content='main' />
-		<title>Login</title>
+<head>
+<meta name='layout' content='main' />
+<title>Login</title>
 <style type='text/css' media='screen'>
 #login {
 	margin:15px 0px; padding:0px;
@@ -42,15 +40,16 @@
 #login .inner .text_ {width:120px;}
 #login .inner .chk {height:12px;}
 </style>
-	</head>
-	<body>
-		<div id='login'>
-			<div class='inner'>
+</head>
+
+<body>
+	<div id='login'>
+		<div class='inner'>
 			<g:if test='${flash.message}'>
-				<div class='login_message'>${flash.message}</div>
+			<div class='login_message'>${flash.message}</div>
 			</g:if>
 			<div class='fheader'>Please Login..</div>
-			<form action='${request.contextPath}/j_spring_security_check' method='POST' id='loginForm' class='cssform'>
+			<form action='${postUrl}' method='POST' id='loginForm' class='cssform'>
 				<p>
 					<label for='j_username'>Login ID</label>
 					<input type='text' class='text_' name='j_username' id='j_username' value='${request.remoteUser}' />
@@ -68,8 +67,8 @@
 					<input type='submit' value='Login' />
 				</p>
 			</form>
-			</div>
 		</div>
+	</div>
 <script type='text/javascript'>
 <!--
 (function(){
@@ -77,5 +76,4 @@
 })();
 // -->
 </script>
-	</body>
-</html>
+</body>

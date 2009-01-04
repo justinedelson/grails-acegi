@@ -51,7 +51,7 @@ class GrailsAuthenticationProcessingFilter extends AuthenticationProcessingFilte
 	void doFilterHttp(HttpServletRequest request, HttpServletResponse response,
 			FilterChain chain) throws IOException, ServletException {
 
-		SecurityRequestHolder.request = request
+		SecurityRequestHolder.set request, response
 		try {
 			super.doFilterHttp(request, response, chain)
 		}
