@@ -42,7 +42,7 @@ class GrailsKerberosAuthenticationProvider extends JaasAuthenticationProvider {
 		Authentication authToken = super.authenticate(auth)
 
 		if (authToken instanceof JaasAuthenticationToken) {
-			String username = authToken.credentials
+			String username = authToken.principal
 			boolean retrieveDatabaseRoles = authenticateService.securityConfig.security.kerberosRetrieveDatabaseRoles
 			def dbDetails = userDetailsService.loadUserByUsername(username, retrieveDatabaseRoles)
 			def authorities = mergeDatabaseRoles(dbDetails, authToken.authorities)
