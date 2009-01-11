@@ -71,25 +71,27 @@
 		<available file='${basedir}/../grails-acegi-${version.plugin}.zip' property='plugin-exists'/>
 		<fail unless='plugin-exists'>${basedir}/../grails-acegi-${version.plugin}.zip not found - check version.plugin: ${version.plugin}</fail>
 
+		<property name='testprojectRoot' value='../../${testproject}' />
+
 		<!-- create the app -->
-		<delete dir='../../${testproject}' />
+		<delete dir='${testprojectRoot}' />
 		<grails action='create-app' dir='../..'>
 			<args><arg value='${testproject}'/></args>
 		</grails>
 
 		<!-- setup bin-groovy -->
-		<mkdir dir='../../${testproject}/.settings' />
+		<mkdir dir='${testprojectRoot}/.settings' />
 		<def.copy file='org.codehaus.groovy.eclipse.preferences.prefs'
-			todir='../../${testproject}/.settings'
+			todir='${testprojectRoot}/.settings'
 		/>
 
 		<!-- install plugins -->
 
 		<def.copy file='BuildConfig.groovy'
-			todir='../../${testproject}/grails-app/conf'
+			todir='${testprojectRoot}/grails-app/conf'
 		/>
 
-		<mkdir dir='../../${testproject}/plugins' />
+		<mkdir dir='${testprojectRoot}/plugins' />
 		<grails action='install-plugin'>
 			<args><arg value='${basedir}/grails-webtest-${version.webtest}.zip'/></args>
 		</grails>
@@ -108,13 +110,13 @@
 		<grails action='generate-manager' />
 		<grails action='generate-registration' />
 		<!-- setup .classpath -->
-		<def.copy file='../../${testproject}/.classpath'
-			tofile='../../${testproject}/classpath'
+		<def.copy file='${testprojectRoot}/.classpath'
+			tofile='${testprojectRoot}/classpath'
 		/>
 
 		<!-- remove the last two classpath lines -->
-		<replace file='../../${testproject}/classpath' token='&lt;classpathentry kind="output" path="web-app/WEB-INF/classes"/&gt;' />
-		<replace file='../../${testproject}/classpath' token='&lt;/classpath&gt;' />
+		<replace file='${testprojectRoot}/classpath' token='&lt;classpathentry kind="output" path="web-app/WEB-INF/classes"/&gt;' />
+		<replace file='${testprojectRoot}/classpath' token='&lt;/classpath&gt;' />
 
 		<!-- add in plugin source folders and bin-groovy -->
 		<add-classpath-entry kind='lib' path='bin-groovy' />
@@ -129,7 +131,7 @@
 		<!-- add in plugin jars -->
 		<for param='jar'>
 			<path>
-				<fileset dir='../../${testproject}/plugins/acegi-${version.plugin}/lib' includes='*.jar'/>
+				<fileset dir='${testprojectRoot}/plugins/acegi-${version.plugin}/lib' includes='*.jar'/>
 			</path>
 			<sequential>
 				<add-classpath-entry kind='lib' path='@{jar}' />
@@ -139,7 +141,7 @@
 		<!-- add in lib jars -->
 		<for param='jar'>
 			<path>
-				<fileset dir='../../${testproject}/lib' includes='*.jar'/>
+				<fileset dir='${testprojectRoot}/lib' includes='*.jar'/>
 			</path>
 			<sequential>
 				<add-classpath-entry kind='lib' path='@{jar}' />
@@ -147,37 +149,41 @@
 		</for>
 
 		<add-classpath-entry kind='output' path='classes' />
-		<echo file='../../${testproject}/classpath' append='true'>&lt;/classpath&gt;</echo>
+		<echo file='${testprojectRoot}/classpath' append='true'>&lt;/classpath&gt;</echo>
 
 		<!-- remove the directory from the lib entries to make them relative -->
-		<path id='project_dir' location='../../${testproject}' />
+		<path id='project_dir' location='${testprojectRoot}' />
 		<property name='project_dir' refid='project_dir' />
-		<replace file='../../${testproject}/classpath' token='${project_dir}/' />
+		<replace file='${testprojectRoot}/classpath' token='${project_dir}/' />
 
-		<move file='../../${testproject}/classpath' tofile='../../${testproject}/.classpath' />
+		<move file='${testprojectRoot}/classpath' tofile='${testprojectRoot}/.classpath' />
 
 		<!-- copy the sample files -->
-		<mkdir dir='../../${testproject}/webtest/conf' />
-		<mkdir dir='../../${testproject}/webtest/reports' />
-		<mkdir dir='../../${testproject}/webtest/tests' />
+		<mkdir dir='${testprojectRoot}/webtest/conf' />
+		<mkdir dir='${testprojectRoot}/webtest/reports' />
+		<mkdir dir='${testprojectRoot}/webtest/tests' />
 
-		<def.copy todir='../../${testproject}/grails-app/controllers'>
+		<def.copy todir='${testprojectRoot}/grails-app/controllers'>
 			<fileset dir='.'><include name='*Controller.groovy'/></fileset>
 		</def.copy>
-		<def.copy todir='../../${testproject}/grails-app/services'>
+		<def.copy todir='${testprojectRoot}/grails-app/services'>
 			<fileset dir='.'><include name='*Service.groovy'/></fileset>
 		</def.copy>
-		<def.copy todir='../../${testproject}/webtest/tests'>
+		<def.copy todir='${testprojectRoot}/webtest/tests'>
 			<fileset dir='.'><include name='*Test.groovy'/></fileset>
 		</def.copy>
-		<def.copy file='TestSuite.groovy' todir='../../${testproject}/webtest/tests' />
-		<def.copy file='webtest.properties' todir='../../${testproject}/webtest/conf' />
-		<def.copy file='accessDenied.gsp' todir='../../${testproject}/grails-app/views' />
-		<def.copy file='BootStrap.groovy' todir='../../${testproject}/grails-app/conf' />
-		<def.copy file='UrlMappings.groovy' todir='../../${testproject}/grails-app/conf' />
+
+		<mkdir dir='${testprojectRoot}/web-app/js/admin' />
+		<def.copy file='admin.js' todir='${testprojectRoot}/web-app/js/admin' />
+
+		<def.copy file='TestSuite.groovy' todir='${testprojectRoot}/webtest/tests' />
+		<def.copy file='webtest.properties' todir='${testprojectRoot}/webtest/conf' />
+		<def.copy file='accessDenied.gsp' todir='${testprojectRoot}/grails-app/views' />
+		<def.copy file='BootStrap.groovy' todir='${testprojectRoot}/grails-app/conf' />
+		<def.copy file='UrlMappings.groovy' todir='${testprojectRoot}/grails-app/conf' />
 
 		<echo>
-		Now run 'cd ../../${testproject}' and then run 'grails run-webtest' to execute WebTests.
+		Now run 'cd ${testprojectRoot}' and then run 'grails run-webtest' to execute WebTests.
 		</echo>
 	</target>
 

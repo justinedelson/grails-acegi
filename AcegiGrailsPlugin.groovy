@@ -2,6 +2,7 @@ import grails.util.GrailsUtil
 
 import org.codehaus.groovy.grails.commons.ControllerArtefactHandler
 
+import org.codehaus.groovy.grails.plugins.springsecurity.AnnotationFilterInvocationDefinition
 import org.codehaus.groovy.grails.plugins.springsecurity.AuthenticatedVetoableDecisionManager
 import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsAccessDeniedHandlerImpl
@@ -12,6 +13,7 @@ import org.codehaus.groovy.grails.plugins.springsecurity.GrailsFilterInvocationD
 import org.codehaus.groovy.grails.plugins.springsecurity.IpAddressFilter
 import org.codehaus.groovy.grails.plugins.springsecurity.LogoutFilterFactoryBean
 import org.codehaus.groovy.grails.plugins.springsecurity.QuietMethodSecurityInterceptor
+import org.codehaus.groovy.grails.plugins.springsecurity.Secured as SecuredController
 import org.codehaus.groovy.grails.plugins.springsecurity.SecurityAnnotationAttributes
 import org.codehaus.groovy.grails.plugins.springsecurity.SecurityEventListener
 import org.codehaus.groovy.grails.plugins.springsecurity.WithAjaxAuthenticationProcessingFilterEntryPoint
@@ -21,7 +23,7 @@ import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreato
 import org.springframework.beans.factory.config.RuntimeBeanReference
 import org.springframework.cache.ehcache.EhCacheFactoryBean
 import org.springframework.cache.ehcache.EhCacheManagerFactoryBean
-import org.springframework.security.annotation.Secured
+import org.springframework.security.annotation.Secured as SecuredService
 import org.springframework.security.context.HttpSessionContextIntegrationFilter
 import org.springframework.security.context.SecurityContextHolder as SCH
 import org.springframework.security.event.authentication.LoggerListener
@@ -38,8 +40,10 @@ import org.springframework.security.ui.rememberme.TokenBasedRememberMeServices
 import org.springframework.security.ui.session.HttpSessionEventPublisher
 import org.springframework.security.ui.switchuser.SwitchUserProcessingFilter
 import org.springframework.security.ui.webapp.AuthenticationProcessingFilter
+import org.springframework.security.util.AntUrlPathMatcher
 import org.springframework.security.util.PortMapperImpl
 import org.springframework.security.util.PortResolverImpl
+import org.springframework.security.util.RegexUrlPathMatcher
 import org.springframework.security.providers.ProviderManager
 import org.springframework.security.providers.anonymous.AnonymousAuthenticationProvider
 import org.springframework.security.providers.anonymous.AnonymousProcessingFilter
@@ -78,19 +82,19 @@ class AcegiGrailsPlugin {
 	String authorEmail = 'tyama@xmldo.jp'
 	String title = 'Grails Spring Security 2.0 Plugin'
 	String description = 'Plugin to use Grails domain class and secure your applications with Spring Security filters.'
-	String documentation ="http://grails.org/AcegiSecurity+Plugin"
-	def observe = ['controllers']
-	def loadAfter = ['controllers']
-	def watchedResources = [
+	String documentation = 'http://grails.org/AcegiSecurity+Plugin'
+	List observe = ['controllers']
+	List loadAfter = ['controllers']
+	List watchedResources = [
 		'file:./grails-app/controllers/**/*Controller.groovy',
-		'file:./plugins/*/grails-app/controllers/**/*Controller.groovy'
+		'file:./plugins/*/grails-app/controllers/**/*Controller.groovy',
+		'file:./grails-app/conf/SecurityConfig.groovy'
 	]
-
-	def dependsOn = [:]
+	Map dependsOn = [:]
 
 	def doWithSpring = {
 
-		def conf = AuthorizeTools.getSecurityConfig().security
+		def conf = AuthorizeTools.securityConfig.security
 		if (!conf || !conf.active) {
 			println '[active=false] Spring Security not loaded'
 			return
@@ -207,14 +211,28 @@ class AcegiGrailsPlugin {
 		filterInvocationInterceptor(FilterSecurityInterceptor) {
 			authenticationManager = ref('authenticationManager')
 			accessDecisionManager = ref('accessDecisionManager')
-			if (conf.useRequestMapDomainClass) {
+			if (conf.useControllerAnnotations || conf.useRequestMapDomainClass) {
 				objectDefinitionSource = ref('objectDefinitionSource')
 			}
 			else {
 				objectDefinitionSource = conf.requestMapString
 			}
 		}
-		if (conf.useRequestMapDomainClass) {
+		if (conf.useControllerAnnotations) {
+			objectDefinitionSource(AnnotationFilterInvocationDefinition) {
+				boolean lowercase = conf.controllerAnnotationsMatchesLowercase
+				if ('ant'.equals(conf.controllerAnnotationsMatcher)) {
+					urlMatcher = new AntUrlPathMatcher(lowercase)
+				}
+				else {
+					urlMatcher = new RegexUrlPathMatcher(lowercase)
+				}
+				if (conf.controllerAnnotationsRejectIfNoRule instanceof Boolean) {
+					rejectIfNoRule = conf.controllerAnnotationsRejectIfNoRule
+				}
+			}
+		}
+		else if (conf.useRequestMapDomainClass) {
 			objectDefinitionSource(GrailsFilterInvocationDefinition) {
 				requestMapClass = conf.requestMapClass
 				requestMapPathFieldName = conf.requestMapPathField
@@ -642,7 +660,7 @@ class AcegiGrailsPlugin {
 			authenticateService = ref('authenticateService')
 			userDetailsService = ref('userDetailsService')
 			loginConfig = conf.kerberosLoginConfigFile
-			loginContextName = "KrbAuthentication"
+			loginContextName = 'KrbAuthentication'
 			callbackHandlers = [jaasNameCallbackHandler, jaasPasswordCallbackHandler]
 			authorityGranters = []
 		}
@@ -813,13 +831,13 @@ class AcegiGrailsPlugin {
 		}
 	}
 
-	def doWithApplicationContext = { applicationContext ->
+	def doWithApplicationContext = { ctx ->
 		// nothing to do
 	}
 
 	def doWithWebDescriptor = { xml ->
 
-		def conf = AuthorizeTools.getSecurityConfig().security
+		def conf = AuthorizeTools.securityConfig.security
 		if (!conf || !conf.active) {
 			return
 		}
@@ -890,15 +908,42 @@ class AcegiGrailsPlugin {
 	}
 
 	def doWithDynamicMethods = { ctx ->
-		for (controller in application.controllerClasses) {
-			registerControllerProps(controller.metaClass)
+
+		def conf = AuthorizeTools.securityConfig.security
+		if (!conf || !conf.active) {
+			return
+		}
+
+		for (controllerClass in application.controllerClasses) {
+			addControllerMethods controllerClass.metaClass
+		}
+
+		if (conf.useControllerAnnotations) {
+			ctx.objectDefinitionSource.initialize conf.controllerAnnotationStaticRules,
+				ctx.grailsUrlMappingsHolder, application.controllerClasses
 		}
 	}
 
 	def onChange = { event ->
-		if (application.isArtefactOfType(ControllerArtefactHandler.TYPE, event.source)) {
-			def controllerClass = application.addArtefact(ControllerArtefactHandler.TYPE, event.source)
-			registerControllerProps(controllerClass.metaClass)
+
+		def conf = AuthorizeTools.securityConfig.security
+		if (!conf || !conf.active) {
+			return
+		}
+
+		def ctx = event.ctx
+		if (event.source && ctx && event.application) {
+			boolean isControllerClass = application.isControllerClass(event.source)
+			boolean configChanged = 'SecurityConfig'.equals(event.source.name)
+			if (configChanged || isControllerClass) {
+				if (conf.useControllerAnnotations) {
+					ctx.objectDefinitionSource.initialize conf.controllerAnnotationStaticRules,
+						ctx.grailsUrlMappingsHolder, application.controllerClasses
+				}
+				if (isControllerClass) {
+					addControllerMethods application.getControllerClass(event.source.name).metaClass
+				}
+			}
 		}
 	}
 
@@ -906,8 +951,8 @@ class AcegiGrailsPlugin {
 		// nothing to do
 	}
 
-	private void registerControllerProps(MetaClass mc) {
-		mc.getAuthUserDomain = { ->
+	private void addControllerMethods(MetaClass mc) {
+		mc.getAuthUserDomain = {
 			def principal = SCH.context?.authentication?.principal
 			if (principal != null && principal != 'anonymousUser') {
 				return principal?.domainClass
@@ -916,11 +961,11 @@ class AcegiGrailsPlugin {
 			return null
 		}
 
-		mc.getPrincipalInfo = { ->
+		mc.getPrincipalInfo = {
 			return SCH.context?.authentication?.principal
 		}
 
-		mc.isUserLogon = { ->
+		mc.isUserLogon = {
 			def principal = SCH.context?.authentication?.principal
 			return principal != null && principal != 'anonymousUser'
 		}
@@ -928,10 +973,8 @@ class AcegiGrailsPlugin {
 
 	private boolean hasAnnotation(serviceClass) {
 		for (method in serviceClass.methods) {
-			for (annotation in method.annotations) {
-				if (annotation instanceof Secured) {
-					return true
-				}
+			if (method.isAnnotationPresent(SecuredService)) {
+				return true
 			}
 		}
 

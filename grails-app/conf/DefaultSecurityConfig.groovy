@@ -73,6 +73,13 @@ security {
 	requestMapPathField = 'url'
 	requestMapConfigAttributeField = 'configAttribute'
 
+	/** use annotations from Controllers to define security rules */
+	useControllerAnnotations = false
+	controllerAnnotationsMatcher = 'ant' // or 'regex'
+	controllerAnnotationsMatchesLowercase = true
+	controllerAnnotationStaticRules = [:]
+	controllerAnnotationsRejectIfNoRule = false
+
 	/**
 	 * if useRequestMapDomainClass is false, set request map pattern in string
 	 * see example below
@@ -109,7 +116,7 @@ security {
 	mailPort = 25
 
 	/** default user's role for user registration */
-	defaultRole='ROLE_USER'
+	defaultRole = 'ROLE_USER'
 
 	// OpenId
 	useOpenId = false

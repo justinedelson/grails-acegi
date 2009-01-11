@@ -75,11 +75,11 @@ class SecurityTest extends WebTest {
 	}
 
 	private void checkAnnotatedServiceInaccessibleWithoutRole() {
-		webtest('Check that without being logged in, annotationTest/admin is inaccessible') {
-			invoke      (url: 'annotationTest')
+		webtest('Check that without being logged in, serviceAnnotationTest/admin is inaccessible') {
+			invoke      (url: 'serviceAnnotationTest')
 			verifyText  (text:'anyone can see this')
 
-			invoke      (url: 'annotationTest/admin')
+			invoke      (url: 'serviceAnnotationTest/admin')
 			verifyText  (text:'Access is denied')
 		}
 	}
@@ -130,8 +130,8 @@ class SecurityTest extends WebTest {
 			setCheckbox(name: '_spring_security_remember_me')
 			clickButton (label:'Login')
 
-			// Check that after login, annotationTest/admin is accessible
-			invoke      (url: 'annotationTest/admin')
+			// Check that after login, serviceAnnotationTest/admin is accessible
+			invoke      (url: 'serviceAnnotationTest/admin')
 			verifyText  (text:'secure only')
 
 			// Check that with a requestmap, /secure is accessible after login

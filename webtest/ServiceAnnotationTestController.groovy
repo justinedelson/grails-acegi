@@ -1,4 +1,4 @@
-class AnnotationTestController {
+class ServiceAnnotationTestController {
 
 	def annotatedService
 
