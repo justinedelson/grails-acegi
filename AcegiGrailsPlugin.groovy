@@ -73,12 +73,12 @@ class AcegiGrailsPlugin {
 		'CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON\n' +
 		'PATTERN_TYPE_APACHE_ANT\n'
 
-	def version = '0.5-SNAPSHOT'
-	def author = 'Tsuyoshi Yamamoto'
-	def authorEmail = 'tyama@xmldo.jp'
-	def title = 'Grails Spring Security 2.0 Plugin'
-	def description = 'Plugin to use Grails domain class and secure your applications with Spring Security filters.'
-	def documentation ="http://grails.org/AcegiSecurity+Plugin"
+	String version = '0.5'
+	String author = 'Tsuyoshi Yamamoto'
+	String authorEmail = 'tyama@xmldo.jp'
+	String title = 'Grails Spring Security 2.0 Plugin'
+	String description = 'Plugin to use Grails domain class and secure your applications with Spring Security filters.'
+	String documentation ="http://grails.org/AcegiSecurity+Plugin"
 	def observe = ['controllers']
 	def loadAfter = ['controllers']
 	def watchedResources = [
@@ -286,7 +286,7 @@ class AcegiGrailsPlugin {
 		// port mappings for channel security, etc.
 		portMapper(PortMapperImpl) {
 			portMappings = [(conf.httpPort.toString()) : conf.httpsPort.toString()]
-	    }
+		}
 		portResolver(PortResolverImpl) {
 			portMapper = portMapper
 		}
@@ -339,7 +339,7 @@ class AcegiGrailsPlugin {
 			configureCAS.delegate = delegate
 			configureCAS conf
 		}
-		
+
 		// channel (http/https) security
 		if (useSecureChannel(conf)) {
 			configureChannelProcessingFilter.delegate = delegate
@@ -662,7 +662,7 @@ class AcegiGrailsPlugin {
 			forceIdentification = conf.ntlm.forceIdentification // false
 			authenticationManager = ref('authenticationManager')
 		}
-	
+
 		authenticationEntryPoint(org.codehaus.groovy.grails.plugins.springsecurity.GrailsNtlmProcessingFilterEntryPoint) {
 			authenticationFailureUrl = conf.authenticationFailureUrl
 		}
@@ -687,7 +687,7 @@ class AcegiGrailsPlugin {
 			if (conf.ipRestrictions) {
 				filterNames << 'ipAddressFilter'
 			}
-			
+
 			// X509_FILTER
 
 			// PRE_AUTH_FILTER
@@ -714,7 +714,7 @@ class AcegiGrailsPlugin {
 
 			if (!conf.useNtlm) {
 				// seems to remove NTLM authentication tokens
-            	filterNames << 'securityContextHolderAwareRequestFilter' // SERVLET_API_SUPPORT_FILTER
+				filterNames << 'securityContextHolderAwareRequestFilter' // SERVLET_API_SUPPORT_FILTER
 			}
 
 			filterNames << 'rememberMeProcessingFilter' // REMEMBER_ME_FILTER
@@ -785,7 +785,7 @@ class AcegiGrailsPlugin {
 
 		channelDecisionManager(ChannelDecisionManagerImpl) {
 			channelProcessors = [insecureChannelProcessor, secureChannelProcessor]
-		}  
+		}
 
 		String definitionSource
 		if (conf.secureChannelDefinitionSource) {
