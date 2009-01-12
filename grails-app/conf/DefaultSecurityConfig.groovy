@@ -136,6 +136,7 @@ security {
 	ldapSearchFilter = '(uid={0})' //, '(mailNickname={0})'
 	ldapGroupSearchBase = 'ou=groups,dc=example,dc=com'
 	ldapGroupSearchFilter = 'uniquemember={0}'
+	ldapUsePassword = true
 
 	// Kerberos
 	useKerberos = false

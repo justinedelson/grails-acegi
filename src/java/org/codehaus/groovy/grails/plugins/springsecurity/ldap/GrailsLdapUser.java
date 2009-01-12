@@ -18,6 +18,7 @@ import javax.naming.directory.Attributes;
 
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsUser;
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsUserImpl;
+import org.springframework.security.GrantedAuthority;
 import org.springframework.security.userdetails.ldap.LdapUserDetails;
 
 /**
@@ -33,7 +34,7 @@ public class GrailsLdapUser extends GrailsUserImpl implements GrailsUser, LdapUs
 	private final String _dn;
 
 	/**
-	 * Full constructor.
+	 * Constructor from {@link LdapUserDetails}.
 	 * @param details  the original details
 	 * @param domainClass  the domain instance
 	 */
@@ -44,6 +45,29 @@ public class GrailsLdapUser extends GrailsUserImpl implements GrailsUser, LdapUs
 				details.isAccountNonLocked(), details.getAuthorities(), domainClass);
 		_attributes = details.getAttributes();
 		_dn = details.getDn();
+	}
+
+	/**
+	 * Full constructor.
+	 * @param username  the username
+	 * @param password  the password
+	 * @param enabled  whether the user is enabled
+	 * @param accountNonExpired  whether the user's account is expired
+	 * @param credentialsNonExpired  whether the user's credentials are locked
+	 * @param accountNonLocked  whether the user's account is locked
+	 * @param authorities  authorities
+	 * @param attributes  attributes
+	 * @param dn  distinguished name
+	 * @param domainClass  the domain instance
+	 */
+	public GrailsLdapUser(final String username, final String password, final boolean enabled,
+			final boolean accountNonExpired, final boolean credentialsNonExpired,
+			final boolean accountNonLocked, final GrantedAuthority[] authorities,
+			final Attributes attributes, final String dn, final Object domainClass) {
+		super(username, password, enabled, accountNonExpired, credentialsNonExpired,
+				accountNonLocked, authorities, domainClass);
+		_attributes = attributes;
+		_dn = dn;
 	}
 
 	/**

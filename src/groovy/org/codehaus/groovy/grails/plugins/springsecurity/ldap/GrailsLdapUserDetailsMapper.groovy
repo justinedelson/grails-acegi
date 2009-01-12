@@ -36,9 +36,14 @@ class GrailsLdapUserDetailsMapper extends LdapUserDetailsMapper {
 	def userDetailsService
 
 	/**
-	 * Dependency injection for the authentication service.
+	 * Dependency injection for whether to use passwords retrieved from LDAP.
 	 */
-	def authenticateService
+	boolean usePassword
+
+	/**
+	 * Dependency injection for whether to retrieve roles from the database in addition to LDAP
+	 */
+	boolean retrieveDatabaseRoles
 
 	/**
 	 * {@inheritDoc}
@@ -49,12 +54,19 @@ class GrailsLdapUserDetailsMapper extends LdapUserDetailsMapper {
 	@Override
 	UserDetails mapUserFromContext(DirContextOperations ctx, String username, GrantedAuthority[] authorities) {
 
-		boolean retrieveDatabaseRoles = authenticateService.securityConfig.security.ldapRetrieveDatabaseRoles
 		def dbDetails = userDetailsService.loadUserByUsername(username, retrieveDatabaseRoles)
 		authorities = mergeDatabaseRoles(dbDetails, authorities)
 
 		LdapUserDetails ldapDetails = (LdapUserDetails)super.mapUserFromContext(ctx, username, authorities)
-		return new GrailsLdapUser(ldapDetails, dbDetails.domainClass)
+		if (usePassword) {
+			return new GrailsLdapUser(ldapDetails, dbDetails.domainClass)
+		}
+
+		// use a dummy password to avoid an exception from the User base class
+		return new GrailsLdapUser(details.username, 'not_used', details.enabled,
+				details.accountNonExpired, details.credentialsNonExpired,
+				details.accountNonLocked, details.authorities,
+				details.attributes, details.dn, dbDetails.domainClass)
 	}
 
 	private GrantedAuthority[] mergeDatabaseRoles(details, GrantedAuthority[] authorities) {

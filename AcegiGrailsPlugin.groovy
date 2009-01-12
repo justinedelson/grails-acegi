@@ -625,8 +625,9 @@ class AcegiGrailsPlugin {
 
 		ldapUserDetailsMapper(org.codehaus.groovy.grails.plugins.springsecurity.ldap.GrailsLdapUserDetailsMapper) {
 			userDetailsService = ref('userDetailsService')
-			authenticateService = ref('authenticateService')
 			passwordAttributeName = conf.ldapPasswordAttributeName // 'userPassword'
+			usePassword = conf.ldapUsePassword // true
+			retrieveDatabaseRoles = conf.ldapRetrieveDatabaseRoles // false
 		}
 
 		if (conf.ldapRetrieveGroupRoles) {
