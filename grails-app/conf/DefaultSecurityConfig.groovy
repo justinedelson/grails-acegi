@@ -23,6 +23,7 @@ security {
 	authenticationFailureUrl = '/login/authfail?login_error=1'
 	ajaxAuthenticationFailureUrl = '/login/authfail?ajax=true'
 	defaultTargetUrl = '/'
+	alwaysUseDefaultTargetUrl = false
 	filterProcessesUrl = '/j_spring_security_check'
 
 	/** anonymousProcessingFilter */
