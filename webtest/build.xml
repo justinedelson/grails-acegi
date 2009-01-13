@@ -102,9 +102,9 @@
 		<!-- run the scripts to create user, role, controllers, etc. -->
 		<grails action='create-auth-domains'>
 			<args>
-				<arg value='User'/>
-				<arg value='Role'/>
-				<arg value='Requestmap'/>
+				<arg value='com.testapp.TestUser'/>
+				<arg value='com.testapp.TestRole'/>
+				<arg value='com.testapp.TestRequestmap'/>
 			</args>
 		</grails>
 		<grails action='generate-manager' />

@@ -13,13 +13,13 @@ class UserTest extends WebTest {
 
 	void testUserListNewDelete() {
 		webtest('User basic operations: view list, create new entry, view, edit, delete, view') {
-			invoke      (url: 'user')
+			invoke      (url: 'testUser')
 			verifyText  (text:'Home')
 
 			verifyListSize 0
 
-			clickLink   (label:'New User')
-			verifyText  (text: 'Create User')
+			clickLink   (label:'New TestUser')
+			verifyText  (text: 'Create TestUser')
 
 			setInputField(name: 'username', value: 'new_user')
 			setInputField(name: 'userRealName', value: 'new user')
@@ -30,7 +30,7 @@ class UserTest extends WebTest {
 			setCheckbox(name: 'emailShow')
 			clickButton (label:'Create')
 
-			verifyText  (text: 'Show User', description:'Detail page')
+			verifyText  (text: 'Show TestUser', description:'Detail page')
 			clickLink   (label:'List', description:'Back to list view')
 
 			verifyListSize 1
@@ -38,7 +38,7 @@ class UserTest extends WebTest {
 			group(description:'edit the one element') {
 				showFirstElementDetails()
 				clickButton (label:'Edit')
-				verifyText  (text: 'Edit User')
+				verifyText  (text: 'Edit TestUser')
 
 				setInputField(name: 'username', value: 'new_user2')
 				setInputField(name: 'userRealName', value: 'new user2')
@@ -49,7 +49,7 @@ class UserTest extends WebTest {
 				setCheckbox(name: 'emailShow', checked: false)
 				clickButton (label:'Update')
 
-				verifyText  (text: 'Show User')
+				verifyText  (text: 'Show TestUser')
 				clickLink   (label:'List', description:'Back to list view')
 			}
 
@@ -58,7 +58,7 @@ class UserTest extends WebTest {
 			group(description:'delete the only element') {
 				showFirstElementDetails()
 				clickButton (label:'Delete')
-				verifyXPath (xpath:"//div[@class='message']", text:/.*User.*deleted.*/, regex:true)
+				verifyXPath (xpath:"//div[@class='message']", text:/.*TestUser.*deleted.*/, regex:true)
 			}
 
 			verifyListSize 0
@@ -66,13 +66,13 @@ class UserTest extends WebTest {
 	}
 
 	private void verifyListSize(int size) {
-		ant.group(description:"verify User list view with $size row(s)") {
-			verifyText  (text:'User List')
+		ant.group(description:"verify TestUser list view with $size row(s)") {
+			verifyText  (text:'TestUser List')
 			verifyXPath (xpath:ROW_COUNT_XPATH, text:size, description:"$size row(s) of data expected")
 		}
 	}
 
 	private void showFirstElementDetails() {
-		ant.clickLink(href: '/user/show/1', description: 'go to detail view')
+		ant.clickLink(href: '/testUser/show/1', description: 'go to detail view')
 	}
 }

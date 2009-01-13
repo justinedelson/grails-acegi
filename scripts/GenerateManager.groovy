@@ -51,7 +51,7 @@ private void generateControllerAndViews(String name, String templateName) {
 	println "generating file $path"
 	generateFile "$pluginTemplatePath/controllers/_${templateName}Controller.groovy", path
 
-	path = "$basedir/grails-app/views/${name.toLowerCase()}"
+	path = "$basedir/grails-app/views/${org.apache.commons.lang.WordUtils.uncapitalize(name)}"
 	String viewPath = "$pluginTemplatePath/views/${templateName.toLowerCase()}"
 	println "generating view files - $path/* "
 	Ant.mkdir dir: path

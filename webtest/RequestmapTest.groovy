@@ -13,19 +13,19 @@ class RequestmapTest extends WebTest {
 
 	void testRequestmapListNewDelete() {
 		webtest('Requestmap basic operations: view list, create new entry, view, edit, delete, view') {
-			invoke      (url: 'requestmap')
+			invoke      (url: 'testRequestmap')
 			verifyText  (text:'Home')
 
 			verifyListSize 0
 
-			clickLink   (label:'New Requestmap')
-			verifyText  (text: 'Create Requestmap')
+			clickLink   (label:'New TestRequestmap')
+			verifyText  (text: 'Create TestRequestmap')
 
 			setInputField(name: 'url', value: '/secure/**')
 			setInputField(name: 'configAttribute', value: 'admin')
 			clickButton (label:'Create')
 
-			verifyText  (text: 'Show Requestmap', description:'Detail page')
+			verifyText  (text: 'Show TestRequestmap', description:'Detail page')
 			clickLink   (label:'List', description:'Back to list view')
 
 			verifyListSize 1
@@ -33,9 +33,9 @@ class RequestmapTest extends WebTest {
 			group(description:'edit the one element') {
 				showFirstElementDetails()
 				clickButton (label:'Edit')
-				verifyText  (text: 'Edit Requestmap')
+				verifyText  (text: 'Edit TestRequestmap')
 				clickButton (label:'Update')
-				verifyText  (text: 'Show Requestmap')
+				verifyText  (text: 'Show TestRequestmap')
 				clickLink   (label:'List', description:'Back to list view')
 			}
 
@@ -44,7 +44,7 @@ class RequestmapTest extends WebTest {
 			group(description:'delete the only element') {
 				showFirstElementDetails()
 				clickButton (label:'Delete')
-				verifyXPath (xpath:"//div[@class='message']", text:/.*Requestmap.*deleted.*/, regex:true)
+				verifyXPath (xpath:"//div[@class='message']", text:/.*TestRequestmap.*deleted.*/, regex:true)
 			}
 
 			verifyListSize 0
@@ -52,13 +52,13 @@ class RequestmapTest extends WebTest {
 	}
 
 	private void verifyListSize(int size) {
-		ant.group(description:"verify Requestmap list view with $size row(s)") {
-			verifyText  (text:'Requestmap List')
+		ant.group(description:"verify TestRequestmap list view with $size row(s)") {
+			verifyText  (text:'TestRequestmap List')
 			verifyXPath (xpath:ROW_COUNT_XPATH, text:size, description:"$size row(s) of data expected")
 		}
 	}
 
 	private void showFirstElementDetails() {
-		ant.clickLink(href: '/requestmap/show/1', description:'go to detail view')
+		ant.clickLink(href: '/testRequestmap/show/1', description:'go to detail view')
 	}
 }

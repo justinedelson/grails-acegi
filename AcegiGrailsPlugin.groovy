@@ -77,7 +77,7 @@ class AcegiGrailsPlugin {
 		'CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON\n' +
 		'PATTERN_TYPE_APACHE_ANT\n'
 
-	String version = '0.5'
+	String version = '0.5.1'
 	String author = 'Tsuyoshi Yamamoto'
 	String authorEmail = 'tyama@xmldo.jp'
 	String title = 'Grails Spring Security 2.0 Plugin'

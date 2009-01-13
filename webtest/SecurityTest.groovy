@@ -28,19 +28,19 @@ class SecurityTest extends WebTest {
 
 	private void createRole() {
 		webtest('Create the admin role') {
-			invoke      (url: 'role')
+			invoke      (url: 'testRole')
 			verifyText  (text:'Home')
 
 			verifyListSize 0
 
-			clickLink   (label:'New Role')
-			verifyText  (text: 'Create Role')
+			clickLink   (label:'New TestRole')
+			verifyText  (text: 'Create TestRole')
 
 			setInputField(name: 'authority', value: 'admin')
 			setInputField(name: 'description', value: 'admin role')
 			clickButton (label:'Create')
 
-			verifyText  (text: 'Show Role', description:'Detail page')
+			verifyText  (text: 'Show TestRole', description:'Detail page')
 			clickLink   (label:'List', description:'Back to list view')
 
 			verifyListSize 1
@@ -49,13 +49,13 @@ class SecurityTest extends WebTest {
 
 	private void createUser() {
 		webtest('Create the test user') {
-			invoke      (url: 'user')
+			invoke      (url: 'testUser')
 			verifyText  (text:'Home')
 
 			verifyListSize 0
 
-			clickLink   (label:'New User')
-			verifyText  (text: 'Create User')
+			clickLink   (label:'New TestUser')
+			verifyText  (text: 'Create TestUser')
 
 			setInputField(name: 'username', value: 'new_user')
 			setInputField(name: 'userRealName', value: 'new user')
@@ -67,7 +67,7 @@ class SecurityTest extends WebTest {
 			setCheckbox(name: 'ROLE_ADMIN')
 			clickButton (label:'Create')
 
-			verifyText  (text: 'Show User', description:'Detail page')
+			verifyText  (text: 'Show TestUser', description:'Detail page')
 			clickLink   (label:'List', description:'Back to list view')
 
 			verifyListSize 1
@@ -93,19 +93,19 @@ class SecurityTest extends WebTest {
 
 	private void createRequestMap() {
 		webtest('Create a Requestmap entry for /secure') {
-			invoke      (url: 'requestmap')
+			invoke      (url: 'testRequestmap')
 			verifyText  (text:'Home')
 
 			verifyListSize 0
 
-			clickLink   (label:'New Requestmap')
-			verifyText  (text: 'Create Requestmap')
+			clickLink   (label:'New TestRequestmap')
+			verifyText  (text: 'Create TestRequestmap')
 
 			setInputField(name: 'url', value: '/secure/**')
 			setInputField(name: 'configAttribute', value: 'admin')
 			clickButton (label:'Create')
 
-			verifyText  (text: 'Show Requestmap', description:'Detail page')
+			verifyText  (text: 'Show TestRequestmap', description:'Detail page')
 			clickLink   (label:'List', description:'Back to list view')
 
 			verifyListSize 1
