@@ -100,7 +100,7 @@ public class AnnotationFilterInvocationDefinition
 
 		GrailsWebRequest existingRequest = WebUtils.retrieveGrailsWebRequest();
 
-		String requestUrl = filterInvocation.getRequestUrl();
+		String requestUrl = request.getRequestURI().substring(request.getContextPath().length());
 
 		String url = null;
 		try {
