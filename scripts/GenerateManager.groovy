@@ -27,12 +27,12 @@ pluginTemplatePath = "$templateDir/manager"
 target('default': 'Generates view and controller for Spring Security user management') {
 	loadConfig()
 
-	generateControllerAndViews 'User'
-	generateControllerAndViews 'Role'
-	generateControllerAndViews 'Requestmap'
+	generateControllerAndViews personClassName, 'User'
+	generateControllerAndViews authorityClassName, 'Role'
+	generateControllerAndViews requestmapClassName, 'Requestmap'
 }
 
-private void generateControllerAndViews(String name) {
+private void generateControllerAndViews(String name, String templateName) {
 
 	String path = "$basedir/grails-app/controllers/${name}Controller.groovy"
 	def outFile = new File(path)
@@ -49,10 +49,10 @@ private void generateControllerAndViews(String name) {
 	println "generating files for $name ......."
 
 	println "generating file $path"
-	generateFile "$pluginTemplatePath/controllers/_${name}Controller.groovy", path
+	generateFile "$pluginTemplatePath/controllers/_${templateName}Controller.groovy", path
 
 	path = "$basedir/grails-app/views/${name.toLowerCase()}"
-	String viewPath = "$pluginTemplatePath/views/${name.toLowerCase()}"
+	String viewPath = "$pluginTemplatePath/views/${templateName.toLowerCase()}"
 	println "generating view files - $path/* "
 	Ant.mkdir dir: path
 	generateFile "$viewPath/list.gsp", "$path/list.gsp"
