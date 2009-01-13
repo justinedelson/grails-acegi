@@ -63,10 +63,10 @@ class GrailsLdapUserDetailsMapper extends LdapUserDetailsMapper {
 		}
 
 		// use a dummy password to avoid an exception from the User base class
-		return new GrailsLdapUser(details.username, 'not_used', details.enabled,
-				details.accountNonExpired, details.credentialsNonExpired,
-				details.accountNonLocked, details.authorities,
-				details.attributes, details.dn, dbDetails.domainClass)
+		return new GrailsLdapUser(ldapDetails.username, 'not_used', ldapDetails.enabled,
+				ldapDetails.accountNonExpired, ldapDetails.credentialsNonExpired,
+				ldapDetails.accountNonLocked, ldapDetails.authorities,
+				ldapDetails.attributes, ldapDetails.dn, dbDetails.domainClass)
 	}
 
 	private GrantedAuthority[] mergeDatabaseRoles(details, GrantedAuthority[] authorities) {
