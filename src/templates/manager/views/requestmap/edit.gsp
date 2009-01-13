@@ -1,86 +1,63 @@
-<html>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-		<meta name="layout" content="main" />
-		<title>Edit ${requestmapClassName}</title>
-	</head>
-	<body>
-		<div class="nav">
-			<span class="menuButton"><a class="home" href="\${createLinkTo(dir:'')}">Home</a></span>
-			<span class="menuButton"><g:link class="list" action="list">${requestmapClassName} List</g:link></span>
-			<span class="menuButton"><g:link class="create" action="create">New ${requestmapClassName}</g:link></span>
+<head>
+	<meta name="layout" content="main" />
+	<title>Edit ${requestmapClassName}</title>
+</head>
+
+<body>
+
+	<div class="nav">
+		<span class="menuButton"><a class="home" href="\${createLinkTo(dir:'')}">Home</a></span>
+		<span class="menuButton"><g:link class="list" action="list">${requestmapClassName} List</g:link></span>
+		<span class="menuButton"><g:link class="create" action="create">New ${requestmapClassName}</g:link></span>
+	</div>
+
+	<div class="body">
+		<h1>Edit ${requestmapClassName}</h1>
+		<g:if test="\${flash.message}">
+		<div class="message">\${flash.message}</div>
+		</g:if>
+		<g:hasErrors bean="\${requestmap}">
+		<div class="errors">
+		<g:renderErrors bean="\${requestmap}" as="list" />
 		</div>
-		<div class="body">
-			<h1>Edit ${requestmapClassName}</h1>
-			<g:if test="\${flash.message}">
-			<div class="message">\${flash.message}</div>
-			</g:if>
-			<g:hasErrors bean="\${requestmap}">
-			<div class="errors">
-			<g:renderErrors bean="\${requestmap}" as="list" />
-			</div>
-			</g:hasErrors>
+		</g:hasErrors>
 
-			<div class="prop">
-				<span class="name">Id:</span>
-				<span class="value">\${requestmap?.id}</span>
-			</div>
-
-			<g:form method="post" >
-				<input type="hidden" name="id" value="\${requestmap?.id}" />
-				<input type="hidden" name="version" value="\${requestmap.version}" />
-				<div class="dialog">
-					<table>
-					<tbody>
-
-						<tr class="prop">
-							<td valign="top" class="name">
-								<label for="url">URL:</label>
-							</td>
-							<td valign="top" class="value \${hasErrors(bean:requestmap,field:'url','errors')}">
-								<input type="text" id="url" name="url" value="\${requestmap?.url?.encodeAsHTML()}"/>
-							</td>
-						</tr>
-
-						<tr class="prop">
-							<td valign="top" class="name">
-								<label for="configAttribute">Roles (comma-delimited):</label>
-							</td>
-<%
-def a="<"
-def b="%"
-def c=">"
-def lt="$a$b"
-def gt="$b$c"
-%>					
-${lt}
-def names = []
-org.springframework.util.StringUtils.commaDelimitedListToStringArray(requestmap.configAttribute).each { role ->
-	if (role.startsWith('ROLE_')) {
-		names << role.substring(5).toLowerCase().encodeAsHTML()
-	}
-	else {
-		names << role.encodeAsHTML()
-	}
-}
-${gt}
-							<td valign="top" class="value \${hasErrors(bean:requestmap,field:'configAttribute','errors')}">
-								<input type="text" name='configAttribute'  value="\${names.join(',')}"/>
-							</td>
-						</tr>
-
-					</tbody>
-					</table>
-				</div>
-
-				<div class="buttons">
-					<span class="button"><g:actionSubmit class="save" value="Update" /></span>
-					<span class="button"><g:actionSubmit class="delete" onclick="return confirm('Are you sure?');" value="Delete" /></span>
-				</div>
-
-			</g:form>
-
+		<div class="prop">
+			<span class="name">ID:</span>
+			<span class="value">\${requestmap.id}</span>
 		</div>
-	</body>
-</html>
 
+		<g:form>
+			<input type="hidden" name="id" value="\${requestmap.id}" />
+			<input type="hidden" name="version" value="\${requestmap.version}" />
+			<div class="dialog">
+				<table>
+				<tbody>
+
+					<tr class="prop">
+						<td valign="top" class="name"><label for="url">URL Pattern:</label></td>
+						<td valign="top" class="value \${hasErrors(bean:requestmap,field:'url','errors')}">
+							<input type="text" id="url" name="url" value="\${requestmap.url?.encodeAsHTML()}"/>
+						</td>
+					</tr>
+
+					<tr class="prop">
+						<td valign="top" class="name"><label for="configAttribute">Roles (comma-delimited):</label></td>
+						<td valign="top" class="value \${hasErrors(bean:requestmap,field:'configAttribute','errors')}">
+							<input type="text" name='configAttribute'  value="\${requestmap.configAttribute}"/>
+						</td>
+					</tr>
+
+				</tbody>
+				</table>
+			</div>
+
+			<div class="buttons">
+				<span class="button"><g:actionSubmit class="save" value="Update" /></span>
+				<span class="button"><g:actionSubmit class="delete" onclick="return confirm('Are you sure?');" value="Delete" /></span>
+			</div>
+
+		</g:form>
+
+	</div>
+</body>

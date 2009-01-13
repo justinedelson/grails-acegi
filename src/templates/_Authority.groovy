@@ -12,10 +12,10 @@ class ${authorityClassName} {
 	/** description */
 	String description
 	/** ROLE String */
-	String authority = 'ROLE_'
+	String authority
 
 	static constraints = {
-		authority(blank: false)
+		authority(blank: false, unique: true)
 		description()
 	}
 }

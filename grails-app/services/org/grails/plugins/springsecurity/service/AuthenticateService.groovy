@@ -32,6 +32,9 @@ class AuthenticateService {
 
 	private securityConfig
 
+	/** dependency injection for {@link GrailsFilterInvocationDefinition} */
+	def objectDefinitionSource
+
 	/** dependency injection for the password encoder */
 	def passwordEncoder
 
@@ -129,5 +132,85 @@ class AuthenticateService {
 	 */
 	boolean isLoggedIn() {
 		return principal() instanceof UserDetails
+	}
+
+	/**
+	 * Call when editing, creating, or deleting a Requestmap to flush the cached
+	 * configuration and rebuild using the most recent data.
+	 */
+	void clearCachedRequestmaps() {
+		objectDefinitionSource.reset()
+	}
+
+	/**
+	 * Delete a role, and if Requestmap class is used to store roles, remove the role
+	 * from all Requestmap definitions. If a Requestmap's config attribute is this role,
+	 * it will be deleted.
+	 *
+	 * @param role  the role to delete
+	 */
+	void deleteRole(role) {
+		def conf = getSecurityConfig().security
+		String configAttributeName = conf.requestMapConfigAttributeField
+
+		role.getClass().withTransaction { status ->
+			if (conf.useRequestMapDomainClass) {
+				String roleName = role.authority
+				def requestmaps = findRequestmapsByRole(roleName, role.getClass(), conf)
+				requestmaps.each { rm ->
+					String configAttribute = rm."$configAttributeName"
+					if (configAttribute.equals(roleName)) {
+						rm.delete()
+					}
+					else {
+						List parts = configAttribute.split(',') as List
+						parts.remove roleName
+						rm."$configAttributeName" = parts.join(',')
+					}
+				}
+				clearCachedRequestmaps()
+			}
+
+			role.delete()
+		}
+	}
+
+	/**
+	 * Update a role, and if Requestmap class is used to store roles, replace the new role
+	 * name in all Requestmap definitions that use it if the name was changed.
+	 *
+	 * @param role  the role to update
+	 * @param newProperties  the new role attributes ('params' from the calling controller)
+	 */
+	boolean updateRole(role, newProperties) {
+
+		String oldRoleName = role.authority
+		role.properties = newProperties
+
+		def conf = getSecurityConfig().security
+
+		String configAttributeName = conf.requestMapConfigAttributeField
+		if (conf.useRequestMapDomainClass) {
+			String newRoleName = role.authority
+			if (newRoleName != oldRoleName) {
+				def requestmaps = findRequestmapsByRole(oldRoleName, role.getClass(), conf)
+				requestmaps.each { rm ->
+					rm."$configAttributeName" = rm."$configAttributeName".replace(oldRoleName, newRoleName)
+				}
+			}
+			clearCachedRequestmaps()
+		}
+
+		role.save()
+		return !role.hasErrors()
+	}
+
+	private List findRequestmapsByRole(String roleName, domainClass, conf) {
+		String requestmapClassName = conf.requestMapClass
+		String configAttributeName = conf.requestMapConfigAttributeField
+		return domainClass.executeQuery(
+				"SELECT rm FROM $requestmapClassName rm " +
+				"WHERE rm.$configAttributeName LIKE :roleName",
+				[roleName: "%$roleName%"])
 	}
 }

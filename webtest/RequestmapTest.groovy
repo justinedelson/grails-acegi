@@ -22,7 +22,7 @@ class RequestmapTest extends WebTest {
 			verifyText  (text: 'Create TestRequestmap')
 
 			setInputField(name: 'url', value: '/secure/**')
-			setInputField(name: 'configAttribute', value: 'admin')
+			setInputField(name: 'configAttribute', value: 'ROLE_ADMIN')
 			clickButton (label:'Create')
 
 			verifyText  (text: 'Show TestRequestmap', description:'Detail page')

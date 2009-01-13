@@ -9,10 +9,15 @@ class ${authorityClassName}Controller {
 	// the delete, save and update actions only accept POST requests
 	static Map allowedMethods = [delete: 'POST', save: 'POST', update: 'POST']
 
+	def authenticateService
+
 	def index = {
-		redirect(action: list, params: params)
+		redirect action: list, params: params
 	}
 
+	/**
+	 * Display the list authority page.
+	 */
 	def list = {
 		if (!params.max) {
 			params.max = 10
@@ -20,34 +25,14 @@ class ${authorityClassName}Controller {
 		[authorityList: ${authorityClassName}.list(params)]
 	}
 
+	/**
+	 * Display the show authority page.
+	 */
 	def show = {
-		[authority: ${authorityClassName}.get(params.id)]
-	}
-
-	def delete = {
 		def authority = ${authorityClassName}.get(params.id)
 		if (!authority) {
-			flash.message = "${authorityClassName} not found with id \${params.id}"
-			redirect(action: list)
-			return
-		}
-
-		String oldRole = authority.authority
-		def rms = ${requestmapClassName}.findAllByConfigAttributeLike('%' + oldRole + '%')
-		rms.each {
-			it.configAttribute = it.configAttribute.replace(oldRole, '')
-			it.validate()
-		}
-		authority.delete()
-		flash.message = "${authorityClassName} \${params.id} deleted."
-		redirect(action: list)
-	}
-
-	def edit = {
-		def authority = ${authorityClassName}.get(params.id)
-		if (!authority) {
-			flash.message = "${authorityClassName} not found with id \${params.id}"
-			redirect(action: list)
+			flash.message = "${authorityClassName} not found with id \$params.id"
+			redirect action: list
 			return
 		}
 
@@ -55,15 +40,45 @@ class ${authorityClassName}Controller {
 	}
 
 	/**
-	 * Authority update action. When updating an existing authority instance, the requestmaps which contain
-	 * them should also be updated.
+	 * Delete an authority.
+	 */
+	def delete = {
+		def authority = ${authorityClassName}.get(params.id)
+		if (!authority) {
+			flash.message = "${authorityClassName} not found with id \$params.id"
+			redirect action: list
+			return
+		}
+
+		authenticateService.deleteRole(authority)
+
+		flash.message = "${authorityClassName} \$params.id deleted."
+		redirect action: list
+	}
+
+	/**
+	 * Display the edit authority page.
+	 */
+	def edit = {
+		def authority = ${authorityClassName}.get(params.id)
+		if (!authority) {
+			flash.message = "${authorityClassName} not found with id \$params.id"
+			redirect action: list
+			return
+		}
+
+		[authority: authority]
+	}
+
+	/**
+	 * Authority update action.
 	 */
 	def update = {
 
 		def authority = ${authorityClassName}.get(params.id)
 		if (!authority) {
-			flash.message = "${authorityClassName} not found with id \${params.id}"
-			redirect(action: edit, id: params.id)
+			flash.message = "${authorityClassName} not found with id \$params.id"
+			redirect action: edit, id: params.id
 			return
 		}
 
@@ -75,46 +90,34 @@ class ${authorityClassName}Controller {
 			return
 		}
 
-		String oldRole = authority.authority
-		authority.properties = params
-		String role = params.authority
-		authority.authority = 'ROLE_' + role.toUpperCase()
-		String newRole = authority.authority
-		def rms = ${requestmapClassName}.findAllByConfigAttributeLike('%' + oldRole + '%')
-		rms.each {
-			it.configAttribute = it.configAttribute.replace(oldRole, newRole)
-			it.validate()
-		}
-		if (authority.save()) {
-			redirect(action: show, id: authority.id)
+		if (authenticateService.updateRole(authority, params)) {
+			authenticateService.clearCachedRequestmaps()
+			redirect action: show, id: authority.id
 		}
 		else {
-			render(view: 'edit', model: [authority: authority])
+			render view: 'edit', model: [authority: authority]
 		}
-	}
-
-	def create = {
-		def authority = new ${authorityClassName}()
-		authority.authority = ''
-		authority.properties = params
-		[authority: authority]
 	}
 
 	/**
-	 * Authority save action.
+	 * Display the create new authority page.
+	 */
+	def create = {
+		[authority: new ${authorityClassName}()]
+	}
+
+	/**
+	 * Save a new authority.
 	 */
 	def save = {
 
 		def authority = new ${authorityClassName}()
-		String au = params.authority
 		authority.properties = params
-		//here translate user's input to the required format
-		authority.authority = 'ROLE_' + au.toUpperCase()
 		if (authority.save()) {
-			redirect(action: show, id: authority.id)
+			redirect action: show, id: authority.id
 		}
 		else {
-			render(view: 'create', model: [authority: authority])
+			render view: 'create', model: [authority: authority]
 		}
 	}
 }

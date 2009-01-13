@@ -16,7 +16,6 @@ package org.codehaus.groovy.grails.plugins.springsecurity;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -27,7 +26,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.WordUtils;
-import org.apache.log4j.Logger;
 import org.codehaus.groovy.grails.commons.ApplicationHolder;
 import org.codehaus.groovy.grails.commons.ControllerArtefactHandler;
 import org.codehaus.groovy.grails.commons.GrailsApplication;
@@ -39,12 +37,9 @@ import org.codehaus.groovy.grails.web.mapping.UrlMappingsHolder;
 import org.codehaus.groovy.grails.web.servlet.mvc.GrailsParameterMap;
 import org.codehaus.groovy.grails.web.servlet.mvc.GrailsWebRequest;
 import org.codehaus.groovy.grails.web.util.WebUtils;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.security.ConfigAttributeDefinition;
 import org.springframework.security.intercept.web.FilterInvocation;
 import org.springframework.security.intercept.web.FilterInvocationDefinitionSource;
-import org.springframework.security.util.AntUrlPathMatcher;
-import org.springframework.security.util.UrlMatcher;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -55,44 +50,12 @@ import org.springframework.util.StringUtils;
  *
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
-public class AnnotationFilterInvocationDefinition
-       implements FilterInvocationDefinitionSource, InitializingBean {
+public class AnnotationFilterInvocationDefinition extends AbstractFilterInvocationDefinition {
 
-	private static final ConfigAttributeDefinition DENY =
-		new ConfigAttributeDefinition(Collections.emptyList());
-
-	private final Map<Object, ConfigAttributeDefinition> _compiled =
-		new HashMap<Object, ConfigAttributeDefinition>();
-
-	private final Logger _log = Logger.getLogger(getClass());
-
-	private UrlMatcher _urlMatcher;
-	private boolean _stripQueryStringFromUrls;
 	private UrlMappingsHolder _urlMappingsHolder;
-	private boolean _rejectIfNoRule;
 
-	/**
-	 * {@inheritDoc}
-	 * @see org.springframework.security.intercept.ObjectDefinitionSource#getAttributes(java.lang.Object)
-	 */
-	public ConfigAttributeDefinition getAttributes(Object object) {
-		if (object == null || !supports(object.getClass())) {
-			throw new IllegalArgumentException("Object must be a FilterInvocation");
-		}
-
-		FilterInvocation filterInvocation = (FilterInvocation)object;
-
-		String url = determineUrl(filterInvocation);
-
-		ConfigAttributeDefinition configAttribute = findConfigAttribute(url);
-		if (configAttribute == null && _rejectIfNoRule) {
-			return DENY;
-		}
-
-		return configAttribute;
-	}
-
-	private String determineUrl(final FilterInvocation filterInvocation) {
+	@Override
+	protected String determineUrl(final FilterInvocation filterInvocation) {
 		HttpServletRequest request = filterInvocation.getHttpRequest();
 		HttpServletResponse response = filterInvocation.getHttpResponse();
 		ServletContext servletContext = ServletContextHolder.getServletContext();
@@ -132,18 +95,7 @@ public class AnnotationFilterInvocationDefinition
 			url = requestUrl;
 		}
 
-		if (_urlMatcher.requiresLowerCaseUrl()) {
-			url = url.toLowerCase();
-		}
-
-		if (_stripQueryStringFromUrls) {
-			int firstQuestionMarkIndex = url.indexOf("?");
-			if (firstQuestionMarkIndex != -1) {
-				url = url.substring(0, firstQuestionMarkIndex);
-			}
-		}
-
-		return url;
+		return lowercaseAndStringQuerystring(url);
 	}
 
 	private String findGrailsUrl(final UrlMappingInfo mapping, final GrailsApplication application) {
@@ -182,76 +134,9 @@ public class AnnotationFilterInvocationDefinition
 		mapping.configure(grailsRequest);
 	}
 
-	private ConfigAttributeDefinition findConfigAttribute(final String url) {
-		ConfigAttributeDefinition configAttribute = null;
-		Object configAttributePattern = null;
-
-		for (Map.Entry<Object, ConfigAttributeDefinition> entry : _compiled.entrySet()) {
-			Object pattern = entry.getKey();
-			if (_urlMatcher.pathMatchesUrl(pattern, url)) {
-				// TODO  this assumes Ant matching, not valid for regex
-				if (configAttribute == null || _urlMatcher.pathMatchesUrl(configAttributePattern, (String)pattern)) {
-					configAttribute = entry.getValue();
-					configAttributePattern = pattern;
-					if (_log.isTraceEnabled()) {
-						_log.trace("new candidate for '" + url + "': '" + pattern
-								+ "':" + configAttribute.getConfigAttributes());
-					}
-				}
-			}
-		}
-
-		if (_log.isTraceEnabled()) {
-			if (configAttribute == null) {
-				_log.trace("no config for '" + url + "'");
-			}
-			else {
-				_log.trace("config for '" + url + "' is '" + configAttributePattern
-						+ "':" + configAttribute.getConfigAttributes());
-			}
-		}
-
-		return configAttribute;
-	}
-
 	@SuppressWarnings("unchecked")
 	private Map<String, Object> copyParams(final GrailsWebRequest grailsRequest) {
 		return new HashMap<String, Object>(grailsRequest.getParams());
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * @see org.springframework.security.intercept.ObjectDefinitionSource#supports(java.lang.Class)
-	 */
-	@SuppressWarnings("unchecked")
-	public boolean supports(final Class clazz) {
-		return FilterInvocation.class.isAssignableFrom(clazz);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * @see org.springframework.security.intercept.ObjectDefinitionSource#getConfigAttributeDefinitions()
-	 */
-	@SuppressWarnings("unchecked")
-	public Collection getConfigAttributeDefinitions() {
-		return null;
-	}
-
-	/**
-	 * Dependency injection for the url matcher.
-	 * @param urlMatcher  the matcher
-	 */
-	public void setUrlMatcher(final UrlMatcher urlMatcher) {
-		_urlMatcher = urlMatcher;
-		_stripQueryStringFromUrls = _urlMatcher instanceof AntUrlPathMatcher;
-	}
-
-	/**
-	 * Dependency injection for whether to reject if there's no matching rule.
-	 * @param reject  if true, reject access unless there's a pattern for the specified resource
-	 */
-	public void setRejectIfNoRule(final boolean reject) {
-		_rejectIfNoRule = reject;
 	}
 
 	/**
@@ -342,7 +227,7 @@ public class AnnotationFilterInvocationDefinition
 		ConfigAttributeDefinition configAttribute = new ConfigAttributeDefinition(
 				roles.toArray(new String[roles.size()]));
 
-		Object key = _urlMatcher.compile(fullPattern);
+		Object key = getUrlMatcher().compile(fullPattern);
 		ConfigAttributeDefinition replaced = _compiled.put(key, configAttribute);
 		if (replaced != null) {
 			_log.warn("replaced rule for '" + key + "' with roles " + replaced.getConfigAttributes()
@@ -387,22 +272,5 @@ public class AnnotationFilterInvocationDefinition
 			set.add(string);
 		}
 		return set;
-	}
-
-	/**
-	 * For debugging.
-	 * @return  an unmodifiable map of {@link AnnotationFilterInvocationDefinition}ConfigAttributeDefinition
-	 * keyed by compiled patterns
-	 */
-	public Map<Object, ConfigAttributeDefinition> getConfigAttributeMap() {
-		return Collections.unmodifiableMap(_compiled);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
-	 */
-	public void afterPropertiesSet() {
-		Assert.notNull(_urlMatcher, "url matcher is required");
 	}
 }

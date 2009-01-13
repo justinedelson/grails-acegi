@@ -14,6 +14,8 @@
  */
 package org.grails.plugins.springsecurity.service
 
+import groovy.util.Expando
+
 import org.codehaus.groovy.grails.plugins.springsecurity.AbstractSecurityTest
 import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools as AT
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsUserImpl
@@ -153,12 +155,13 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 		assertFalse _service.isAjax(_request)
 	}
 
-	void testIsAjaxUsingHeaderTrue() {
-		_service.metaClass.getSecurityConfig = { -> [security: [ajaxHeader: 'ajaxHeader']] }
-		_request.addHeader('ajaxHeader', 'foo')
-
-		assertTrue _service.isAjax(_request)
-	}
+//	void testIsAjaxUsingHeaderTrue() {
+//
+//		_service.metaClass.getSecurityConfig = { -> [security: [ajaxHeader: 'ajaxHeader']] }
+//		_request.addHeader('ajaxHeader', 'foo')
+//
+//		assertTrue _service.isAjax(_request)
+//	}
 
 	void testIsAjaxUsingSavedRequestFalse() {
 
@@ -178,6 +181,81 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 		_request.session.setAttribute(APF.SPRING_SECURITY_SAVED_REQUEST_KEY, savedRequest)
 
 		assertTrue _service.isAjax(_request)
+	}
+
+	void testClearCachedRequestmaps() {
+		boolean resetCalled = false
+		_service.objectDefinitionSource = [reset: { -> resetCalled = true }]
+
+		_service.clearCachedRequestmaps()
+
+		assertTrue resetCalled
+	}
+
+	void testDeleteRole() {
+
+		def requestmaps = [new TestRequestmap('ROLE_USER'),
+		                   new TestRequestmap('ROLE_ADMIN'),
+		                   new TestRequestmap('ROLE_ADMIN,ROLE_FOO'),
+		                   new TestRequestmap('ROLE_USER,ROLE_ADMIN,ROLE_FOO'),
+		                   new TestRequestmap('ROLE_USER,ROLE_ADMIN,ROLE_FOO'),
+		                   new TestRequestmap('ROLE_ADMIN,ROLE_FOO')]
+		_service.metaClass.findRequestmapsByRole = { String roleName, domainClass, conf -> requestmaps }
+
+		def role = new TestRole()
+		role.authority = 'ROLE_ADMIN'
+
+		def conf = [security: [requestMapConfigAttributeField: 'configAttribute',
+		                       useRequestMapDomainClass: true]]
+		_service.metaClass.getSecurityConfig = { -> conf }
+
+		boolean clearCachedRequestmapsCalled = false
+		_service.metaClass.clearCachedRequestmaps = { -> clearCachedRequestmapsCalled = true }
+
+		_service.deleteRole role
+
+		assertEquals 'ROLE_USER', requestmaps[0].configAttribute
+		assertTrue requestmaps[1].deleted
+		assertEquals 'ROLE_FOO', requestmaps[2].configAttribute
+		assertEquals 'ROLE_USER,ROLE_FOO', requestmaps[3].configAttribute
+		assertEquals 'ROLE_USER,ROLE_FOO', requestmaps[4].configAttribute
+		assertEquals 'ROLE_FOO', requestmaps[5].configAttribute
+
+		assertTrue clearCachedRequestmapsCalled
+		assertTrue role.deleted
+	}
+
+	void testUpdateRole() {
+
+		def requestmaps = [new TestRequestmap('ROLE_USER'),
+		                   new TestRequestmap('ROLE_ADMIN'),
+		                   new TestRequestmap('ROLE_ADMIN,ROLE_FOO'),
+		                   new TestRequestmap('ROLE_USER,ROLE_ADMIN,ROLE_FOO'),
+		                   new TestRequestmap('ROLE_USER,ROLE_ADMIN,ROLE_FOO'),
+		                   new TestRequestmap('ROLE_ADMIN,ROLE_FOO')]
+		_service.metaClass.findRequestmapsByRole = { String roleName, domainClass, conf -> requestmaps }
+
+		def role = new TestRole()
+		role.authority = 'ROLE_ADMIN'
+
+		def conf = [security: [requestMapConfigAttributeField: 'configAttribute',
+		                       useRequestMapDomainClass: true]]
+		_service.metaClass.getSecurityConfig = { -> conf }
+
+		boolean clearCachedRequestmapsCalled = false
+		_service.metaClass.clearCachedRequestmaps = { -> clearCachedRequestmapsCalled = true }
+
+		assertTrue _service.updateRole(role, [authority: 'ROLE_SUPERADMIN'])
+
+		assertEquals 'ROLE_USER', requestmaps[0].configAttribute
+		assertEquals 'ROLE_SUPERADMIN', requestmaps[1].configAttribute
+		assertEquals 'ROLE_SUPERADMIN,ROLE_FOO', requestmaps[2].configAttribute
+		assertEquals 'ROLE_USER,ROLE_SUPERADMIN,ROLE_FOO', requestmaps[3].configAttribute
+		assertEquals 'ROLE_USER,ROLE_SUPERADMIN,ROLE_FOO', requestmaps[4].configAttribute
+		assertEquals 'ROLE_SUPERADMIN,ROLE_FOO', requestmaps[5].configAttribute
+
+		assertTrue clearCachedRequestmapsCalled
+		assertTrue role.saveCalled
 	}
 
 	private void authenticate(roles) {
@@ -200,5 +278,46 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 		super.tearDown()
 		removeMetaClassMethods AuthenticateService
 		fixMetaClass _service
+	}
+}
+
+class TestRole {
+
+	boolean saveCalled
+	String authority
+	boolean deleted
+
+	void save() {
+		saveCalled = true
+	}
+
+	boolean hasErrors() {
+		return false
+	}
+
+	void setProperties(Map properties) {
+		authority = properties.authority
+	}
+
+	void delete() {
+		deleted = true
+	}
+
+	static void withTransaction(closure) {
+		closure()
+	}
+}
+
+class TestRequestmap {
+
+	String configAttribute
+	boolean deleted
+
+	TestRequestmap(String configAttribute) {
+		this.configAttribute = configAttribute
+	}
+
+	void delete() {
+		deleted = true
 	}
 }

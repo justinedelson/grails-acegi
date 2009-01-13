@@ -9,10 +9,10 @@ import org.codehaus.groovy.grails.plugins.springsecurity.GrailsAccessDeniedHandl
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsAuthenticationProcessingFilter
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsDaoAuthenticationProvider
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsDaoImpl
-import org.codehaus.groovy.grails.plugins.springsecurity.GrailsFilterInvocationDefinition
 import org.codehaus.groovy.grails.plugins.springsecurity.IpAddressFilter
 import org.codehaus.groovy.grails.plugins.springsecurity.LogoutFilterFactoryBean
 import org.codehaus.groovy.grails.plugins.springsecurity.QuietMethodSecurityInterceptor
+import org.codehaus.groovy.grails.plugins.springsecurity.RequestmapFilterInvocationDefinition
 import org.codehaus.groovy.grails.plugins.springsecurity.Secured as SecuredController
 import org.codehaus.groovy.grails.plugins.springsecurity.SecurityAnnotationAttributes
 import org.codehaus.groovy.grails.plugins.springsecurity.SecurityEventListener
@@ -234,11 +234,11 @@ class AcegiGrailsPlugin {
 			}
 		}
 		else if (conf.useRequestMapDomainClass) {
-			objectDefinitionSource(GrailsFilterInvocationDefinition) {
+			objectDefinitionSource(RequestmapFilterInvocationDefinition) {
 				requestMapClass = conf.requestMapClass
 				requestMapPathFieldName = conf.requestMapPathField
 				requestMapConfigAttributeField = conf.requestMapConfigAttributeField
-				sessionFactory = ref('sessionFactory')
+				urlMatcher = new AntUrlPathMatcher(true)
 			}
 		}
 

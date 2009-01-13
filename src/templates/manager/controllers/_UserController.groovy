@@ -1,6 +1,5 @@
 ${personClassImport}
 ${authorityClassImport}
-import org.springframework.security.userdetails.UserDetails
 
 /**
  * User controller.
@@ -13,7 +12,7 @@ class ${personClassName}Controller {
 	static Map allowedMethods = [delete: 'POST', save: 'POST', update: 'POST']
 
 	def index = {
-		redirect(action: list, params: params)
+		redirect action: list, params: params
 	}
 
 	def list = {
@@ -24,7 +23,20 @@ class ${personClassName}Controller {
 	}
 
 	def show = {
-		[person: ${personClassName}.get(params.id)]
+		def person = ${personClassName}.get(params.id)
+		if (!person) {
+			flash.message = "${personClassName} not found with id \$params.id"
+			redirect action: list
+			return
+		}
+		List roleNames = []
+		for (role in person.authorities) {
+			roleNames << role.authority
+		}
+		roleNames.sort { n1, n2 ->
+			n1 <=> n2
+		}
+		[person: person, roleNames: roleNames]
 	}
 
 	/**
@@ -36,34 +48,34 @@ class ${personClassName}Controller {
 		def person = ${personClassName}.get(params.id)
 		if (person) {
 			def authPrincipal = authenticateService.principal()
-			// avoid self-delete if the logged-in user is an admin
-			if (authPrincipal instanceof UserDetails && authPrincipal.username == person.username) {
+			//avoid self-delete if the logged-in user is an admin
+			if (!(authPrincipal instanceof String) && authPrincipal.username == person.username) {
 				flash.message = "You can not delete yourself, please login as another admin and try again"
 			}
 			else {
 				//first, delete this person from People_Authorities table.
 				${authorityClassName}.findAll().each { it.removeFromPeople(person) }
 				person.delete()
-				flash.message = "${personClassName} \${params.id} deleted."
+				flash.message = "${personClassName} \$params.id deleted."
 			}
 		}
 		else {
-			flash.message = "${personClassName} not found with id \${params.id}"
+			flash.message = "${personClassName} not found with id \$params.id"
 		}
 
-		redirect(action: list)
+		redirect action: list
 	}
 
 	def edit = {
 
 		def person = ${personClassName}.get(params.id)
 		if (!person) {
-			flash.message = "${personClassName} not found with id \${params.id}"
-			redirect(action: list)
+			flash.message = "${personClassName} not found with id \$params.id"
+			redirect action: list
 			return
 		}
 
-		[person: person, authorityList: ${authorityClassName}.list()]
+		return buildPersonModel(person)
 	}
 
 	/**
@@ -73,8 +85,8 @@ class ${personClassName}Controller {
 
 		def person = ${personClassName}.get(params.id)
 		if (!person) {
-			flash.message = "${personClassName} not found with id \${params.id}"
-			redirect(action: edit, id: params.id)
+			flash.message = "${personClassName} not found with id \$params.id"
+			redirect action: edit, id: params.id
 			return
 		}
 
@@ -82,7 +94,7 @@ class ${personClassName}Controller {
 		if (person.version > version) {
 			person.errors.rejectValue 'version', "person.optimistic.locking.failure",
 				"Another user has updated this ${personClassName} while you were editing."
-			render(view: 'edit', model: [person: person, authorityList: ${authorityClassName}.list()])
+				render view: 'edit', model: buildPersonModel(person)
 			return
 		}
 
@@ -94,17 +106,15 @@ class ${personClassName}Controller {
 		if (person.save()) {
 			${authorityClassName}.findAll().each { it.removeFromPeople(person) }
 			addRoles(person)
-			redirect(action: show, id: person.id)
+			redirect action: show, id: person.id
 		}
 		else {
-			render(view: 'edit', model: [person: person, authorityList: ${authorityClassName}.list()])
+			render view: 'edit', model: buildPersonModel(person)
 		}
 	}
 
 	def create = {
-		def person = new ${personClassName}()
-		person.properties = params
-		[person: person, authorityList: ${authorityClassName}.list()]
+		[person: new ${personClassName}(params), authorityList: ${authorityClassName}.list()]
 	}
 
 	/**
@@ -117,10 +127,10 @@ class ${personClassName}Controller {
 		person.passwd = authenticateService.encodePassword(params.passwd)
 		if (person.save()) {
 			addRoles(person)
-			redirect(action: show, id: person.id)
+			redirect action: show, id: person.id
 		}
 		else {
-			render(view: 'create', model: [authorityList: ${authorityClassName}.list(), person: person])
+			render view: 'create', model: [authorityList: ${authorityClassName}.list(), person: person]
 		}
 	}
 
@@ -130,5 +140,23 @@ class ${personClassName}Controller {
 				${authorityClassName}.findByAuthority(key).addToPeople(person)
 			}
 		}
+	}
+
+	private Map buildPersonModel(person) {
+
+		List roles = ${authorityClassName}.list()
+		roles.sort { r1, r2 ->
+			r1.authority <=> r2.authority
+		}
+		Set userRoleNames = []
+		for (role in person.authorities) {
+			userRoleNames << role.authority
+		}
+		LinkedHashMap<${authorityClassName}, Boolean> roleMap = [:]
+		for (role in roles) {
+			roleMap[(role)] = userRoleNames.contains(role.authority)
+		}
+
+		return [person: person, roleMap: roleMap]
 	}
 }

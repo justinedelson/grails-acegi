@@ -7,11 +7,13 @@ import org.springframework.util.StringUtils
  */
 class ${requestmapClassName}Controller {
 
+	def authenticateService
+
 	// the delete, save and update actions only accept POST requests
 	static Map allowedMethods = [delete: 'POST', save: 'POST', update: 'POST']
 
 	def index = {
-		redirect(action: list, params: params)
+		redirect action: list, params: params
 	}
 
 	def list = {
@@ -22,26 +24,35 @@ class ${requestmapClassName}Controller {
 	}
 
 	def show = {
-		[requestmap: ${requestmapClassName}.get(params.id)]
+		def requestmap = ${requestmapClassName}.get(params.id)
+		if (!requestmap) {
+			flash.message = "${requestmapClassName} not found with id \$params.id"
+			redirect action:list
+			return
+		}
+		[requestmap: requestmap]
 	}
 
 	def delete = {
 		def requestmap = ${requestmapClassName}.get(params.id)
 		if (!requestmap) {
-			flash.message = "${requestmapClassName} not found with id \${params.id}"
-			redirect(action:list)
+			flash.message = "${requestmapClassName} not found with id \$params.id"
+			redirect action:list
 			return
 		}
 
 		requestmap.delete()
-		flash.message = "${requestmapClassName} \${params.id} deleted."
+
+		authenticateService.clearCachedRequestmaps()
+
+		flash.message = "${requestmapClassName} \$params.id deleted."
 		redirect(action: list)
 	}
 
 	def edit = {
 		def requestmap = ${requestmapClassName}.get(params.id)
 		if (!requestmap) {
-			flash.message = "${requestmapClassName} not found with id \${params.id}"
+			flash.message = "${requestmapClassName} not found with id \$params.id"
 			redirect(action: list)
 			return
 		}
@@ -56,7 +67,7 @@ class ${requestmapClassName}Controller {
 
 		def requestmap = ${requestmapClassName}.get(params.id)
 		if (!requestmap) {
-			flash.message = "${requestmapClassName} not found with id \${params.id}"
+			flash.message = "${requestmapClassName} not found with id \$params.id"
 			redirect(action: edit, id :params.id)
 			return
 		}
@@ -69,49 +80,31 @@ class ${requestmapClassName}Controller {
 			return
 		}
 
-		updateFromParams(requestmap)
+		requestmap.properties = params
 		if (requestmap.save()) {
-			redirect(action: show, id: requestmap.id)
+			authenticateService.clearCachedRequestmaps()
+			redirect action: show, id: requestmap.id
 		}
 		else {
-			render(view: 'edit', model: [requestmap: requestmap])
+			render view: 'edit', model: [requestmap: requestmap]
 		}
 	}
 
 	def create = {
-		def requestmap = new ${requestmapClassName}()
-		requestmap.properties = params
-		[requestmap: requestmap]
+		[requestmap: new ${requestmapClassName}(params)]
 	}
 
 	/**
 	 * Save action, called when a new Requestmap is created.
 	 */
 	def save = {
-
-		def requestmap = new ${requestmapClassName}()
-		updateFromParams(requestmap)
+		def requestmap = new ${requestmapClassName}(params)
 		if (requestmap.save()) {
-			redirect(action: show, id: requestmap.id)
+			authenticateService.clearCachedRequestmaps()
+			redirect action: show, id: requestmap.id
 		}
 		else {
-			render(view: 'create', model: [requestmap: requestmap])
+			render view: 'create', model: [requestmap: requestmap]
 		}
-	}
-
-	private void updateFromParams(requestmap) {
-		requestmap.properties = params
-		//get user's enter field "configAttribute" from the params.
-		String[] configAttrs = StringUtils.commaDelimitedListToStringArray(params.configAttribute)
-		//Format the configAttributes to meet Spring Security's requirement.
-		String formattedConfigAttrs = ''
-		String delimiter = ''
-		for (String configAttribute in configAttrs) {
-			if (configAttribute.trim().length() > 0) {
-				formattedConfigAttrs += delimiter + 'ROLE_' + configAttribute.toUpperCase()
-				delimiter = ','
-			}
-		}
-		requestmap.configAttribute = formattedConfigAttrs
 	}
 }
