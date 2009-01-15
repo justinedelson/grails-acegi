@@ -27,7 +27,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.security.ui.FilterChainOrder;
 import org.springframework.security.ui.SpringSecurityFilter;
 import org.springframework.util.AntPathMatcher;
@@ -91,7 +90,6 @@ public class IpAddressFilter extends SpringSecurityFilter implements Initializin
 	 * Dependency injection for the ip/pattern restriction map.
 	 * @param restrictions  the map
 	 */
-	@Required
 	public void setIpRestrictions(final Map<String, String> restrictions) {
 		_restrictions = restrictions;
 	}

@@ -25,6 +25,7 @@ import org.springframework.security.GrantedAuthorityImpl
 import org.springframework.security.providers.openid.AuthenticationCancelledException
 import org.springframework.security.providers.openid.OpenIDAuthenticationStatus
 import org.springframework.security.providers.openid.OpenIDAuthenticationToken
+import org.springframework.security.userdetails.UserDetailsService
 /**
  * Unit tests for <code>GrailsOpenIdAuthenticationProvider</code>.
  *
@@ -32,7 +33,7 @@ import org.springframework.security.providers.openid.OpenIDAuthenticationToken
  */
 class GrailsOpenIdAuthenticationProviderTests extends AbstractSecurityTest {
 
-	private final GrailsOpenIdAuthenticationProvider _provider = new GrailsOpenIdAuthenticationProvider()
+	private _provider = new GrailsOpenIdAuthenticationProvider()
 
 	void testAuthenticateNotSupported() {
 
@@ -84,7 +85,7 @@ class GrailsOpenIdAuthenticationProviderTests extends AbstractSecurityTest {
 		def authentication = new OpenIDAuthenticationToken(OpenIDAuthenticationStatus.SUCCESS, url, null)
 		def roles = [new GrantedAuthorityImpl('role1')] as GrantedAuthority[]
 		def details = new GrailsUserImpl('username', 'password', true, true, true, true, roles, null)
-		_provider.@_userDetailsService = [loadUserByUsername: { identityUrl -> details }]
+		_provider.@_userDetailsService = [loadUserByUsername: { identityUrl -> details }] as UserDetailsService
 
 		def token = _provider.authenticate(authentication)
 		assertNotNull token

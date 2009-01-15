@@ -14,11 +14,10 @@
  */
 package org.codehaus.groovy.grails.plugins.springsecurity
 
-import org.easymock.EasyMock
-
 import org.grails.plugins.springsecurity.service.AuthenticateService
 import org.grails.plugins.springsecurity.test.TestingAuthenticationToken
 
+import org.springframework.context.ApplicationContext
 import org.springframework.security.AuthenticationException
 import org.springframework.security.BadCredentialsException
 import org.springframework.security.event.authentication.AuthenticationFailureBadCredentialsEvent
@@ -34,8 +33,8 @@ import org.springframework.security.event.authorization.AbstractAuthorizationEve
  */
 class SecurityEventListenerTests extends AbstractSecurityTest {
 
-	private final SecurityEventListener _listener = new SecurityEventListener()
-	private def closures = [:]
+	private _listener = new SecurityEventListener()
+	private closures = new ConfigObject()
 
 	/**
 	 * {@inheritDoc}
@@ -44,7 +43,10 @@ class SecurityEventListenerTests extends AbstractSecurityTest {
 	@Override
 	protected void setUp() {
 		super.setUp()
-		_listener.authenticateService = [securityConfig: [security: closures]]
+
+		_listener.applicationContext = [getBean: { String name ->
+			new EventListenerAuthenticateService(closures: closures)
+		}] as ApplicationContext
 	}
 
 	/**
@@ -69,10 +71,8 @@ class SecurityEventListenerTests extends AbstractSecurityTest {
 		boolean called = false
 		closures.onAbstractAuthenticationFailureEvent = { e, appCtx -> called = true }
 
-		AuthenticationException exception = new BadCredentialsException("bad credentials")
-		AuthenticationFailureBadCredentialsEvent event = new AuthenticationFailureBadCredentialsEvent(
-				new TestingAuthenticationToken(), exception)
-		_listener.onApplicationEvent(event)
+		_listener.onApplicationEvent new AuthenticationFailureBadCredentialsEvent(
+				new TestingAuthenticationToken(), new BadCredentialsException('bad credentials'))
 
 		assertTrue called
 	}
@@ -102,6 +102,17 @@ class SecurityEventListenerTests extends AbstractSecurityTest {
 		_listener.onApplicationEvent(new TestAuthorizationEvent())
 
 		assertTrue called
+	}
+}
+
+class EventListenerAuthenticateService extends AuthenticateService {
+
+	def closures
+
+	ConfigObject getSecurityConfig() {
+		def config = new ConfigObject()
+		config.security = closures
+		return config
 	}
 }
 

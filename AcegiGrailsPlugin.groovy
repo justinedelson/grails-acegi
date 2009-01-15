@@ -337,8 +337,8 @@ class AcegiGrailsPlugin {
 		}
 
 		// SecurityEventListener
-		securityEventListener(SecurityEventListener) {
-			authenticateService = ref('authenticateService')
+		if (conf.useSecurityEventListener) {
+			securityEventListener(SecurityEventListener)
 		}
 
 		// Kerberos

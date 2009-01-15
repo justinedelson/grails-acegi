@@ -149,6 +149,9 @@ security {
 	// HttpSessionEventPublisher
 	useHttpSessionEventPublisher = false
 
+	// SecurityEventListener
+	useSecurityEventListener = false
+
 	// user caching
 	cacheUsers = true
 
