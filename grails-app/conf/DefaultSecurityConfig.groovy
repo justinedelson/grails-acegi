@@ -25,6 +25,14 @@ security {
 	defaultTargetUrl = '/'
 	alwaysUseDefaultTargetUrl = false
 	filterProcessesUrl = '/j_spring_security_check'
+	apf.usernameParameter = 'j_username'
+	apf.passwordParameter = 'j_password'
+	apf.continueChainBeforeSuccessfulAuthentication = false
+	apf.invalidateSessionOnSuccessfulAuthentication = false
+	apf.migrateInvalidatedSessionAttributes = true
+	apf.allowSessionCreation = true
+	apf.serverSideRedirect = false
+	apf.exceptionMappings = [:]
 
 	/** anonymousProcessingFilter */
 	key = 'foo'

@@ -30,6 +30,7 @@ import org.springframework.security.event.authentication.LoggerListener
 import org.springframework.security.intercept.method.MethodDefinitionAttributes
 import org.springframework.security.intercept.web.FilterSecurityInterceptor
 import org.springframework.security.ui.ExceptionTranslationFilter
+import org.springframework.security.ui.TargetUrlResolverImpl
 import org.springframework.security.ui.basicauth.BasicProcessingFilter
 import org.springframework.security.ui.basicauth.BasicProcessingFilterEntryPoint
 import org.springframework.security.ui.logout.LogoutHandler
@@ -132,6 +133,8 @@ class AcegiGrailsPlugin {
 		httpSessionContextIntegrationFilter(HttpSessionContextIntegrationFilter)
 
 		/** authenticationProcessingFilter */
+		targetUrlResolver(TargetUrlResolverImpl)
+
 		authenticationProcessingFilter(GrailsAuthenticationProcessingFilter) {
 			authenticationManager = ref('authenticationManager')
 			authenticationFailureUrl = conf.authenticationFailureUrl //'/login/authfail?login_error=1'
@@ -141,6 +144,16 @@ class AcegiGrailsPlugin {
 			filterProcessesUrl = conf.filterProcessesUrl // '/j_spring_security_check'
 			rememberMeServices = ref('rememberMeServices')
 			authenticateService = ref('authenticateService')
+			targetUrlResolver = ref('targetUrlResolver')
+			usernameParameter = conf.apf.usernameParameter // j_username
+			passwordParameter = conf.apf.passwordParameter // j_password
+			continueChainBeforeSuccessfulAuthentication = conf.apf.continueChainBeforeSuccessfulAuthentication // false
+			invalidateSessionOnSuccessfulAuthentication = conf.apf.invalidateSessionOnSuccessfulAuthentication // false
+			migrateInvalidatedSessionAttributes = conf.apf.migrateInvalidatedSessionAttributes // true
+			allowSessionCreation = conf.apf.allowSessionCreation // true
+			serverSideRedirect = conf.apf.serverSideRedirect // false
+			exceptionMappings = conf.apf.exceptionMappings as Properties
+			//sessionRegistry = ref('sessionRegistry')
 		}
 
 		/** securityContextHolderAwareRequestFilter */
