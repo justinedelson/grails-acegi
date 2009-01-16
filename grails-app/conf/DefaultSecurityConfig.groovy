@@ -34,6 +34,9 @@ security {
 	apf.serverSideRedirect = false
 	apf.exceptionMappings = [:]
 
+	/** daoAuthenticationProvider **/
+	reflectionSaltSourceUserProperty = null // if null, don't use salt source
+
 	/** anonymousProcessingFilter */
 	key = 'foo'
 	userAttribute = 'anonymousUser,ROLE_ANONYMOUS'
@@ -42,6 +45,7 @@ security {
 	loginFormUrl = '/login/auth'
 	forceHttps = 'false'
 	ajaxLoginFormUrl = '/login/authAjax'
+	loginFormServerSideRedirect = false
 
 	/** logoutFilter */
 	afterLogoutUrl = '/'

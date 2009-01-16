@@ -11,6 +11,7 @@ import org.codehaus.groovy.grails.plugins.springsecurity.GrailsDaoAuthentication
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsDaoImpl
 import org.codehaus.groovy.grails.plugins.springsecurity.IpAddressFilter
 import org.codehaus.groovy.grails.plugins.springsecurity.LogoutFilterFactoryBean
+import org.codehaus.groovy.grails.plugins.springsecurity.NullSaltSource
 import org.codehaus.groovy.grails.plugins.springsecurity.QuietMethodSecurityInterceptor
 import org.codehaus.groovy.grails.plugins.springsecurity.RequestmapFilterInvocationDefinition
 import org.codehaus.groovy.grails.plugins.springsecurity.Secured as SecuredController
@@ -50,6 +51,7 @@ import org.springframework.security.providers.anonymous.AnonymousAuthenticationP
 import org.springframework.security.providers.anonymous.AnonymousProcessingFilter
 import org.springframework.security.providers.dao.cache.EhCacheBasedUserCache
 import org.springframework.security.providers.dao.cache.NullUserCache
+import org.springframework.security.providers.dao.salt.ReflectionSaltSource
 import org.springframework.security.providers.encoding.MessageDigestPasswordEncoder
 import org.springframework.security.providers.rememberme.RememberMeAuthenticationProvider
 import org.springframework.security.securechannel.ChannelDecisionManagerImpl
@@ -209,6 +211,7 @@ class AcegiGrailsPlugin {
 				loginFormUrl = conf.loginFormUrl // '/login/auth'
 				forceHttps = conf.forceHttps // 'false'
 				ajaxLoginFormUrl = conf.ajaxLoginFormUrl // '/login/authAjax'
+				serverSideRedirect = conf.loginFormServerSideRedirect // false
 				if (conf.ajaxHeader) {
 					ajaxHeader = conf.ajaxHeader //default: X-Requested-With
 				}
@@ -269,10 +272,20 @@ class AcegiGrailsPlugin {
 		configureAuthenticationManager conf
 
 		/** daoAuthenticationProvider */
+		if (conf.reflectionSaltSourceUserProperty) {
+			saltSource(ReflectionSaltSource) {
+				userPropertyToUse = conf.reflectionSaltSourceUserProperty
+			}
+		}
+		else {
+			saltSource(NullSaltSource)
+		}
+
 		daoAuthenticationProvider(GrailsDaoAuthenticationProvider) {
 			userDetailsService = ref('userDetailsService')
 			passwordEncoder = ref('passwordEncoder')
 			userCache = ref('userCache')
+			saltSource = ref('saltSource')
 		}
 
 		/** passwordEncoder */
