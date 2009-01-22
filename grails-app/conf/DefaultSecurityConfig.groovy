@@ -208,4 +208,9 @@ security {
 	facebook.authenticationUrlRoot = 'http://www.facebook.com/login.php?v=1.0&api_key='
 	facebook.apiKey = '' // set in SecurityConfig
 	facebook.secretKey = '' // set in SecurityConfig
+
+	// X509
+	useX509 = false
+	x509.continueFilterChainOnUnsuccessfulAuthentication = true
+	x509.subjectDnRegex = 'CN=(.*?),'
 }

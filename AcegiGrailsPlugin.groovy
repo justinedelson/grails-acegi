@@ -123,6 +123,12 @@ class AcegiGrailsPlugin {
 			configureFacebook conf
 		}
 
+		// X509
+		if (conf.useX509) {
+			configureX509.delegate = delegate
+			configureX509 conf
+		}
+
 		// logout
 		configureLogout.delegate = delegate
 		configureLogout conf
@@ -206,7 +212,7 @@ class AcegiGrailsPlugin {
 			}
 		}
 
-		if (!conf.useNtlm) {
+		if (!conf.useNtlm && !conf.useCAS && !conf.useX509) {
 			authenticationEntryPoint(WithAjaxAuthenticationProcessingFilterEntryPoint) {
 				loginFormUrl = conf.loginFormUrl // '/login/auth'
 				forceHttps = conf.forceHttps // 'false'
@@ -443,6 +449,32 @@ class AcegiGrailsPlugin {
 		}
 	}
 
+	// X509
+	private def configureX509 = { conf ->
+
+		x509ProcessingFilter(org.springframework.security.ui.preauth.x509.X509PreAuthenticatedProcessingFilter) {
+			principalExtractor = ref('x509PrincipalExtractor')
+			authenticationManager = ref('authenticationManager')
+			continueFilterChainOnUnsuccessfulAuthentication = conf.x509.continueFilterChainOnUnsuccessfulAuthentication // true
+		}
+
+		x509PrincipalExtractor(org.springframework.security.ui.preauth.x509.SubjectDnX509PrincipalExtractor) {
+			subjectDnRegex = conf.x509.subjectDnRegex // CN=(.*?),
+			messageSource = ref('messageSource') // ???
+		}
+
+		//preAuthenticatedUserDetailsService(org.springframework.security.providers.preauth.PreAuthenticatedGrantedAuthoritiesUserDetailsService)
+		preAuthenticatedUserDetailsService(org.springframework.security.userdetails.UserDetailsByNameServiceWrapper) {
+			userDetailsService = ref('userDetailsService')
+		}
+
+		x509AuthenticationProvider(org.springframework.security.providers.preauth.PreAuthenticatedAuthenticationProvider) {
+			preAuthenticatedUserDetailsService = ref('preAuthenticatedUserDetailsService')
+		}
+
+		authenticationEntryPoint(org.springframework.security.ui.preauth.PreAuthenticatedProcessingFilterEntryPoint)
+	}
+
 	private def configureCAS = { conf ->
 		String casHost = conf.cas.casServer ?: 'localhost'
 		int casPort = (conf.cas.casServerPort ?: '443').toInteger()
@@ -564,6 +596,9 @@ class AcegiGrailsPlugin {
 			}
 			if (conf.useFacebook) {
 				providerNames << 'facebookAuthProvider'
+			}
+			if (conf.useX509) {
+				providerNames << 'x509AuthenticationProvider'
 			}
 
 			if (providerNames.empty) {
@@ -734,7 +769,9 @@ class AcegiGrailsPlugin {
 				filterNames << 'ipAddressFilter'
 			}
 
-			// X509_FILTER
+			if (conf.useX509) {
+				filterNames << 'x509ProcessingFilter' // X509_FILTER
+			}
 
 			// PRE_AUTH_FILTER
 
