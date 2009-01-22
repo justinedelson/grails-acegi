@@ -14,6 +14,8 @@
 */
 package org.codehaus.groovy.grails.plugins.springsecurity;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -59,13 +61,26 @@ public class RequestmapFilterInvocationDefinition extends AbstractFilterInvocati
 
 		for (Map.Entry<String, String> entry : data.entrySet()) {
 			String pattern = entry.getKey();
-			String[] tokens = StringUtils.commaDelimitedListToStringArray(entry.getValue());
+			String[] tokens = split(entry.getValue());
 			storeMapping(pattern, tokens);
 		}
 
 		if (_log.isTraceEnabled()) {
 			_log.trace("configs: " + _compiled);
 		}
+	}
+
+	// fixes extra spaces, trailing commas, etc.
+	private String[] split(final String value) {
+		String[] parts = StringUtils.commaDelimitedListToStringArray(value);
+		List<String> cleaned = new ArrayList<String>();
+		for (String part : parts) {
+			part = part.trim();
+			if (part.length() > 0) {
+				cleaned.add(part);
+			}
+		}
+		return cleaned.toArray(new String[cleaned.size()]);
 	}
 
 	private void storeMapping(final String pattern, final String[] tokens) {

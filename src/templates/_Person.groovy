@@ -14,7 +14,7 @@ class ${personClassName} {
 	String username
 	/** User Real Name*/
 	String userRealName
-	/** MD5 Password */
+	/** encrypted Password */
 	String passwd
 	/** enabled */
 	boolean enabled
@@ -25,7 +25,7 @@ class ${personClassName} {
 	/** description */
 	String description = ''
 
-	/** plain password to create a MD5 password */
+	/** plain password to create an encrypted password */
 	String pass = '[secret]'
 
 	static constraints = {

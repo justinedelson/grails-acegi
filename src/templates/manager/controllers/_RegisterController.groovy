@@ -142,7 +142,7 @@ class RegisterController {
 		def role = ${authorityClassName}.findByAuthority(defaultRole)
 		if (!role) {
 			person.passwd = ''
-			flash.message = 'Default Role not found.'
+			flash.message = "Default Role '$defaultRole' not found."
 			render view: 'index', model: [person: person]
 			return
 		}

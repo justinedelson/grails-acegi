@@ -9,91 +9,89 @@ import javax.imageio.ImageIO
 class CaptchaController {
 
 	private static final String SOURCECHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+	private static final int IMAGE_HEIGHT = 200
+	private static final int IMAGE_WIDTH = 200
+	private static final int IMAGE_SPACE = 8
+	private static final int IMAGE_STEP = 10
 
 	def index = {
-		response.setContentType('image/png')
+		response.contentType = 'image/png'
 		response.setHeader('Cache-control', 'no-cache')
 
 		// Generate and remember the Source Character string (6 characters)
 		int l = SOURCECHARS.length()
-		StringBuilder b = new StringBuilder()
+		StringBuilder buffer = new StringBuilder()
 		6.times {
 		    int r = (int)(Math.random() * l)
-		    b.append(SOURCECHARS.charAt(r))
+		    buffer.append(SOURCECHARS.charAt(r))
 		}
-
-		final int height = 200
-		final int width = 200
-		final int space = 8
+		String captchaText = buffer.toString()
 
 		System.setProperty('java.awt.headless', 'true')
-		BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
-		Graphics2D g2d = bufferedImage.createGraphics()
+		BufferedImage bufferedImage = new BufferedImage(IMAGE_WIDTH, IMAGE_HEIGHT, BufferedImage.TYPE_INT_RGB)
+		Graphics2D graphics = bufferedImage.createGraphics()
 		Font font = new Font('Serif', Font.BOLD, 18)
-		g2d.setFont(font)
-		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-		Rectangle2D fontRect = font.getStringBounds(b.toString(), g2d.getFontRenderContext())
+		graphics.font = font
+		graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+		Rectangle2D fontRect = font.getStringBounds(captchaText, graphics.fontRenderContext)
 		// Now, create a graphic 'space' pixels wider and taller than the the font
-		bufferedImage = new BufferedImage((int)fontRect.getWidth() + space,
-				(int)fontRect.getHeight() + space,
+		bufferedImage = new BufferedImage(
+				(int)fontRect.width + IMAGE_SPACE,
+				(int)fontRect.height + IMAGE_SPACE,
 				BufferedImage.TYPE_INT_RGB)
-		g2d = bufferedImage.createGraphics()
-		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-		g2d.setFont(font)
+		graphics = bufferedImage.createGraphics()
+		graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+		graphics.font = font
 
 		// Draw the background
-		g2d.setColor(Color.WHITE)
-		g2d.fillRect(0, 0, width, height)
+		graphics.color = Color.WHITE
+		graphics.fillRect(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT)
 
 		// Draw the lines
-		g2d.setColor(Color.GRAY)
-		int x1
-		int y1
-		int x2
-		int y2
-		final int step = 10
-		x1 = 0
-		y1 = step
-		x2 = step
-		y2 = 0
-		while (x1 < width || x2 < width || y1 < height || y2 < height) {
-		    g2d.drawLine(x1, y1, x2, y2)
-		    if (y1 < height) {
+		graphics.color = Color.GRAY
+		int x1 = 0
+		int y1 = IMAGE_STEP
+		int x2 = IMAGE_STEP
+		int y2 = 0
+		while (x1 < IMAGE_WIDTH || x2 < IMAGE_WIDTH || y1 < IMAGE_HEIGHT || y2 < IMAGE_HEIGHT) {
+		    graphics.drawLine(x1, y1, x2, y2)
+		    if (y1 < IMAGE_HEIGHT) {
 				x1 = 0
-				y1 += step
+				y1 += IMAGE_STEP
 		    }
-		    else if (x1 < width) {
-				y1 = height
-				x1 += step
+		    else if (x1 < IMAGE_WIDTH) {
+				y1 = IMAGE_HEIGHT
+				x1 += IMAGE_STEP
 		    }
 		    else {
-				x1 = width
-				y1 = height
+				x1 = IMAGE_WIDTH
+				y1 = IMAGE_HEIGHT
 		    }
 
-		    if (x2 < width) {
+		    if (x2 < IMAGE_WIDTH) {
 				y2 = 0
-				x2 += step
+				x2 += IMAGE_STEP
 		    }
-		    else if (y2 < height) {
-				x2 = width
-				y2 += step
+		    else if (y2 < IMAGE_HEIGHT) {
+				x2 = IMAGE_WIDTH
+				y2 += IMAGE_STEP
 		    }
 		    else {
-				y2 = height
-				x2 = width
+				y2 = IMAGE_HEIGHT
+				x2 = IMAGE_WIDTH
 		    }
 		}
 
 		// Draw the String
-		g2d.setColor(Color.BLACK)
+		graphics.color = Color.BLACK
 
-		g2d.drawString(b.toString(), (int)(space/2), (int)(space/4) + (int)fontRect.getHeight())
+		graphics.drawString captchaText, (int)(IMAGE_SPACE / 2),
+			(int)(IMAGE_SPACE / 4) + (int)fontRect.height
 
-		OutputStream out = response.getOutputStream()
+		OutputStream out = response.outputStream
 		ImageIO.write(bufferedImage, 'PNG', out)
 		out.close()
 
-		session.setAttribute('captcha', b.toString())
+		session.setAttribute('captcha', captchaText)
 	}
 }
