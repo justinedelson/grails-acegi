@@ -17,7 +17,6 @@ package org.grails.plugins.springsecurity.service
 import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
 
 import org.springframework.security.context.SecurityContextHolder as SCH
-import org.springframework.security.ui.AbstractProcessingFilter as APF
 import org.springframework.security.userdetails.UserDetails
 
 /**
@@ -105,25 +104,7 @@ class AuthenticateService {
 	 * @return <code>true</code> if Ajax
 	 */
 	boolean isAjax(request) {
-
-		// look for an ajax=true parameter
-		if ('true' == request.getParameter('ajax')) {
-			return true
-		}
-
-		// check the current request's headers
-		String ajaxHeader = getSecurityConfig().security.ajaxHeader
-		if (request.getHeader(ajaxHeader) != null) {
-			return true
-		}
-
-		// check the SavedRequest's headers
-		def savedRequest = request.session.getAttribute(APF.SPRING_SECURITY_SAVED_REQUEST_KEY)
-		if (savedRequest) {
-			return savedRequest.getHeaderValues(ajaxHeader).hasNext()
-		}
-
-		return false
+		return AuthorizeTools.isAjax(request)
 	}
 
 	/**

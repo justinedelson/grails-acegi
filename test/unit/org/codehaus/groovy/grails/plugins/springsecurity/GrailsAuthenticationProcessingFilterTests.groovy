@@ -20,8 +20,6 @@ import javax.servlet.http.HttpServletResponse
 
 import org.easymock.EasyMock
 
-import org.grails.plugins.springsecurity.service.AuthenticateService
-
 import org.springframework.mock.web.MockFilterChain
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
@@ -84,8 +82,9 @@ class GrailsAuthenticationProcessingFilterTests extends AbstractSecurityTest {
 
 		_filter.ajaxAuthenticationFailureUrl = ajaxAuthenticationFailureUrl
 		_filter.authenticationFailureUrl = authenticationFailureUrl
-		
-		_filter.authenticateService = new MockAuthenticateService(_ajax: true)
+
+		AuthorizeTools.ajaxHeaderName = 'ajaxHeader'
+		_request.addHeader('ajaxHeader', 'foo')
 
 		assertEquals ajaxAuthenticationFailureUrl, _filter.determineFailureUrl(
 				_request, new AuthenticationCredentialsNotFoundException(''))
@@ -99,7 +98,7 @@ class GrailsAuthenticationProcessingFilterTests extends AbstractSecurityTest {
 		_filter.ajaxAuthenticationFailureUrl = ajaxAuthenticationFailureUrl
 		_filter.authenticationFailureUrl = authenticationFailureUrl
 
-		_filter.authenticateService = new MockAuthenticateService(_ajax: false)
+		AuthorizeTools.ajaxHeaderName = 'ajaxHeader'
 
 		assertEquals authenticationFailureUrl, _filter.determineFailureUrl(
 				_request, new AuthenticationCredentialsNotFoundException(''))
@@ -113,12 +112,5 @@ class GrailsAuthenticationProcessingFilterTests extends AbstractSecurityTest {
 	protected void tearDown() {
 		super.tearDown()
 		removeMetaClassMethods AuthenticationProcessingFilter, SecurityRequestHolder
-	}
-}
-
-class MockAuthenticateService extends AuthenticateService {
-	boolean _ajax
-	boolean isAjax(request) {
-		return _ajax
 	}
 }

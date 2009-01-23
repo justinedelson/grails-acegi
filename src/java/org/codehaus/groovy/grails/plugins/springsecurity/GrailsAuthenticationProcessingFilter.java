@@ -21,10 +21,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.grails.plugins.springsecurity.service.AuthenticateService;
 import org.springframework.security.AuthenticationException;
 import org.springframework.security.ui.webapp.AuthenticationProcessingFilter;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -35,7 +33,6 @@ import org.springframework.util.StringUtils;
  */
 public class GrailsAuthenticationProcessingFilter extends AuthenticationProcessingFilter {
 
-	private AuthenticateService _authenticateService;
 	private String _ajaxAuthenticationFailureUrl;
 
 	/**
@@ -77,7 +74,7 @@ public class GrailsAuthenticationProcessingFilter extends AuthenticationProcessi
 	@Override
 	protected String determineFailureUrl(final HttpServletRequest request, final AuthenticationException failed) {
 		String url = super.determineFailureUrl(request, failed);
-		if (getAuthenticationFailureUrl().equals(url) && _authenticateService.isAjax(request)) {
+		if (getAuthenticationFailureUrl().equals(url) && AuthorizeTools.isAjax(request)) {
 			url = StringUtils.hasLength(_ajaxAuthenticationFailureUrl)
 				? _ajaxAuthenticationFailureUrl
 				: getAuthenticationFailureUrl();
@@ -86,28 +83,10 @@ public class GrailsAuthenticationProcessingFilter extends AuthenticationProcessi
 	}
 
 	/**
-	 * Dependency injection for the authentication service.
-	 * @param service  the service
-	 */
-	public void setAuthenticateService(final AuthenticateService service) {
-		_authenticateService = service;
-	}
-
-	/**
 	 * Dependency injection for the Ajax auth fail url.
 	 * @param url  the url
 	 */
 	public void setAjaxAuthenticationFailureUrl(final String url) {
 		_ajaxAuthenticationFailureUrl = url;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * @see org.springframework.security.ui.AbstractProcessingFilter#afterPropertiesSet()
-	 */
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		super.afterPropertiesSet();
-		Assert.notNull(_authenticateService, "authenticateService is required");
 	}
 }

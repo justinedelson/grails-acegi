@@ -17,7 +17,6 @@ package org.codehaus.groovy.grails.plugins.springsecurity;
 import groovy.lang.Closure;
 import groovy.util.ConfigObject;
 
-import org.grails.plugins.springsecurity.service.AuthenticateService;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEvent;
@@ -59,7 +58,7 @@ import org.springframework.security.event.authorization.AbstractAuthorizationEve
 public class SecurityEventListener implements ApplicationListener, ApplicationContextAware {
 
 	private ApplicationContext _applicationContext;
-	private AuthenticateService _authenticateService;
+	private ConfigObject _securityConfig;
 
 	/**
 	 * {@inheritDoc}
@@ -67,36 +66,42 @@ public class SecurityEventListener implements ApplicationListener, ApplicationCo
 	 * 	org.springframework.context.ApplicationEvent)
 	 */
 	public void onApplicationEvent(final ApplicationEvent e) {
-		ConfigObject config = (ConfigObject)_authenticateService.getSecurityConfig().get("security");
-		
 		if (e instanceof AbstractAuthenticationEvent) {
 			if (e instanceof InteractiveAuthenticationSuccessEvent) {
-				call(config, e, "onInteractiveAuthenticationSuccessEvent");
+				call(e, "onInteractiveAuthenticationSuccessEvent");
 			}
 			else if (e instanceof AbstractAuthenticationFailureEvent) {
-				call(config, e, "onAbstractAuthenticationFailureEvent");
+				call(e, "onAbstractAuthenticationFailureEvent");
 			}
 			else if (e instanceof AuthenticationSuccessEvent) {
-				call(config, e, "onAuthenticationSuccessEvent");
+				call(e, "onAuthenticationSuccessEvent");
 			}
 			else if (e instanceof AuthenticationSwitchUserEvent) {
 //				GrailsUser userInfo = (GrailsUser)event.getAuthentication().getPrincipal()
 //				UserDetails userDetails = event.getTargetUser()
-				call(config, e, "onAuthenticationSwitchUserEvent");
+				call(e, "onAuthenticationSwitchUserEvent");
 			}
 		}
 		else if (e instanceof AbstractAuthorizationEvent) {
-			call(config, e, "onAuthorizationEvent");
+			call(e, "onAuthorizationEvent");
 		}
 	}
 
-	private void call(final ConfigObject config, final ApplicationEvent e, final String closureName) {
-		Closure closure = (Closure)config.get(closureName);
+	private void call(final ApplicationEvent e, final String closureName) {
+		Closure closure = (Closure)_securityConfig.get(closureName);
 		if (closure != null) {
 			closure.call(new Object[] { e, _applicationContext });
 		}
 	}
 
+	/**
+	 * Dependency injection for the security config.
+	 * @param config  the config
+	 */
+	public void setSecurityConfig(final ConfigObject config) {
+		_securityConfig = config;
+	}
+	
 	/**
  	 * {@inheritDoc}
  	 * @see org.springframework.context.ApplicationContextAware#setApplicationContext(
@@ -104,6 +109,5 @@ public class SecurityEventListener implements ApplicationListener, ApplicationCo
  	 */
  	public void setApplicationContext(final ApplicationContext applicationContext) {
  		_applicationContext = applicationContext;
- 		_authenticateService = (AuthenticateService)applicationContext.getBean("authenticateService");
  	}
 }

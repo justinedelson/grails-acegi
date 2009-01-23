@@ -105,6 +105,8 @@ class AcegiGrailsPlugin {
 
 		println 'loading security config ...'
 
+		AuthorizeTools.ajaxHeaderName = conf.ajaxHeader
+
 		createRefList.delegate = delegate
 
 		/** springSecurityFilterChain */
@@ -151,7 +153,6 @@ class AcegiGrailsPlugin {
 			alwaysUseDefaultTargetUrl = conf.alwaysUseDefaultTargetUrl // false
 			filterProcessesUrl = conf.filterProcessesUrl // '/j_spring_security_check'
 			rememberMeServices = ref('rememberMeServices')
-			authenticateService = ref('authenticateService')
 			targetUrlResolver = ref('targetUrlResolver')
 			usernameParameter = conf.apf.usernameParameter // j_username
 			passwordParameter = conf.apf.passwordParameter // j_password
@@ -372,7 +373,9 @@ class AcegiGrailsPlugin {
 
 		// SecurityEventListener
 		if (conf.useSecurityEventListener) {
-			securityEventListener(SecurityEventListener)
+			securityEventListener(SecurityEventListener) {
+				securityConfig = conf
+			}
 		}
 
 		// Kerberos

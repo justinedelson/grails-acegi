@@ -15,8 +15,13 @@
 package org.codehaus.groovy.grails.plugins.springsecurity
 
 import org.easymock.EasyMock
+
+import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.security.GrantedAuthority
 import org.springframework.security.GrantedAuthorityImpl
+import org.springframework.security.ui.AbstractProcessingFilter as APF
+import org.springframework.security.ui.savedrequest.SavedRequest
+import org.springframework.security.util.PortResolverImpl
 
 /**
  * Unit tests for AuthorizeTools.
@@ -24,6 +29,16 @@ import org.springframework.security.GrantedAuthorityImpl
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
 class AuthorizeToolsTests extends AbstractSecurityTest {
+
+	/**
+	 * {@inheritDoc}
+	 * @see junit.framework.TestCase#setUp()
+	 */
+	@Override
+	protected void setUp() {
+		super.setUp()
+		AuthorizeTools.ajaxHeaderName = 'ajaxHeader'
+	}
 
 	/**
 	 * Test authoritiesToRoles().
@@ -112,6 +127,49 @@ class AuthorizeToolsTests extends AbstractSecurityTest {
 
 		def expected = ['role1']
 		assertSameContents expected, AuthorizeTools.retainAll(granted, required)
+	}
+
+	void testIsAjaxUsingParameterFalse() {
+		assertFalse AuthorizeTools.isAjax(new MockHttpServletRequest())
+	}
+
+	void testIsAjaxUsingParameterTrue() {
+
+		def request = new MockHttpServletRequest()
+		request.setParameter('ajax', 'true')
+
+		assertTrue AuthorizeTools.isAjax(request)
+	}
+
+	void testIsAjaxUsingHeaderFalse() {
+		assertFalse AuthorizeTools.isAjax(new MockHttpServletRequest())
+	}
+
+	void testIsAjaxUsingHeaderTrue() {
+
+		def request = new MockHttpServletRequest()
+		request.addHeader('ajaxHeader', 'foo')
+
+		assertTrue AuthorizeTools.isAjax(request)
+	}
+
+	void testIsAjaxUsingSavedRequestFalse() {
+
+		def request = new MockHttpServletRequest()
+		def savedRequest = new SavedRequest(request, new PortResolverImpl())
+		request.session.setAttribute(APF.SPRING_SECURITY_SAVED_REQUEST_KEY, savedRequest)
+
+		assertFalse AuthorizeTools.isAjax(request)
+	}
+
+	void testIsAjaxUsingSavedRequestTrue() {
+
+		def request = new MockHttpServletRequest()
+		request.addHeader 'ajaxHeader', 'true'
+		def savedRequest = new SavedRequest(request, new PortResolverImpl())
+		request.session.setAttribute(APF.SPRING_SECURITY_SAVED_REQUEST_KEY, savedRequest)
+
+		assertTrue AuthorizeTools.isAjax(request)
 	}
 
 	/**

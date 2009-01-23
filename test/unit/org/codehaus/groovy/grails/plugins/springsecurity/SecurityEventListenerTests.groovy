@@ -14,11 +14,8 @@
  */
 package org.codehaus.groovy.grails.plugins.springsecurity
 
-import org.grails.plugins.springsecurity.service.AuthenticateService
 import org.grails.plugins.springsecurity.test.TestingAuthenticationToken
 
-import org.springframework.context.ApplicationContext
-import org.springframework.security.AuthenticationException
 import org.springframework.security.BadCredentialsException
 import org.springframework.security.event.authentication.AuthenticationFailureBadCredentialsEvent
 import org.springframework.security.event.authentication.AuthenticationSuccessEvent
@@ -33,8 +30,8 @@ import org.springframework.security.event.authorization.AbstractAuthorizationEve
  */
 class SecurityEventListenerTests extends AbstractSecurityTest {
 
-	private _listener = new SecurityEventListener()
-	private closures = new ConfigObject()
+	private _listener
+	private _closures
 
 	/**
 	 * {@inheritDoc}
@@ -43,10 +40,9 @@ class SecurityEventListenerTests extends AbstractSecurityTest {
 	@Override
 	protected void setUp() {
 		super.setUp()
-
-		_listener.applicationContext = [getBean: { String name ->
-			new EventListenerAuthenticateService(closures: closures)
-		}] as ApplicationContext
+		_listener = new SecurityEventListener()
+		_closures = new ConfigObject()
+		_listener.securityConfig = _closures
 	}
 
 	/**
@@ -55,7 +51,7 @@ class SecurityEventListenerTests extends AbstractSecurityTest {
 	void testInteractiveAuthenticationSuccessEvent() {
 
 		boolean called = false
-		closures.onInteractiveAuthenticationSuccessEvent = { e, appCtx -> called = true }
+		_closures.onInteractiveAuthenticationSuccessEvent = { e, appCtx -> called = true }
 
 		_listener.onApplicationEvent(new InteractiveAuthenticationSuccessEvent(
 				new TestingAuthenticationToken(), getClass()))
@@ -69,7 +65,7 @@ class SecurityEventListenerTests extends AbstractSecurityTest {
 	void testAbstractAuthenticationFailureEvent() {
 
 		boolean called = false
-		closures.onAbstractAuthenticationFailureEvent = { e, appCtx -> called = true }
+		_closures.onAbstractAuthenticationFailureEvent = { e, appCtx -> called = true }
 
 		_listener.onApplicationEvent new AuthenticationFailureBadCredentialsEvent(
 				new TestingAuthenticationToken(), new BadCredentialsException('bad credentials'))
@@ -83,7 +79,7 @@ class SecurityEventListenerTests extends AbstractSecurityTest {
 	void testAuthenticationSuccessEvent() {
 
 		boolean called = false
-		closures.onAuthenticationSuccessEvent = { e, appCtx -> called = true }
+		_closures.onAuthenticationSuccessEvent = { e, appCtx -> called = true }
 
 		_listener.onApplicationEvent(new AuthenticationSuccessEvent(
 				new TestingAuthenticationToken()))
@@ -97,22 +93,11 @@ class SecurityEventListenerTests extends AbstractSecurityTest {
 	void testAbstractAuthorizationEvent() {
 
 		boolean called = false
-		closures.onAuthorizationEvent = { e, appCtx -> called = true }
+		_closures.onAuthorizationEvent = { e, appCtx -> called = true }
 
 		_listener.onApplicationEvent(new TestAuthorizationEvent())
 
 		assertTrue called
-	}
-}
-
-class EventListenerAuthenticateService extends AuthenticateService {
-
-	def closures
-
-	ConfigObject getSecurityConfig() {
-		def config = new ConfigObject()
-		config.security = closures
-		return config
 	}
 }
 

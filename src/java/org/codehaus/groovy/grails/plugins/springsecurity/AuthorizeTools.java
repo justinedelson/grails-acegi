@@ -30,6 +30,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.servlet.http.HttpServletRequest;
+import org.springframework.security.ui.AbstractProcessingFilter;
+import org.springframework.security.ui.savedrequest.SavedRequest;
+
 import org.springframework.security.Authentication;
 import org.springframework.security.GrantedAuthority;
 import org.springframework.security.GrantedAuthorityImpl;
@@ -42,6 +46,8 @@ import org.springframework.util.StringUtils;
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
 public final class AuthorizeTools {
+
+	private static String _ajaxHeaderName;
 
 	private AuthorizeTools() {
 		// static only
@@ -226,5 +232,40 @@ public final class AuthorizeTools {
 
 		// ???
 		return Collections.emptyList();
+	}
+
+	/**
+	 * Check if the request was triggered by an Ajax call.
+	 * @param request the request
+	 * @return <code>true</code> if Ajax
+	 */
+	public static boolean isAjax(final HttpServletRequest request) {
+
+		// look for an ajax=true parameter
+		if ("true".equals(request.getParameter("ajax"))) {
+			return true;
+		}
+
+		// check the current request's headers
+		if (request.getHeader(_ajaxHeaderName) != null) {
+			return true;
+		}
+
+		// check the SavedRequest's headers
+		SavedRequest savedRequest = (SavedRequest)request.getSession().getAttribute(
+				AbstractProcessingFilter.SPRING_SECURITY_SAVED_REQUEST_KEY);
+		if (savedRequest != null) {
+			return savedRequest.getHeaderValues(_ajaxHeaderName).hasNext();
+		}
+
+		return false;
+	}
+
+	/**
+	 * Dependency injection for the name of the Ajax header.
+	 * @param name  the 
+	 */
+	public static void setAjaxHeaderName(final String name) {
+		_ajaxHeaderName = name;
 	}
 }
