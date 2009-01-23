@@ -94,8 +94,8 @@ public class GrailsDaoImpl
 		try {
 			Object user = loadDomainUser(username, container.getSession());
 			GrantedAuthority[] authorities = loadAuthorities(user, username, loadRoles);
-			String password = (String)invoke(_getPassword, user);
-			boolean enabled = (Boolean)invoke(_getEnabled, user);
+			String password = getPassword(user);
+			boolean enabled = getEnabled(user);
 			return createUserDetails(username, password, enabled, authorities, user);
 		}
 		finally {
@@ -154,9 +154,8 @@ public class GrailsDaoImpl
 		return new GrailsUserImpl(username, password, enabled, true, true, true, authorities, user);
 	}
 
-	@SuppressWarnings("unchecked")
 	protected GrantedAuthority[] createRolesByAuthoritiesMethod(final Object user, final String username) {
-		Set<String> authorityStrings = (Set<String>)invoke(_getAuthoritiesMethod, user);
+		Set<String> authorityStrings = getAuthorityNames(user);
 		assertNotEmpty(authorityStrings, username);
 
 		List<GrantedAuthorityImpl> authorities = new ArrayList<GrantedAuthorityImpl>();
@@ -168,14 +167,14 @@ public class GrailsDaoImpl
 	}
 
 	protected GrantedAuthority[] createRolesByRelationalAuthorities(final Object user, final String username) {
-		// get authorities from LoginUser [LoginUser]--M:M--[Authority]
+		// get authorities from User [User]--M:M--[Authority]
 
-		Set<?> userAuthorities = (Set<?>)invoke(_getAuthoritiesGetterMethod, user);
+		Set<?> userAuthorities = getAuthoritiesByProperty(user);
 		assertNotEmpty(userAuthorities, username);
 
 		List<GrantedAuthorityImpl> authorities = new ArrayList<GrantedAuthorityImpl>();
 		for (Object role : userAuthorities) {
-			String roleName = (String)invoke(_getAuthority, role);
+			String roleName = getAuthority(role);
 			authorities.add(new GrantedAuthorityImpl(roleName));
 		}
 
@@ -254,6 +253,27 @@ public class GrailsDaoImpl
 		else if (StringUtils.hasLength(_authoritiesMethodName)) {
 			_getAuthoritiesMethod = roleClass.getDeclaredMethod(_authoritiesMethodName);
 		}
+	}
+
+	protected String getPassword(final Object user) {
+		return (String)invoke(_getPassword, user);
+	}
+
+	protected boolean getEnabled(final Object user) {
+		return (Boolean)invoke(_getEnabled, user);
+	}
+
+	@SuppressWarnings("unchecked")
+	protected Set<String> getAuthorityNames(final Object user) {
+		return (Set<String>)invoke(_getAuthoritiesMethod, user);
+	}
+
+	protected Set<?> getAuthoritiesByProperty(final Object user) {
+		return (Set<?>)invoke(_getAuthoritiesGetterMethod, user);
+	}
+
+	protected String getAuthority(final Object role) {
+		return (String)invoke(_getAuthority, role);
 	}
 
 	/**

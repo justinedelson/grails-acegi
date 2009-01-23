@@ -115,20 +115,6 @@ class AuthorizeToolsTests extends AbstractSecurityTest {
 	}
 
 	/**
-	 * Test rolesToAuthorities().
-	 */
-	void testRolesToAuthorities() {
-		def grantedRoles = ['role1', 'role2', 'role3']
-
-		def granted = [new GrantedAuthorityImpl('role1'),
-		               new GrantedAuthorityImpl('role2'),
-		               new GrantedAuthorityImpl('role4')]
-
-		def expected = ['role1', 'role2']
-		assertSameContents expected, AuthorizeTools.rolesToAuthorities(grantedRoles, granted)
-	}
-
-	/**
 	 * Check that two collections contain the same data, independent of collection class and order.
 	 */
 	private void assertSameContents(c1, c2) {
