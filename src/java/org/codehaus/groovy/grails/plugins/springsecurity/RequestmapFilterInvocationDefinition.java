@@ -14,12 +14,19 @@
 */
 package org.codehaus.groovy.grails.plugins.springsecurity;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.codehaus.groovy.grails.commons.ApplicationHolder;
+import org.hibernate.SessionFactory;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.security.ConfigAttributeDefinition;
 import org.springframework.security.intercept.web.FilterInvocation;
 import org.springframework.util.Assert;
@@ -32,10 +39,12 @@ public class RequestmapFilterInvocationDefinition extends AbstractFilterInvocati
 
 	private boolean _initialized;
 
-	private String _requestMapClass;
+	private String _requestMapClassName;
 	private String _requestMapPathFieldName;
-	private String _requestMapConfigAttributeField;
-	private RequestmapFilterInvocationDefinitionHelper _helper;
+	private String _requestMapConfigAttributeFieldName;
+	private Method _getPath;
+	private Method _getConfigAttribute;
+	private SessionFactory _sessionFactory;
 
 	@Override
 	protected String determineUrl(final FilterInvocation filterInvocation) {
@@ -45,7 +54,7 @@ public class RequestmapFilterInvocationDefinition extends AbstractFilterInvocati
 	}
 
 	@Override
-	protected void initialize() {
+	protected void initialize() throws IllegalAccessException, InvocationTargetException {
 		if (!_initialized) {
 			reset();
 			_initialized = true;
@@ -54,9 +63,11 @@ public class RequestmapFilterInvocationDefinition extends AbstractFilterInvocati
 
 	/**
 	 * Call at startup or when <code>Requestmap</code> instances have been added, removed, or changed.
+	 * @throws InvocationTargetException  if there's a problem with reflection 
+	 * @throws IllegalAccessException  if there's a problem with reflection
 	 */
-	public synchronized void reset() {
-		Map<String, String> data = _helper.loadRequestmaps();
+	public synchronized void reset() throws IllegalAccessException, InvocationTargetException {
+		Map<String, String> data = loadRequestmaps();
 		_compiled.clear();
 
 		for (Map.Entry<String, String> entry : data.entrySet()) {
@@ -96,12 +107,24 @@ public class RequestmapFilterInvocationDefinition extends AbstractFilterInvocati
 		}
 	}
 
+	private Map<String, String> loadRequestmaps() throws IllegalAccessException, InvocationTargetException {
+		Map<String, String> data = new HashMap<String, String>();
+
+		for (Object requestmap : _sessionFactory.openSession().createQuery("FROM " + _requestMapClassName).list()) {
+			String urlPattern = (String)_getPath.invoke(requestmap);
+			String configAttribute = (String)_getConfigAttribute.invoke(requestmap);
+			data.put(urlPattern, configAttribute);
+		}
+
+		return data;
+	}
+
 	/**
 	 * Dependency injection for the Requestmap class name.
 	 * @param name  the class name
 	 */
 	public void setRequestMapClass(final String name) {
-		_requestMapClass = name;
+		_requestMapClassName = name;
 	}
 
 	/**
@@ -109,7 +132,7 @@ public class RequestmapFilterInvocationDefinition extends AbstractFilterInvocati
 	 * @param name
 	 */
 	public void setRequestMapConfigAttributeField(final String name) {
-		_requestMapConfigAttributeField = name;
+		_requestMapConfigAttributeFieldName = name;
 	}
 
 	/**
@@ -121,17 +144,32 @@ public class RequestmapFilterInvocationDefinition extends AbstractFilterInvocati
 	}
 
 	/**
+	 * Dependency injection for the {@link SessionFactory}.
+	 * @param sessionFactory  the session factory
+	 */
+	public void setSessionFactory(final SessionFactory sessionFactory) {
+		_sessionFactory = sessionFactory;
+	}
+
+	/**
 	 * {@inheritDoc}
 	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
 	 */
 	@Override
 	public void afterPropertiesSet() {
 		super.afterPropertiesSet();
-		Assert.notNull(_requestMapClass, "Requestmap class name is required");
+		Assert.notNull(_requestMapClassName, "Requestmap class name is required");
 		Assert.notNull(_requestMapPathFieldName, "Requestmap path field name is required");
-		Assert.notNull(_requestMapConfigAttributeField, "Requestmap config attribute field name is required");
+		Assert.notNull(_requestMapConfigAttributeFieldName, "Requestmap config attribute field name is required");
+		Assert.notNull(_sessionFactory, "sessionFactory is required");
 
-		_helper = new RequestmapFilterInvocationDefinitionHelper(_requestMapClass,
-				_requestMapPathFieldName, _requestMapConfigAttributeField);
+		findGetters();
+	}
+
+	private void findGetters() {
+		Class<?> requestmapClass = ApplicationHolder.getApplication().getClassForName(_requestMapClassName);
+		BeanWrapper wrapper = new BeanWrapperImpl(requestmapClass);
+		_getPath = wrapper.getPropertyDescriptor(_requestMapPathFieldName).getReadMethod();
+		_getConfigAttribute = wrapper.getPropertyDescriptor(_requestMapConfigAttributeFieldName).getReadMethod();
 	}
 }

@@ -261,6 +261,7 @@ class AcegiGrailsPlugin {
 				requestMapPathFieldName = conf.requestMapPathField
 				requestMapConfigAttributeField = conf.requestMapConfigAttributeField
 				urlMatcher = new AntUrlPathMatcher(true)
+				sessionFactory = ref('sessionFactory')
 			}
 		}
 
@@ -325,8 +326,9 @@ class AcegiGrailsPlugin {
 			loginUserDomainClass = conf.loginUserDomainClass
 			relationalAuthoritiesField = conf.relationalAuthorities
 			authoritiesMethodName = conf.getAuthoritiesMethod
+			roleDomainClass = conf.authorityDomainClass
+			useNtlm = conf.useNtlm
 			sessionFactory = ref('sessionFactory')
-			authenticateService = ref('authenticateService')
 		}
 
 		/** loggerListener ( log4j.logger.org.springframework.security=info,stdout ) */
@@ -720,12 +722,13 @@ class AcegiGrailsPlugin {
 		jaasPasswordCallbackHandler(org.springframework.security.providers.jaas.JaasPasswordCallbackHandler)
 
 		kerberosAuthProvider(org.codehaus.groovy.grails.plugins.springsecurity.kerberos.GrailsKerberosAuthenticationProvider) {
-			authenticateService = ref('authenticateService')
-			userDetailsService = ref('userDetailsService')
 			loginConfig = conf.kerberosLoginConfigFile
 			loginContextName = 'KrbAuthentication'
 			callbackHandlers = [jaasNameCallbackHandler, jaasPasswordCallbackHandler]
 			authorityGranters = []
+			
+			userDetailsService = ref('userDetailsService')
+			retrieveDatabaseRoles = conf.kerberosRetrieveDatabaseRoles
 		}
 
 		//TODO: Improve

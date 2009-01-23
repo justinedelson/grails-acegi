@@ -59,7 +59,14 @@ public abstract class AbstractFilterInvocationDefinition
 
 		String url = determineUrl(filterInvocation);
 
-		ConfigAttributeDefinition configAttribute = findConfigAttribute(url);
+		ConfigAttributeDefinition configAttribute;
+		try {
+			configAttribute = findConfigAttribute(url);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
 		if (configAttribute == null && _rejectIfNoRule) {
 			return DENY;
 		}
@@ -69,7 +76,7 @@ public abstract class AbstractFilterInvocationDefinition
 
 	protected abstract String determineUrl(FilterInvocation filterInvocation);
 
-	private ConfigAttributeDefinition findConfigAttribute(final String url) {
+	private ConfigAttributeDefinition findConfigAttribute(final String url) throws Exception {
 
 		initialize();
 
@@ -104,7 +111,7 @@ public abstract class AbstractFilterInvocationDefinition
 		return configAttribute;
 	}
 
-	protected void initialize() {
+	protected void initialize() throws Exception {
 		// override if necessary
 	}
 
