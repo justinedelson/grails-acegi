@@ -20,7 +20,7 @@
 			<thead>
 				<tr>
 					<g:sortableColumn property="id" title="Id" />
-					<g:sortableColumn property="username" title="Login Name" />
+					<g:sortableColumn property="${usernameField}" title="Login Name" />
 					<g:sortableColumn property="userRealName" title="Full Name" />
 					<g:sortableColumn property="enabled" title="Enabled" />
 					<g:sortableColumn property="description" title="Description" />
@@ -31,7 +31,7 @@
 			<g:each in="\${personList}" status="i" var="person">
 				<tr class="\${(i % 2) == 0 ? 'odd' : 'even'}">
 					<td>\${person.id}</td>
-					<td>\${person.username?.encodeAsHTML()}</td>
+					<td>\${person.${usernameField}?.encodeAsHTML()}</td>
 					<td>\${person.userRealName?.encodeAsHTML()}</td>
 					<td>\${person.enabled?.encodeAsHTML()}</td>
 					<td>\${person.description?.encodeAsHTML()}</td>

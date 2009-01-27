@@ -36,8 +36,8 @@
 
 					<tr class="prop">
 						<td valign="top" class="name"><label for="username">Login Name:</label></td>
-						<td valign="top" class="value \${hasErrors(bean:person,field:'username','errors')}">
-							<input type="text" id="username" name="username" value="\${person.username?.encodeAsHTML()}"/>
+						<td valign="top" class="value \${hasErrors(bean:person,field:'${usernameField}','errors')}">
+							<input type="text" id="username" name="username" value="\${person.${usernameField}?.encodeAsHTML()}"/>
 						</td>
 					</tr>
 
@@ -50,8 +50,8 @@
 
 					<tr class="prop">
 						<td valign="top" class="name"><label for="passwd">Password:</label></td>
-						<td valign="top" class="value \${hasErrors(bean:person,field:'passwd','errors')}">
-							<input type="password" id="passwd" name="passwd" value="\${person.passwd?.encodeAsHTML()}"/>
+						<td valign="top" class="value \${hasErrors(bean:person,field:'${passwordField}','errors')}">
+							<input type="password" id="passwd" name="passwd" value=""/>
 						</td>
 					</tr>
 

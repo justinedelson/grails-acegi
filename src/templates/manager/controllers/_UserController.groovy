@@ -49,7 +49,7 @@ class ${personClassName}Controller {
 		if (person) {
 			def authPrincipal = authenticateService.principal()
 			//avoid self-delete if the logged-in user is an admin
-			if (!(authPrincipal instanceof String) && authPrincipal.username == person.username) {
+			if (!(authPrincipal instanceof String) && authPrincipal.${usernameField} == person.${usernameField}) {
 				flash.message = "You can not delete yourself, please login as another admin and try again"
 			}
 			else {
@@ -98,10 +98,10 @@ class ${personClassName}Controller {
 			return
 		}
 
-		def oldPassword = person.passwd
+		def oldPassword = person.${passwordField}
 		person.properties = params
 		if (!params.passwd.equals(oldPassword)) {
-			person.passwd = authenticateService.encodePassword(params.passwd)
+			person.${passwordField} = authenticateService.encodePassword(params.passwd)
 		}
 		if (person.save()) {
 			${authorityClassName}.findAll().each { it.removeFromPeople(person) }
@@ -124,7 +124,7 @@ class ${personClassName}Controller {
 
 		def person = new ${personClassName}()
 		person.properties = params
-		person.passwd = authenticateService.encodePassword(params.passwd)
+		person.${passwordField} = authenticateService.encodePassword(params.passwd)
 		if (person.save()) {
 			addRoles(person)
 			redirect action: show, id: person.id
