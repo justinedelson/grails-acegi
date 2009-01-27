@@ -83,7 +83,7 @@ private void generateRegistration(String name) {
 	dest = "$basedir/grails-app/views/$name"
 	println "copying view files to - $dest/*"
 	Ant.mkdir dir: dest
-	copyFile "$pluginTemplatePath/views/$name/edit.gsp", "$dest/edit.gsp"
-	copyFile "$pluginTemplatePath/views/$name/index.gsp", "$dest/index.gsp"
-	copyFile "$pluginTemplatePath/views/$name/show.gsp", "$dest/show.gsp"
+	generateFile "$pluginTemplatePath/views/$name/edit.gsp", "$dest/edit.gsp"
+	generateFile "$pluginTemplatePath/views/$name/index.gsp", "$dest/index.gsp"
+	generateFile "$pluginTemplatePath/views/$name/show.gsp", "$dest/show.gsp"
 }

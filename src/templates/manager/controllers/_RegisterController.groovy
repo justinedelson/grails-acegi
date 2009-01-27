@@ -95,10 +95,10 @@ class RegisterController {
 		if (params.passwd && params.passwd.length() > 0
 				&& params.repasswd && params.repasswd.length() > 0) {
 			if (params.passwd == params.repasswd) {
-				person.passwd = authenticateService.encodePassword(params.passwd)
+				person.${passwordField} = authenticateService.encodePassword(params.passwd)
 			}
 			else {
-				person.passwd = ''
+				person.${passwordField} = ''
 				flash.message = 'The passwords you entered do not match.'
 				render view: 'edit', model: [person: person]
 				return
@@ -141,31 +141,33 @@ class RegisterController {
 
 		def role = ${authorityClassName}.findByAuthority(defaultRole)
 		if (!role) {
-			person.passwd = ''
-			flash.message = "Default Role '$defaultRole' not found."
+			person.${passwordField} = ''
+			flash.message = "Default Role '\$defaultRole' not found."
 			render view: 'index', model: [person: person]
 			return
 		}
 
 		if (params.captcha.toUpperCase() != session.captcha) {
-			person.passwd = ''
+			person.${passwordField} = ''
 			flash.message = 'Access code did not match.'
 			render view: 'index', model: [person: person]
 			return
 		}
 
 		if (params.passwd != params.repasswd) {
-			person.passwd = ''
+			person.${passwordField} = ''
 			flash.message = 'The passwords you entered do not match.'
 			render view: 'index', model: [person: person]
 			return
 		}
 
 		def pass = authenticateService.encodePassword(params.passwd)
-		person.passwd = pass
-		person.enabled = true
-		person.emailShow = true
-		person.description = ''
+		bindData(person, [
+                ${usernameField}: params.username,
+                ${passwordField}: pass,
+		        enabled: true,
+		        emailShow: true,
+		        description: '' ])
 		if (person.save()) {
 			role.addToPeople(person)
 			if (config.security.useMail) {
@@ -175,10 +177,9 @@ class RegisterController {
 
  Here are the details of your account:
  -------------------------------------
- LoginName: \${person.username}
+ LoginName: \${person.${usernameField}}
  Email: \${person.email}
  Full Name: \${person.userRealName}
- Password: \${params.passwd}
 """
 
 				def email = [
@@ -191,13 +192,13 @@ class RegisterController {
 
 			person.save(flush: true)
 
-			def auth = new AuthToken(person.username, params.passwd)
+			def auth = new AuthToken(person.${usernameField}, params.passwd)
 			def authtoken = daoAuthenticationProvider.authenticate(auth)
 			SCH.context.authentication = authtoken
 			redirect uri: '/'
 		}
 		else {
-			person.passwd = ''
+			person.${passwordField} = ''
 			render view: 'index', model: [person: person]
 		}
 	}

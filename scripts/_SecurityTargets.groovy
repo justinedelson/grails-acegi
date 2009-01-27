@@ -30,6 +30,8 @@ authorityClassName = 'Authority'
 authorityClassPackage = ''
 requestmapClassName = 'Requestmap'
 requestmapClassPackage = ''
+usernameField = 'username'
+passwordField = 'passwd'
 templateDir = "$acegiPluginDir/src/templates"
 appDir = "$basedir/grails-app"
 
@@ -60,7 +62,9 @@ generateFile = { String templatePath, String outputPath ->
 	               authorityClass: authorityClassName, authorityClassImport: '',
 	               requestmapClassName: requestmapClassName,
 	               requestmapClassPackage: '',
-	               requestmapClass: requestmapClassName, requestmapClassImport: '']
+	               requestmapClass: requestmapClassName, requestmapClassImport: '',
+	               usernameField: usernameField,
+	               passwordField: passwordField]
 
 	if (personClassPackage) {
 		binding.personClass = "${personClassPackage}.$personClassName"
@@ -100,6 +104,10 @@ loadConfig = {
 	println "Login user domain class: $securityConfig.security.loginUserDomainClass"
 	println "Authority domain class: $securityConfig.security.authorityDomainClass"
 	println "Request Map domain class: $securityConfig.security.requestMapClass"
+
+    // "User" field names.
+    if (securityConfig.security.userName) usernameField = securityConfig.security.userName
+    if (securityConfig.security.password) passwordField = securityConfig.security.password
 }
 
 splitClassName = { name ->
@@ -108,18 +116,21 @@ splitClassName = { name ->
 }
 
 splitPersonClassName = { name ->
+    if (!name) return
 	def packageAndClass = splitClassName(name)
 	personClassName = packageAndClass[0]
 	personClassPackage = packageAndClass[1]
 }
 
 splitAuthorityClassName = { name ->
+    if (!name) return
 	def packageAndClass = splitClassName(name)
 	authorityClassName = packageAndClass[0]
 	authorityClassPackage = packageAndClass[1]
 }
 
 splitRequestmapClassName = { name ->
+    if (!name) return
 	def packageAndClass = splitClassName(name)
 	requestmapClassName = packageAndClass[0]
 	requestmapClassPackage = packageAndClass[1]
