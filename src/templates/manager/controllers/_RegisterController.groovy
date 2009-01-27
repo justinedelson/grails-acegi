@@ -163,11 +163,11 @@ class RegisterController {
 
 		def pass = authenticateService.encodePassword(params.passwd)
 		bindData(person, [
-                ${usernameField}: params.username,
-                ${passwordField}: pass,
-		        enabled: true,
-		        emailShow: true,
-		        description: '' ])
+				${usernameField}: params.username,
+				${passwordField}: pass,
+				enabled: true,
+				emailShow: true,
+				description: '' ])
 		if (person.save()) {
 			role.addToPeople(person)
 			if (config.security.useMail) {
