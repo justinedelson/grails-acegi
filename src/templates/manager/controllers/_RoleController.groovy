@@ -19,9 +19,7 @@ class ${authorityClassName}Controller {
 	 * Display the list authority page.
 	 */
 	def list = {
-		if (!params.max) {
-			params.max = 10
-		}
+		params.max = Math.min((params.max ?: 10).toInteger(), 100)
 		[authorityList: ${authorityClassName}.list(params)]
 	}
 

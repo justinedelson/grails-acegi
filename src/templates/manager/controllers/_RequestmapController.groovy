@@ -17,9 +17,7 @@ class ${requestmapClassName}Controller {
 	}
 
 	def list = {
-		if (!params.max) {
-			params.max = 10
-		}
+		params.max = Math.min((params.max ?: 10).toInteger(), 100)
 		[requestmapList: ${requestmapClassName}.list(params)]
 	}
 

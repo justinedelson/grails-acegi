@@ -16,9 +16,7 @@ class ${personClassName}Controller {
 	}
 
 	def list = {
-		if (!params.max) {
-			params.max = 10
-		}
+		params.max = Math.min((params.max ?: 10).toInteger(), 100)
 		[personList: ${personClassName}.list(params)]
 	}
 
@@ -49,7 +47,7 @@ class ${personClassName}Controller {
 		if (person) {
 			def authPrincipal = authenticateService.principal()
 			//avoid self-delete if the logged-in user is an admin
-			if (!(authPrincipal instanceof String) && authPrincipal.${usernameField} == person.${usernameField}) {
+			if (!(authPrincipal instanceof String) && authPrincipal.username == person.${usernameField}) {
 				flash.message = "You can not delete yourself, please login as another admin and try again"
 			}
 			else {
