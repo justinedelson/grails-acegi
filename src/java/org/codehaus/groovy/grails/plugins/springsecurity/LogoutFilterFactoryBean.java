@@ -36,6 +36,8 @@ public class LogoutFilterFactoryBean implements FactoryBean, InitializingBean {
 	private List<LogoutHandler> _handlers;
 	private LogoutFilter _logoutFilter;
 	private String _logoutSuccessUrl;
+	private String _filterProcessesUrl;
+	private boolean _useRelativeContext;
 
 	/**
 	 * {@inheritDoc}
@@ -76,15 +78,34 @@ public class LogoutFilterFactoryBean implements FactoryBean, InitializingBean {
 				RedirectUtils.sendRedirect(request, response, url);
 			}
 		};
+
+		_logoutFilter.setFilterProcessesUrl(_filterProcessesUrl);
+		_logoutFilter.setUseRelativeContext(_useRelativeContext);
 	}
 
 	/**
 	 * Dependency injection for the logout success url.
-	 * @param logoutSuccessUrl  the url
+	 * @param url  the url
 	 */
-	public void setLogoutSuccessUrl(final String logoutSuccessUrl) {
-		_logoutSuccessUrl = logoutSuccessUrl;
+	public void setLogoutSuccessUrl(final String url) {
+		_logoutSuccessUrl = url;
 	}
+
+	/**
+	 * Dependency injection for 'filterProcessesUrl.
+	 * @param url  the url
+	 */
+   public void setFilterProcessesUrl(final String url) {
+   	_filterProcessesUrl = url;
+   }
+
+   /**
+	 * Dependency injection for 'useRelativeContext.
+	 * @param use  if <code>true</code> use relative context
+	 */
+   public void setUseRelativeContext(final boolean use) {
+   	_useRelativeContext = use;
+   }
 
 	/**
 	 * Dependency injection for the handlers.

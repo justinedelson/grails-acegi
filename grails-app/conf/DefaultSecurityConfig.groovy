@@ -49,6 +49,8 @@ security {
 
 	/** logoutFilter */
 	afterLogoutUrl = '/'
+	logout.filterProcessesUrl = '/j_spring_security_logout'
+	logout.useRelativeContext = false
 
 	/** accessDeniedHandler
 	 *  set errorPage to null, if you want to get error code 403 (FORBIDDEN).

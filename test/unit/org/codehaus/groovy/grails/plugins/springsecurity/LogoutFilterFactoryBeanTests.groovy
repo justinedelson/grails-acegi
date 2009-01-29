@@ -47,12 +47,13 @@ class LogoutFilterFactoryBeanTests extends AbstractSecurityTest {
 	 */
 	void testFactory() {
 		String url = '/after_logout'
+		String filterProcessesUrl = '/j_spring_security_logout'
 
 		Authentication authentication = authenticate()
 
 		def request1 = new MockHttpServletRequest('GET', '/foo/bar')
 		def response1 = new MockHttpServletResponse()
-		def request2 = new MockHttpServletRequest('GET', '/j_spring_security_logout')
+		def request2 = new MockHttpServletRequest('GET', filterProcessesUrl)
 		def response2 = new MockHttpServletResponse()
 
 		def handlers = []
@@ -64,6 +65,7 @@ class LogoutFilterFactoryBeanTests extends AbstractSecurityTest {
 
 		_factory.logoutSuccessUrl = url
 		_factory.handlers = handlers
+		_factory.filterProcessesUrl = filterProcessesUrl
 		assertNull _factory.object
 
 		_factory.afterPropertiesSet()
