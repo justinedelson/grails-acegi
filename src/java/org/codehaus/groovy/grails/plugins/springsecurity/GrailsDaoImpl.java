@@ -35,7 +35,6 @@ import org.springframework.security.GrantedAuthorityImpl;
 import org.springframework.security.userdetails.UserDetails;
 import org.springframework.security.userdetails.UserDetailsService;
 import org.springframework.security.userdetails.UsernameNotFoundException;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -214,43 +213,40 @@ public class GrailsDaoImpl
 	 */
 	public void afterPropertiesSet() throws SecurityException, NoSuchMethodException {
 
-		Assert.hasLength(_loginUserDomainClassName, "loginUserDomainClass is required");
-		Assert.hasLength(_usernameFieldName, "usernameFieldName is required");
-		Assert.hasLength(_passwordFieldName, "passwordFieldName is required");
-		Assert.hasLength(_enabledFieldName, "enabledFieldName is required");
-
-		if (!StringUtils.hasLength(_relationalAuthoritiesFieldName) &&
-				!StringUtils.hasLength(_authoritiesMethodName)) {
-			throw new IllegalArgumentException(
-					"Either 'relationalAuthoritiesField' or 'authoritiesMethodName' must be specified");
-		}
-
 		if (StringUtils.hasLength(_relationalAuthoritiesFieldName) &&
 				StringUtils.hasLength(_authoritiesMethodName)) {
 			throw new IllegalArgumentException(
 					"Only one of 'relationalAuthoritiesField' or 'authoritiesMethodName' can be specified");
 		}
 
-		Assert.hasLength(_roleDomainClassName, "roleDomainClass is required");
-		Assert.hasLength(_authorityFieldName, "authorityFieldName is required");
-
 		findMethods();
 	}
 
 	private void findMethods() throws SecurityException, NoSuchMethodException {
-		Class<?> userClass = ApplicationHolder.getApplication().getClassForName(_loginUserDomainClassName);
-		BeanWrapper userClassWrapper = new BeanWrapperImpl(userClass);
-		_getPassword = userClassWrapper.getPropertyDescriptor(_passwordFieldName).getReadMethod();
-		_getEnabled = userClassWrapper.getPropertyDescriptor(_enabledFieldName).getReadMethod();
+		BeanWrapper userClassWrapper = null;
+		if (StringUtils.hasLength(_loginUserDomainClassName)) {
+			Class<?> userClass = ApplicationHolder.getApplication().getClassForName(_loginUserDomainClassName);
+			userClassWrapper = new BeanWrapperImpl(userClass);
+			_getPassword = userClassWrapper.getPropertyDescriptor(_passwordFieldName).getReadMethod();
+			_getEnabled = userClassWrapper.getPropertyDescriptor(_enabledFieldName).getReadMethod();
+		}
 
-		Class<?> roleClass = ApplicationHolder.getApplication().getClassForName(_roleDomainClassName);
-		BeanWrapper roleClassWrapper = new BeanWrapperImpl(roleClass);
+		Class<?> roleClass = null;
+		BeanWrapper roleClassWrapper = null;
+		if (StringUtils.hasLength(_roleDomainClassName)) {
+			roleClass = ApplicationHolder.getApplication().getClassForName(_roleDomainClassName);
+			roleClassWrapper = new BeanWrapperImpl(roleClass);
+		}
 
 		if (StringUtils.hasLength(_relationalAuthoritiesFieldName)) {
-			_getAuthoritiesGetterMethod = userClassWrapper.getPropertyDescriptor(_relationalAuthoritiesFieldName).getReadMethod();
-			_getAuthority = roleClassWrapper.getPropertyDescriptor(_authorityFieldName).getReadMethod();
+			if (userClassWrapper != null) {
+				_getAuthoritiesGetterMethod = userClassWrapper.getPropertyDescriptor(_relationalAuthoritiesFieldName).getReadMethod();
+			}
+			if (roleClassWrapper != null) {
+				_getAuthority = roleClassWrapper.getPropertyDescriptor(_authorityFieldName).getReadMethod();
+			}
 		}
-		else if (StringUtils.hasLength(_authoritiesMethodName)) {
+		else if (roleClass != null && StringUtils.hasLength(_authoritiesMethodName)) {
 			_getAuthoritiesMethod = roleClass.getDeclaredMethod(_authoritiesMethodName);
 		}
 	}
