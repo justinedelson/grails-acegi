@@ -551,8 +551,8 @@ class AcegiGrailsPlugin {
 		logoutFilter(LogoutFilterFactoryBean) {
 			logoutSuccessUrl = conf.afterLogoutUrl // '/'
 			handlers = logoutHandlers
-			filterProcessesUrl = logout.filterProcessesUrl // '/j_spring_security_logout'
-			useRelativeContext = logout.useRelativeContext // false
+			filterProcessesUrl = conf.logout.filterProcessesUrl // '/j_spring_security_logout'
+			useRelativeContext = conf.logout.useRelativeContext // false
 		}
 	}
 
