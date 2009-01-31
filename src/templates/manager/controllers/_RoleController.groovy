@@ -89,7 +89,6 @@ class ${authorityClassName}Controller {
 		}
 
 		if (authenticateService.updateRole(authority, params)) {
-			authenticateService.clearCachedRequestmaps()
 			redirect action: show, id: authority.id
 		}
 		else {
