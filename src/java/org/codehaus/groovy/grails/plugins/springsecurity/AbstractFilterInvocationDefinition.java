@@ -47,6 +47,14 @@ public abstract class AbstractFilterInvocationDefinition
 	protected final Logger _log = Logger.getLogger(getClass());
 
 	/**
+	 * Allows subclasses to be externally reset.
+	 * @throws Exception
+	 */
+	public void reset() throws Exception {
+		// override if necessary
+	}
+
+	/**
 	 * {@inheritDoc}
 	 * @see org.springframework.security.intercept.ObjectDefinitionSource#getAttributes(java.lang.Object)
 	 */

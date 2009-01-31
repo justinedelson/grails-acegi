@@ -120,7 +120,7 @@ class AuthenticateService {
 	 * configuration and rebuild using the most recent data.
 	 */
 	void clearCachedRequestmaps() {
-		objectDefinitionSource.reset()
+		objectDefinitionSource?.reset()
 	}
 
 	/**
