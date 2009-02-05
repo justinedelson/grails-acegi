@@ -113,6 +113,18 @@ class AcegiGrailsPlugin {
 		configureFilterChain.delegate = delegate
 		configureFilterChain conf
 
+		authenticationEntryPoint(WithAjaxAuthenticationProcessingFilterEntryPoint) {
+			loginFormUrl = conf.loginFormUrl // '/login/auth'
+			forceHttps = conf.forceHttps // 'false'
+			ajaxLoginFormUrl = conf.ajaxLoginFormUrl // '/login/authAjax'
+			serverSideRedirect = conf.loginFormServerSideRedirect // false
+			if (conf.ajaxHeader) {
+				ajaxHeader = conf.ajaxHeader //default: X-Requested-With
+			}
+			portMapper = ref('portMapper')
+			portResolver = ref('portResolver')
+		}
+
 		// OpenID
 		if (conf.useOpenId) {
 			configureOpenId.delegate = delegate
@@ -136,8 +148,10 @@ class AcegiGrailsPlugin {
 		configureLogout conf
 
 		// Basic Auth
-		configureBasicAuth.delegate = delegate
-		configureBasicAuth conf
+		if (conf.useBasicAuth) {
+			configureBasicAuth.delegate = delegate
+			configureBasicAuth conf
+		}
 
 		/** httpSessionContextIntegrationFilter */
 		httpSessionContextIntegrationFilter(HttpSessionContextIntegrationFilter)
@@ -210,20 +224,6 @@ class AcegiGrailsPlugin {
 			portResolver = ref('portResolver')
 			if (conf.ajaxHeader) {
 				ajaxHeader = conf.ajaxHeader //default: X-Requested-With
-			}
-		}
-
-		if (!conf.useNtlm && !conf.useCAS && !conf.useX509) {
-			authenticationEntryPoint(WithAjaxAuthenticationProcessingFilterEntryPoint) {
-				loginFormUrl = conf.loginFormUrl // '/login/auth'
-				forceHttps = conf.forceHttps // 'false'
-				ajaxLoginFormUrl = conf.ajaxLoginFormUrl // '/login/authAjax'
-				serverSideRedirect = conf.loginFormServerSideRedirect // false
-				if (conf.ajaxHeader) {
-					ajaxHeader = conf.ajaxHeader //default: X-Requested-With
-				}
-				portMapper = ref('portMapper')
-				portResolver = ref('portResolver')
 			}
 		}
 
@@ -558,12 +558,12 @@ class AcegiGrailsPlugin {
 
 	private def configureBasicAuth = { conf ->
 
-		basicProcessingFilterEntryPoint(BasicProcessingFilterEntryPoint) {
+		authenticationEntryPoint(BasicProcessingFilterEntryPoint) {
 			realmName = conf.realmName // 'Grails Realm'
 		}
 		basicProcessingFilter(BasicProcessingFilter) {
 			authenticationManager = ref('authenticationManager')
-			authenticationEntryPoint = basicProcessingFilterEntryPoint
+			authenticationEntryPoint = ref('authenticationEntryPoint')
 		}
 	}
 

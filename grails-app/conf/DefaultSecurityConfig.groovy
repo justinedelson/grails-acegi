@@ -111,6 +111,7 @@ security {
 	"""
 
 	// basic auth
+	useBasicAuth = false
 	realmName = 'Grails Realm'
 
 	/** use basicProcessingFilter */
