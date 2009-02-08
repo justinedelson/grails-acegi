@@ -113,18 +113,17 @@ public class IpAddressFilter extends SpringSecurityFilter implements Initializin
 				try {
 					if (!matchesUsingMask(ipPattern, ip)) {
 						reason = ipPattern;
-						break;
 					}
 				}
 				catch (UnknownHostException e) {
 					reason = e.getMessage();
-					break;
 				}
 			}
 			else if (!_pathMatcher.match(ipPattern, ip)) {
 				reason = ipPattern;
-				break;
 			}
+
+			break;
 		}
 
 		if (reason != null) {
