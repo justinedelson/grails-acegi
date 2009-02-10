@@ -121,7 +121,8 @@ class LoginController {
 	 */
 	def full = {
 		render view: 'auth', params: params,
-			model: [hasCookie: authenticationTrustResolver.isRememberMe(SCH.context?.authentication)]
+			model: [hasCookie: authenticationTrustResolver.isRememberMe(SCH.context?.authentication),
+			        postUrl: "${request.contextPath}${config.filterProcessesUrl}"]
 	}
 
 	// Denial page (data|view|json) for Ajax access.
