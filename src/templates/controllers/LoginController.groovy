@@ -30,7 +30,7 @@ class LoginController {
 
 	def index = {
 		if (isLoggedIn()) {
-			redirect uri: '/'
+			redirect uri: authenticateService.securityConfig.security.defaultTargetUrl
 		}
 		else {
 			redirect action: auth, params: params
@@ -44,14 +44,15 @@ class LoginController {
 
 		nocache response
 
+		def config = authenticateService.securityConfig.security
+
 		if (isLoggedIn()) {
-			redirect uri: '/'
+			redirect uri: config.defaultTargetUrl
 			return
 		}
 
 		String view
 		String postUrl
-		def config = authenticateService.securityConfig.security
 		if (config.useOpenId) {
 			view = 'openIdAuth'
 			postUrl = "${request.contextPath}/login/openIdAuthenticate"
