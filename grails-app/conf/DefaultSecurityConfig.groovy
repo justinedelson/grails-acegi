@@ -216,4 +216,8 @@ security {
 	useX509 = false
 	x509.continueFilterChainOnUnsuccessfulAuthentication = true
 	x509.subjectDnRegex = 'CN=(.*?),'
+
+	// authenticationTrustResolver
+	atr.anonymousClass = org.springframework.security.providers.anonymous.AnonymousAuthenticationToken
+	atr.rememberMeClass = org.springframework.security.providers.rememberme.RememberMeAuthenticationToken
 }

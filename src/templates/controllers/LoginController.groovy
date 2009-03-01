@@ -17,19 +17,19 @@ class LoginController {
 	def authenticateService
 
 	/**
-	 * Dependency injection for OpenIDConsumer.
+	 * Dependency injections for OpenIDConsumer and OpenIDAuthenticationProcessingFilter.
+	 * Uncomment if using OpenID, ok to delete if not.
 	 */
-	def openIDConsumer
-
-	/**
-	 * Dependency injection for OpenIDAuthenticationProcessingFilter.
-	 */
-	def openIDAuthenticationProcessingFilter
+//	def openIDConsumer
+//	def openIDAuthenticationProcessingFilter
 
 	private final authenticationTrustResolver = new AuthenticationTrustResolverImpl()
 
+	/**
+	 * Default action; redirects to 'defaultTargetUrl' if logged in, /login/auth otherwise.
+	 */
 	def index = {
-		if (isLoggedIn()) {
+		if (authenticateService.isLoggedIn()) {
 			redirect uri: authenticateService.securityConfig.security.defaultTargetUrl
 		}
 		else {
@@ -46,7 +46,7 @@ class LoginController {
 
 		def config = authenticateService.securityConfig.security
 
-		if (isLoggedIn()) {
+		if (authenticateService.isLoggedIn()) {
 			redirect uri: config.defaultTargetUrl
 			return
 		}
@@ -71,7 +71,9 @@ class LoginController {
 
 	/**
 	 * Form submit action to start an OpenID authentication.
+	 * Uncomment if using OpenID.
 	 */
+	/*
 	def openIdAuthenticate = {
 		String openID = params['j_username']
 		try {
@@ -85,6 +87,7 @@ class LoginController {
 			redirect url: openIDAuthenticationProcessingFilter.authenticationFailureUrl
 		}
 	}
+	*/
 
 	// Login page (function|json) for Ajax access.
 	def authAjax = {
@@ -111,7 +114,8 @@ class LoginController {
 	 * Show denied page.
 	 */
 	def denied = {
-		if (isLoggedIn() && authenticationTrustResolver.isRememberMe(SCH.context?.authentication)) {
+		if (authenticateService.isLoggedIn() &&
+				authenticationTrustResolver.isRememberMe(SCH.context?.authentication)) {
 			// have cookie but the page is guarded with IS_AUTHENTICATED_FULLY
 			redirect action: full, params: params
 		}
@@ -134,7 +138,7 @@ class LoginController {
 	}
 
 	/**
-	 * login failed
+	 * Callback after a failed login. Redirects to the auth page with a warning message.
 	 */
 	def authfail = {
 
@@ -150,24 +154,13 @@ class LoginController {
 			}
 		}
 
-		if (isAjax()) {
+		if (authenticateService.isAjax(request)) {
 			render "{error: '${msg}'}"
 		}
 		else {
 			flash.message = msg
 			redirect action: auth, params: params
 		}
-	}
-
-	/**
-	 * Check if logged in.
-	 */
-	private boolean isLoggedIn() {
-		return authenticateService.isLoggedIn()
-	}
-
-	private boolean isAjax() {
-		return authenticateService.isAjax(request)
 	}
 
 	/** cache controls */

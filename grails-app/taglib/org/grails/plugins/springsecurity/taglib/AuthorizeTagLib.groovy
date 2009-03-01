@@ -26,6 +26,8 @@ import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
  */
 class AuthorizeTagLib {
 
+	def authenticateService
+
 	/**
 	 * <g:ifAllGranted role="ROLE_USER,ROLE_ADMIN,ROLE_SUPERVISOR">
 	 *  All the listed roles must be granted for the tag to output its body.
@@ -63,7 +65,7 @@ class AuthorizeTagLib {
 	 * <g:loggedInUserInfo field="userRealName">Guest User</g:loggedInUserInfo>
 	 */
 	def loggedInUserInfo = { attrs, body ->
-		if (isAuthenticated()) {
+		if (authenticateService.isLoggedIn()) {
 			def source = determineSource()
 			out << source."$attrs.field"
 		}
@@ -89,25 +91,20 @@ class AuthorizeTagLib {
 	}
 
 	def isLoggedIn = { attrs, body ->
-		if (isAuthenticated()) {
+		if (authenticateService.isLoggedIn()) {
 			out << body()
 		}
 	}
 
 	def isNotLoggedIn = {attrs, body ->
-		if (!isAuthenticated()) {
+		if (!authenticateService.isLoggedIn()) {
 			out << body()
 		}
 	}
 
 	def loggedInUsername = { attrs ->
-		if (isAuthenticated()) {
+		if (authenticateService.isLoggedIn()) {
 			out << SCH.context.authentication.principal.username
 		}
-	}
-
-	private boolean isAuthenticated() {
-		def authPrincipal = SCH?.context?.authentication?.principal
-		return authPrincipal != null && authPrincipal != 'anonymousUser'
 	}
 }

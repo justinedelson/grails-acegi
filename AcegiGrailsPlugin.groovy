@@ -24,6 +24,7 @@ import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreato
 import org.springframework.beans.factory.config.RuntimeBeanReference
 import org.springframework.cache.ehcache.EhCacheFactoryBean
 import org.springframework.cache.ehcache.EhCacheManagerFactoryBean
+import org.springframework.security.AuthenticationTrustResolverImpl
 import org.springframework.security.annotation.Secured as SecuredService
 import org.springframework.security.context.HttpSessionContextIntegrationFilter
 import org.springframework.security.context.SecurityContextHolder as SCH
@@ -112,6 +113,12 @@ class AcegiGrailsPlugin {
 		/** springSecurityFilterChain */
 		configureFilterChain.delegate = delegate
 		configureFilterChain conf
+
+		/** authenticationTrustResolver */
+		authenticationTrustResolver(AuthenticationTrustResolverImpl) {
+			anonymousClass = conf.atr.anonymousClass
+			rememberMeClass = conf.atr.rememberMeClass
+		}
 
 		authenticationEntryPoint(WithAjaxAuthenticationProcessingFilterEntryPoint) {
 			loginFormUrl = conf.loginFormUrl // '/login/auth'
@@ -216,11 +223,13 @@ class AcegiGrailsPlugin {
 		exceptionTranslationFilter(ExceptionTranslationFilter) {
 			authenticationEntryPoint = ref('authenticationEntryPoint')
 			accessDeniedHandler = ref('accessDeniedHandler')
+			authenticationTrustResolver = ref('authenticationTrustResolver')
 			portResolver = ref('portResolver')
 		}
 		accessDeniedHandler(GrailsAccessDeniedHandlerImpl) {
 			errorPage = conf.errorPage == 'null' ? null : conf.errorPage // '/login/denied' or 403
 			ajaxErrorPage = conf.ajaxErrorPage
+			authenticationTrustResolver = ref('authenticationTrustResolver')
 			portResolver = ref('portResolver')
 			if (conf.ajaxHeader) {
 				ajaxHeader = conf.ajaxHeader //default: X-Requested-With
@@ -571,7 +580,9 @@ class AcegiGrailsPlugin {
 
 		roleVoter(RoleVoter)
 
-		authenticatedVoter(AuthenticatedVoter)
+		authenticatedVoter(AuthenticatedVoter) {
+			authenticationTrustResolver = ref('authenticationTrustResolver')
+		}
 
 		def decisionVoterNames = conf.decisionVoterNames
 		if (!decisionVoterNames) {

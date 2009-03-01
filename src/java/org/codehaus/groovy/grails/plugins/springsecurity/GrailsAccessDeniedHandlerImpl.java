@@ -25,7 +25,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.security.AccessDeniedException;
 import org.springframework.security.Authentication;
 import org.springframework.security.AuthenticationTrustResolver;
-import org.springframework.security.AuthenticationTrustResolverImpl;
 import org.springframework.security.context.SecurityContextHolder;
 import org.springframework.security.ui.AbstractProcessingFilter;
 import org.springframework.security.ui.AccessDeniedHandler;
@@ -46,7 +45,7 @@ public class GrailsAccessDeniedHandlerImpl implements AccessDeniedHandler, Initi
 	private String ajaxErrorPage;
 	private String ajaxHeader = WithAjaxAuthenticationProcessingFilterEntryPoint.AJAX_HEADER;
 	private PortResolver portResolver;
-	private final AuthenticationTrustResolver authenticationTrustResolver = new AuthenticationTrustResolverImpl();
+	private AuthenticationTrustResolver authenticationTrustResolver;
 
 	/**
 	 * {@inheritDoc}
@@ -157,11 +156,20 @@ public class GrailsAccessDeniedHandlerImpl implements AccessDeniedHandler, Initi
 	}
 
 	/**
+	 * Dependency injection for the {@link AuthenticationTrustResolver}.
+	 * @param resolver  the resolver
+	 */
+	public void setAuthenticationTrustResolver(final AuthenticationTrustResolver resolver) {
+		authenticationTrustResolver = resolver;
+	}
+
+	/**
 	 * {@inheritDoc}
 	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
 	 */
 	public void afterPropertiesSet() {
 		Assert.notNull(ajaxHeader, "ajaxHeader is required");
 		Assert.notNull(portResolver, "portResolver is required");
+		Assert.notNull(authenticationTrustResolver, "authenticationTrustResolver is required");
 	}
 }

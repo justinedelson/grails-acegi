@@ -31,6 +31,9 @@ class AuthenticateService {
 
 	private securityConfig
 
+	/** dependency injection for authenticationTrustResolver */
+	def authenticationTrustResolver
+
 	/** dependency injection for {@link GrailsFilterInvocationDefinition} */
 	def objectDefinitionSource
 
@@ -63,7 +66,7 @@ class AuthenticateService {
 	 * @return the principal or <code>null</code> if not logged in
 	 */
 	def principal() {
-		return SCH?.context?.authentication?.principal
+		return SCH.context?.authentication?.principal
 	}
 
 	/**
@@ -86,14 +89,15 @@ class AuthenticateService {
 	}
 
 	/**
-	 * returns a MessageDigest password.
-	 * (changes algorithm method dynamically by param of config)
 	 * @deprecated use <code>encodePassword</code> instead
 	 */
 	String passwordEncoder(String passwd) {
 		return encodePassword(passwd)
 	}
 
+	/**
+	 * Encode the password using the configured PasswordEncoder.
+	 */
 	String encodePassword(String passwd) {
 		return passwordEncoder.encodePassword(passwd, null)
 	}
@@ -109,10 +113,11 @@ class AuthenticateService {
 
 	/**
 	 * Quick check to see if the current user is logged in.
-	 * @return <code>true</code> if the principal is a {@link UserDetails} or subclass
+	 * @return <code>true</code> if the authenticated and not anonymous
 	 */
 	boolean isLoggedIn() {
-		return principal() instanceof UserDetails
+		def authentication = SCH.context.authentication
+		return authentication && !authenticationTrustResolver.isAnonymous(authentication)        
 	}
 
 	/**
