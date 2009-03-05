@@ -46,7 +46,7 @@ public class FacebookLogoutHandler implements LogoutHandler, InitializingBean {
 		if (cookies != null) {
 			String path = StringUtils.hasLength(request.getContextPath()) ? request.getContextPath() : "/";
 			for (Cookie cookie : cookies) {
-				if (cookie.getName().startsWith(_apiKey)) {
+				if (cookie.getName().startsWith(_apiKey)) {	
 					cancelCookie(cookie.getName(), path, response);
 				}
 			}
@@ -54,10 +54,10 @@ public class FacebookLogoutHandler implements LogoutHandler, InitializingBean {
 	}
 
 	private void cancelCookie(final String name, final String path, final HttpServletResponse response) {
-      Cookie cookie = new Cookie(name, null);
-      cookie.setMaxAge(0);
-      cookie.setPath(path);
-      response.addCookie(cookie);
+		Cookie cookie = new Cookie(name, null);
+		cookie.setMaxAge(0);
+		cookie.setPath(path);
+		response.addCookie(cookie);
 	}
 
 	/**
@@ -73,6 +73,6 @@ public class FacebookLogoutHandler implements LogoutHandler, InitializingBean {
 	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
 	 */
 	public void afterPropertiesSet() {
-      Assert.notNull(_apiKey, "API key must be specified");
+		Assert.notNull(_apiKey, "API key must be specified");
 	}
 }

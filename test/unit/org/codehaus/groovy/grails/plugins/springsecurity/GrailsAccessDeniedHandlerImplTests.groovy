@@ -18,6 +18,7 @@ import org.easymock.EasyMock
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.security.AccessDeniedException
+import org.springframework.security.AuthenticationTrustResolverImpl
 import org.springframework.security.util.PortResolverImpl
 
 /**
@@ -27,11 +28,11 @@ import org.springframework.security.util.PortResolverImpl
  */
 class GrailsAccessDeniedHandlerImplTests extends AbstractSecurityTest {
 
-	private final _handler = new GrailsAccessDeniedHandlerImpl()
-	private final _request = new MockHttpServletRequest('GET', '/foo/bar')
-	private final _response = new MockHttpServletResponse()
-	private final String _message = 'denied'
-	private final _e = new AccessDeniedException(_message)
+	private _handler = new GrailsAccessDeniedHandlerImpl()
+	private _request = new MockHttpServletRequest('GET', '/foo/bar')
+	private _response = new MockHttpServletResponse()
+	private String _message = 'denied'
+	private _e = new AccessDeniedException(_message)
 
 	/**
 	 * {@inheritDoc}
@@ -152,5 +153,26 @@ class GrailsAccessDeniedHandlerImplTests extends AbstractSecurityTest {
 		}
 
 		_handler.ajaxErrorPage = '/foo'
+	}
+
+	void testAfterPropertiesSet() {
+
+		String message = shouldFail(IllegalArgumentException) {
+			_handler.afterPropertiesSet()
+		}
+		assertEquals 'authenticationTrustResolver is required', message
+
+		_handler.authenticationTrustResolver = new AuthenticationTrustResolverImpl()
+		_handler.ajaxHeader = 'AjaxHeader'
+		_handler.afterPropertiesSet()
+	}
+
+	void testIsLoggedIn() {
+		assertFalse _handler.isLoggedIn()
+
+		authenticate()
+
+		_handler.authenticationTrustResolver = new AuthenticationTrustResolverImpl()
+		assertTrue _handler.isLoggedIn()
 	}
 }

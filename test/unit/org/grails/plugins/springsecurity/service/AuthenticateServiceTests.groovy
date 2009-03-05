@@ -118,6 +118,7 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 	 */
 	void testUserDomainAuthenticated() {
 		authenticate('role1')
+		_service.authenticationTrustResolver = [isAnonymous: { auth -> false }]        
 		assertEquals _user, _service.userDomain()
 	}
 
@@ -210,6 +211,15 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 
 		assertTrue clearCachedRequestmapsCalled
 		assertTrue role.saveCalled
+	}
+
+	void testIsAjax() {
+		def request = new MockHttpServletRequest()
+
+		assertFalse _service.isAjax(request)
+
+		request.addHeader('ajaxHeader', 'foo')
+		assertTrue _service.isAjax(request)
 	}
 
 	private void authenticate(roles) {

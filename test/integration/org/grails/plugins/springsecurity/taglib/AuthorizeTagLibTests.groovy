@@ -24,6 +24,7 @@ import org.grails.plugins.springsecurity.test.TestingAuthenticationToken
 import org.springframework.security.Authentication
 import org.springframework.security.GrantedAuthority
 import org.springframework.security.context.SecurityContextHolder as SCH
+import org.springframework.security.providers.anonymous.AnonymousAuthenticationToken
 import org.springframework.security.userdetails.User
 
 /**
@@ -35,7 +36,21 @@ class AuthorizeTagLibTests extends GroovyPagesTestCase {
 
 	private final Expando _user = new Expando()
 
-	def transactional = false
+	boolean transactional = false
+
+	def authenticateService
+
+	/**
+	 * {@inheritDoc}
+	 * @see junit.framework.TestCase#setUp()
+	 */
+	@Override
+	protected void setUp() {
+		super.setUp()
+		authenticateService.authenticationTrustResolver = [
+			isAnonymous: { authentication -> authentication instanceof AnonymousAuthenticationToken }
+		]
+	}
 
 	/**
 	 * Test ifAllGranted().

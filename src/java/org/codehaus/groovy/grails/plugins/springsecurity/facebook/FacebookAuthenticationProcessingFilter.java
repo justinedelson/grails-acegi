@@ -169,7 +169,7 @@ public class FacebookAuthenticationProcessingFilter extends AbstractProcessingFi
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		super.afterPropertiesSet();
-      Assert.notNull(_apiKey, "API key must be specified");
-      Assert.notNull(_secretKey, "Secret key must be specified");
+		Assert.notNull(_apiKey, "API key must be specified");
+		Assert.notNull(_secretKey, "Secret key must be specified");
 	}
 }

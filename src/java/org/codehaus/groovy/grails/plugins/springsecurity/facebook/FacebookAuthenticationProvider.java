@@ -71,14 +71,14 @@ public class FacebookAuthenticationProvider implements AuthenticationProvider, I
 		_userDetailsService = userDetailsService;
 	}
 
-   /**
-    * {@inheritDoc}
-    * @see org.springframework.security.providers.AuthenticationProvider#supports(java.lang.Class)
-    */
-   @SuppressWarnings("unchecked")
+	/**
+	 * {@inheritDoc}
+	 * @see org.springframework.security.providers.AuthenticationProvider#supports(java.lang.Class)
+	 */
+	@SuppressWarnings("unchecked")
 	public boolean supports(final Class authentication) {
-       return FacebookAuthenticationToken.class.isAssignableFrom(authentication);
-   }
+		return FacebookAuthenticationToken.class.isAssignableFrom(authentication);
+	}
 
 	/**
 	 * {@inheritDoc}

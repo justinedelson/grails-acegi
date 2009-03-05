@@ -117,7 +117,7 @@ class AuthenticateService {
 	 */
 	boolean isLoggedIn() {
 		def authentication = SCH.context.authentication
-		return authentication && !authenticationTrustResolver.isAnonymous(authentication)        
+		return authentication && !authenticationTrustResolver.isAnonymous(authentication)
 	}
 
 	/**

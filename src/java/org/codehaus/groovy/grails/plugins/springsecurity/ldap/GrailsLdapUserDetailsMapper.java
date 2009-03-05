@@ -46,6 +46,7 @@ public class GrailsLdapUserDetailsMapper extends LdapUserDetailsMapper implement
 	 * 	org.springframework.ldap.core.DirContextOperations, java.lang.String,
 	 * 	org.springframework.security.GrantedAuthority[])
 	 */
+	@SuppressWarnings("deprecation")
 	@Override
 	public UserDetails mapUserFromContext(final DirContextOperations ctx, final String username,
 			GrantedAuthority[] authorities) {
@@ -53,7 +54,7 @@ public class GrailsLdapUserDetailsMapper extends LdapUserDetailsMapper implement
 		GrailsUser dbDetails = (GrailsUser)_userDetailsService.loadUserByUsername(username, _retrieveDatabaseRoles);
 		authorities = mergeDatabaseRoles(dbDetails, authorities);
 
-		GrailsLdapUser ldapDetails = (GrailsLdapUser)super.mapUserFromContext(ctx, username, authorities);
+		LdapUserDetails ldapDetails = (LdapUserDetails)super.mapUserFromContext(ctx, username, authorities);
 		if (_usePassword) {
 			return new GrailsLdapUser(ldapDetails, dbDetails.getDomainClass());
 		}

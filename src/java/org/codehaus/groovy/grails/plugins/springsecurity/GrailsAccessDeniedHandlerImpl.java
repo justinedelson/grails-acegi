@@ -29,7 +29,6 @@ import org.springframework.security.context.SecurityContextHolder;
 import org.springframework.security.ui.AbstractProcessingFilter;
 import org.springframework.security.ui.AccessDeniedHandler;
 import org.springframework.security.ui.savedrequest.SavedRequest;
-import org.springframework.security.userdetails.UserDetails;
 import org.springframework.security.util.PortResolver;
 import org.springframework.util.Assert;
 
@@ -106,10 +105,11 @@ public class GrailsAccessDeniedHandlerImpl implements AccessDeniedHandler, Initi
 	}
 
 	private boolean isLoggedIn() {
-		if (getAuthentication() == null) {
+		Authentication authentication = getAuthentication();
+		if (authentication == null) {
 			return false;
 		}
-		return getAuthentication().getPrincipal() instanceof UserDetails;
+		return !authenticationTrustResolver.isAnonymous(authentication);
 	}
 
 	private Authentication getAuthentication() {

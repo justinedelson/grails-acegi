@@ -29,20 +29,20 @@ import org.springframework.security.userdetails.ldap.LdapUserDetails
  */
 class GrailsLdapUserTests extends AbstractSecurityTest {
 
-	/**
-	 * Test the constructor.
-	 */
-	void testConstructor() {
+	private String dn = 'dn'
+	private GrantedAuthority[] authorities =
+		[new GrantedAuthorityImpl('role1'), new GrantedAuthorityImpl('role2')] as GrantedAuthority[]
+	private String password = 'passw0rd'
+	private String username = 'username'
+	private boolean accountNonExpired = true
+	private boolean accountNonLocked = false
+	private boolean credentialsNonExpired = true
+	private boolean enabled = false
 
-		String dn = 'dn'
-		GrantedAuthority[] authorities =
-			[new GrantedAuthorityImpl('role1'), new GrantedAuthorityImpl('role2')] as GrantedAuthority[]
-		String password = 'passw0rd'
-		String username = 'username'
-		boolean accountNonExpired = true
-		boolean accountNonLocked = false
-		boolean credentialsNonExpired = true
-		boolean enabled = false
+	/**
+	 * Test the copy constructor.
+	 */
+	void testCopyConstructor() {
 
 		LdapUserDetails details = new TestLdapUserDetails(
 			dn: dn, authorities: authorities, password: password,
@@ -52,6 +52,28 @@ class GrailsLdapUserTests extends AbstractSecurityTest {
 
 		def domainClass = new Expando()
 		GrailsLdapUser user = new GrailsLdapUser(details, domainClass)
+
+		assertEquals dn, user.dn
+		assertArrayEquals authorities, user.authorities
+		assertEquals password, user.password
+		assertEquals username, user.username
+		assertEquals accountNonExpired, user.accountNonExpired
+		assertEquals accountNonLocked, user.accountNonLocked
+		assertEquals credentialsNonExpired, user.credentialsNonExpired
+		assertEquals enabled, user.enabled
+		assertEquals domainClass, user.domainClass
+	}
+
+	/**
+	 * Test the full constructor.
+	 */
+	void testConstructor() {
+
+		def domainClass = new Expando()
+		GrailsLdapUser user = new GrailsLdapUser(username, password, enabled,
+				accountNonExpired, credentialsNonExpired,
+				accountNonLocked, authorities,
+				null, dn, domainClass)
 
 		assertEquals dn, user.dn
 		assertArrayEquals authorities, user.authorities
