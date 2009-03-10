@@ -1,17 +1,17 @@
 /* Copyright 2006-2009 the original author or authors.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*      http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.codehaus.groovy.grails.plugins.springsecurity;
 
 import java.util.Collection;
@@ -32,7 +32,7 @@ import org.springframework.util.Assert;
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
 public abstract class AbstractFilterInvocationDefinition
-      implements FilterInvocationDefinitionSource, InitializingBean {
+       implements FilterInvocationDefinitionSource, InitializingBean {
 
 	private UrlMatcher _urlMatcher;
 	private boolean _rejectIfNoRule;
@@ -94,7 +94,7 @@ public abstract class AbstractFilterInvocationDefinition
 		for (Map.Entry<Object, ConfigAttributeDefinition> entry : _compiled.entrySet()) {
 			Object pattern = entry.getKey();
 			if (_urlMatcher.pathMatchesUrl(pattern, url)) {
-				// TODO  this assumes Ant matching, not valid for regex
+				// TODO this assumes Ant matching, not valid for regex
 				if (configAttribute == null || _urlMatcher.pathMatchesUrl(configAttributePattern, (String)pattern)) {
 					configAttribute = entry.getValue();
 					configAttributePattern = pattern;
@@ -158,7 +158,7 @@ public abstract class AbstractFilterInvocationDefinition
 		_rejectIfNoRule = reject;
 	}
 
-	protected String lowercaseAndStringQuerystring(final String url) {
+	protected String lowercaseAndStripQuerystring(final String url) {
 
 		String fixed = url;
 
@@ -182,7 +182,7 @@ public abstract class AbstractFilterInvocationDefinition
 
 	/**
 	 * For debugging.
-	 * @return  an unmodifiable map of {@link AnnotationFilterInvocationDefinition}ConfigAttributeDefinition
+	 * @return an unmodifiable map of {@link AnnotationFilterInvocationDefinition}ConfigAttributeDefinition
 	 * keyed by compiled patterns
 	 */
 	public Map<Object, ConfigAttributeDefinition> getConfigAttributeMap() {

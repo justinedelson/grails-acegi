@@ -46,7 +46,7 @@ public class GrailsNtlmProcessingFilterEntryPoint extends NtlmProcessingFilterEn
 	 */
 	public GrailsNtlmProcessingFilterEntryPoint() throws IllegalAccessException {
 		STATE_ATTR = (String)getFieldValue("STATE_ATTR");
-		BEGIN  = (Integer)getFieldValue("BEGIN");
+		BEGIN = (Integer)getFieldValue("BEGIN");
 	}
 
 	private Object getFieldValue(final String name) throws IllegalAccessException {

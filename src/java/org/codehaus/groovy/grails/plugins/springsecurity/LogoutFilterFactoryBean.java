@@ -95,17 +95,17 @@ public class LogoutFilterFactoryBean implements FactoryBean, InitializingBean {
 	 * Dependency injection for 'filterProcessesUrl.
 	 * @param url  the url
 	 */
-   public void setFilterProcessesUrl(final String url) {
-   	_filterProcessesUrl = url;
-   }
+	public void setFilterProcessesUrl(final String url) {
+		_filterProcessesUrl = url;
+	}
 
-   /**
+	/**
 	 * Dependency injection for 'useRelativeContext.
 	 * @param use  if <code>true</code> use relative context
 	 */
-   public void setUseRelativeContext(final boolean use) {
-   	_useRelativeContext = use;
-   }
+	public void setUseRelativeContext(final boolean use) {
+		_useRelativeContext = use;
+	}
 
 	/**
 	 * Dependency injection for the handlers.

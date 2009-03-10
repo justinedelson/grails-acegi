@@ -12,25 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.codehaus.groovy.grails.plugins.springsecurity;
+package org.codehaus.groovy.grails.plugins.springsecurity
 
-import org.springframework.security.providers.dao.SaltSource;
-import org.springframework.security.userdetails.UserDetails;
+import org.springframework.security.GrantedAuthority
+import org.springframework.security.GrantedAuthorityImpl
 
 /**
- * Dummy salt source that's used as the default salt source in the Spring config. Allows
- * users to easily replace in resources.groovy.
+ * Unit tests for <code>NullSaltSource</code>.
  *
  * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
-public class NullSaltSource implements SaltSource {
+class NullSaltSourceTests extends AbstractSecurityTest {
 
-	/**
-	 * {@inheritDoc}
-	 * @see org.springframework.security.providers.dao.SaltSource#getSalt(
-	 * 	org.springframework.security.userdetails.UserDetails)
-	 */
-	public Object getSalt(final UserDetails user) {
-		return null;
+	void testGetSalt() {
+		def authorities = [new GrantedAuthorityImpl('ROLE_USER')] as GrantedAuthority[]
+		def user = new GrailsUserImpl('username', 'password', true, true, true, true,
+				authorities, null)
+		assertNull new NullSaltSource().getSalt(user)
 	}
 }

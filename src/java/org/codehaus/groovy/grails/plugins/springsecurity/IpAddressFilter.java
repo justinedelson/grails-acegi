@@ -58,9 +58,9 @@ public class IpAddressFilter extends SpringSecurityFilter implements Initializin
 	 */
 	@Override
 	protected void doFilterHttp(
-			  final HttpServletRequest request,
-			  final HttpServletResponse response,
-			  final FilterChain chain) throws IOException, ServletException {
+			final HttpServletRequest request,
+			final HttpServletResponse response,
+			final FilterChain chain) throws IOException, ServletException {
 
 		if (!isAllowed(request.getRemoteAddr(), request.getRequestURI())) {
 			response.sendError(HttpServletResponse.SC_NOT_FOUND); // 404

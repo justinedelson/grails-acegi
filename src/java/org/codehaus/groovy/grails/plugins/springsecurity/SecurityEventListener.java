@@ -101,7 +101,7 @@ public class SecurityEventListener implements ApplicationListener, ApplicationCo
 	public void setSecurityConfig(final ConfigObject config) {
 		_securityConfig = config;
 	}
-	
+
 	/**
  	 * {@inheritDoc}
  	 * @see org.springframework.context.ApplicationContextAware#setApplicationContext(

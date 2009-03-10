@@ -118,7 +118,7 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 	 */
 	void testUserDomainAuthenticated() {
 		authenticate('role1')
-		_service.authenticationTrustResolver = [isAnonymous: { auth -> false }]        
+		_service.authenticationTrustResolver = [isAnonymous: { auth -> false }]
 		assertEquals _user, _service.userDomain()
 	}
 

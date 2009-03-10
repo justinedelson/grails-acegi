@@ -1,17 +1,17 @@
 /* Copyright 2006-2009 the original author or authors.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*      http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.codehaus.groovy.grails.plugins.springsecurity;
 
 import grails.util.GrailsUtil;
@@ -57,7 +57,7 @@ public final class AuthorizeTools {
 
 	/**
 	 * Extract the role names from authorities.
-	 * @param  authorities  the authorities (a collection or array of {@link AuthorizeTools}).
+	 * @param authorities  the authorities (a collection or array of {@link AuthorizeTools}).
 	 * @return  the names
 	 */
 	public static Set<String> authoritiesToRoles(final Object authorities) {
@@ -114,7 +114,7 @@ public final class AuthorizeTools {
 	 * Find authorities in <code>granted</code> that are also in <code>required</code>.
 	 * @param granted  the granted authorities (a collection or array of {@link AuthorizeTools}).
 	 * @param required  the required authorities (a collection or array of {@link AuthorizeTools}).
-	 * @return  the authority names
+	 * @return the authority names
 	 */
 	public static Set<String> retainAll(final Object granted, final Object required) {
 		Set<String> grantedRoles = authoritiesToRoles(granted);
@@ -126,7 +126,7 @@ public final class AuthorizeTools {
 	/**
 	 * Check if the current user has all of the specified roles.
 	 * @param roles  a comma-delimited list of role names
-	 * @return  <code>true</code> if the user is authenticated and has all the roles
+	 * @return <code>true</code> if the user is authenticated and has all the roles
 	 */
 	public static boolean ifAllGranted(final String roles) {
 		List<GrantedAuthority> granted = getPrincipalAuthorities();
@@ -136,7 +136,7 @@ public final class AuthorizeTools {
 	/**
 	 * Check if the current user has none of the specified roles.
 	 * @param roles  a comma-delimited list of role names
-	 * @return  <code>true</code> if the user is authenticated and has none the roles
+	 * @return <code>true</code> if the user is authenticated and has none the roles
 	 */
 	public static boolean ifNotGranted(final String roles) {
 		List<GrantedAuthority> granted = getPrincipalAuthorities();
@@ -147,7 +147,7 @@ public final class AuthorizeTools {
 	/**
 	 * Check if the current user has any of the specified roles.
 	 * @param roles  a comma-delimited list of role names
-	 * @return  <code>true</code> if the user is authenticated and has any the roles
+	 * @return <code>true</code> if the user is authenticated and has any the roles
 	 */
 	public static boolean ifAnyGranted(final String roles) {
 		List<GrantedAuthority> granted = getPrincipalAuthorities();
@@ -263,7 +263,7 @@ public final class AuthorizeTools {
 
 	/**
 	 * Dependency injection for the name of the Ajax header.
-	 * @param name  the 
+	 * @param name  the header name
 	 */
 	public static void setAjaxHeaderName(final String name) {
 		_ajaxHeaderName = name;

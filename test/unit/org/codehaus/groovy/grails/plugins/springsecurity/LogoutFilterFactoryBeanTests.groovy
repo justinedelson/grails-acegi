@@ -66,6 +66,7 @@ class LogoutFilterFactoryBeanTests extends AbstractSecurityTest {
 		_factory.logoutSuccessUrl = url
 		_factory.handlers = handlers
 		_factory.filterProcessesUrl = filterProcessesUrl
+		_factory.useRelativeContext = false
 		assertNull _factory.object
 
 		_factory.afterPropertiesSet()

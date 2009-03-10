@@ -1,17 +1,17 @@
 /* Copyright 2006-2009 the original author or authors.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*      http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.codehaus.groovy.grails.plugins.springsecurity;
 
 import java.util.List;
@@ -39,7 +39,7 @@ public class AuthenticatedVetoableDecisionManager extends AbstractAccessDecision
 	 * 	org.springframework.security.ConfigAttributeDefinition)
 	 */
 	public void decide(Authentication authentication, Object object, ConfigAttributeDefinition config)
-           throws AccessDeniedException {
+				throws AccessDeniedException {
 
 		boolean authenticatedVotersGranted = checkAuthenticatedVoters(authentication, object, config);
 		boolean otherVotersGranted = checkOtherVoters(authentication, object, config);
@@ -88,22 +88,22 @@ public class AuthenticatedVetoableDecisionManager extends AbstractAccessDecision
 
 			int result = voter.vote(authentication, object, config);
 			switch (result) {
-           	case AccessDecisionVoter.ACCESS_GRANTED:
-           		return true;
-           	case AccessDecisionVoter.ACCESS_DENIED:
-           		denyCount++;
-           		break;
+				case AccessDecisionVoter.ACCESS_GRANTED:
+					return true;
+				case AccessDecisionVoter.ACCESS_DENIED:
+					denyCount++;
+					break;
 				default: // abstain
-           		break;
-           }
-       }
+					break;
+			}
+		}
 
-       if (denyCount > 0) {
-           deny();
-       }
+		if (denyCount > 0) {
+			deny();
+		}
 
-       // all abstain
-       return false;
+		// all abstain
+		return false;
 	}
 
 	@SuppressWarnings("unchecked")

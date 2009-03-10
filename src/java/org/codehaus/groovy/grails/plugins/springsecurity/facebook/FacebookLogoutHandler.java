@@ -46,7 +46,7 @@ public class FacebookLogoutHandler implements LogoutHandler, InitializingBean {
 		if (cookies != null) {
 			String path = StringUtils.hasLength(request.getContextPath()) ? request.getContextPath() : "/";
 			for (Cookie cookie : cookies) {
-				if (cookie.getName().startsWith(_apiKey)) {	
+				if (cookie.getName().startsWith(_apiKey)) {
 					cancelCookie(cookie.getName(), path, response);
 				}
 			}

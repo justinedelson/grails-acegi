@@ -1,17 +1,17 @@
 /* Copyright 2006-2009 the original author or authors.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*      http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.codehaus.groovy.grails.plugins.springsecurity;
 
 import java.lang.reflect.InvocationTargetException;
@@ -44,13 +44,14 @@ public class RequestmapFilterInvocationDefinition extends AbstractFilterInvocati
 	private String _requestMapConfigAttributeFieldName;
 	private Method _getPath;
 	private Method _getConfigAttribute;
+	private Class<?> _requestmapClass;
 	private SessionFactory _sessionFactory;
 
 	@Override
 	protected String determineUrl(final FilterInvocation filterInvocation) {
 		HttpServletRequest request = filterInvocation.getHttpRequest();
 		String requestUrl = request.getRequestURI().substring(request.getContextPath().length());
-		return lowercaseAndStringQuerystring(requestUrl);
+		return lowercaseAndStripQuerystring(requestUrl);
 	}
 
 	@Override
@@ -63,7 +64,7 @@ public class RequestmapFilterInvocationDefinition extends AbstractFilterInvocati
 
 	/**
 	 * Call at startup or when <code>Requestmap</code> instances have been added, removed, or changed.
-	 * @throws InvocationTargetException  if there's a problem with reflection 
+	 * @throws InvocationTargetException  if there's a problem with reflection
 	 * @throws IllegalAccessException  if there's a problem with reflection
 	 */
 	@Override
@@ -108,7 +109,7 @@ public class RequestmapFilterInvocationDefinition extends AbstractFilterInvocati
 		}
 	}
 
-	private Map<String, String> loadRequestmaps() throws IllegalAccessException, InvocationTargetException {
+	protected Map<String, String> loadRequestmaps() throws IllegalAccessException, InvocationTargetException {
 		Map<String, String> data = new HashMap<String, String>();
 
 		for (Object requestmap : _sessionFactory.openSession().createQuery("FROM " + _requestMapClassName).list()) {
@@ -168,8 +169,10 @@ public class RequestmapFilterInvocationDefinition extends AbstractFilterInvocati
 	}
 
 	private void findGetters() {
-		Class<?> requestmapClass = ApplicationHolder.getApplication().getClassForName(_requestMapClassName);
-		BeanWrapper wrapper = new BeanWrapperImpl(requestmapClass);
+		if (_requestmapClass == null) {
+			_requestmapClass = ApplicationHolder.getApplication().getClassForName(_requestMapClassName);
+		}
+		BeanWrapper wrapper = new BeanWrapperImpl(_requestmapClass);
 		_getPath = wrapper.getPropertyDescriptor(_requestMapPathFieldName).getReadMethod();
 		_getConfigAttribute = wrapper.getPropertyDescriptor(_requestMapConfigAttributeFieldName).getReadMethod();
 	}

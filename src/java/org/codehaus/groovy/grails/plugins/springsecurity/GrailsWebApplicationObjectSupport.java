@@ -106,7 +106,7 @@ public abstract class GrailsWebApplicationObjectSupport extends WebApplicationOb
 	private SessionFactory getSessionFactory() {
 		if (_sessionFactory == null) {
 			// should be set via DI, but for backwards compatibility lookup the standard bean
-			_sessionFactory  = (SessionFactory)getWebApplicationContext().getBean("sessionFactory");
+			_sessionFactory = (SessionFactory)getWebApplicationContext().getBean("sessionFactory");
 		}
 		return _sessionFactory;
 	}

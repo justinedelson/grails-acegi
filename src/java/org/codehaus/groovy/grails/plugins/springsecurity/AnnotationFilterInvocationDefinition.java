@@ -95,7 +95,7 @@ public class AnnotationFilterInvocationDefinition extends AbstractFilterInvocati
 			url = requestUrl;
 		}
 
-		return lowercaseAndStringQuerystring(url);
+		return lowercaseAndStripQuerystring(url);
 	}
 
 	private String findGrailsUrl(final UrlMappingInfo mapping, final GrailsApplication application) {

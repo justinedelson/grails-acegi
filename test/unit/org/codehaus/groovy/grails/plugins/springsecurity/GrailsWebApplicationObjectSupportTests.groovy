@@ -28,7 +28,7 @@ import org.springframework.web.context.WebApplicationContext
  */
 class GrailsWebApplicationObjectSupportTests extends GroovyTestCase {
 
-	private final Thing _thing = new Thing()
+	private _thing = new Thing()
 
 	/**
 	 * Test setUpSession() when there's one existing already.
@@ -84,6 +84,22 @@ class GrailsWebApplicationObjectSupportTests extends GroovyTestCase {
 		assertTrue TransactionSynchronizationManager.hasResource(sessionFactory)
 
 		EasyMock.verify(context, sessionFactory, session)
+	}
+
+	void testReleaseSession() {
+		def session = EasyMock.createMock(Session)
+		def sessionFactory = EasyMock.createMock(SessionFactory)
+
+		_thing.sessionFactory = sessionFactory
+
+		EasyMock.replay session, sessionFactory
+		def container = new GrailsWebApplicationObjectSupport.SessionContainer(session, false)
+
+		TransactionSynchronizationManager.bindResource(sessionFactory, new SessionHolder(session))
+
+		_thing.releaseSession container
+
+		EasyMock.verify session, sessionFactory
 	}
 }
 
