@@ -63,13 +63,7 @@ public final class RedirectUtils {
 			int serverPort = RESOLVER.getServerPort(request);
 			boolean inHttp = "http".equalsIgnoreCase(scheme);
 			boolean inHttps = "https".equalsIgnoreCase(scheme);
-			boolean includePort = true;
-			if (inHttp && serverPort == 80) {
-				includePort = false;
-			}
-			else if (inHttps && serverPort == 443) {
-				includePort = false;
-			}
+			boolean includePort = !((inHttp && serverPort == 80)  || (inHttps && serverPort == 443));
 			String port = includePort ? ":" + serverPort : "";
 			return scheme + "://" + request.getServerName() + port + request.getContextPath() + url;
 		}

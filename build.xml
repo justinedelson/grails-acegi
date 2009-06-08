@@ -23,14 +23,6 @@
 
 	<!-- Macrodefs -->
 
-	<macrodef name='newdir'>
-		<attribute name='dir' />
-		<sequential>
-			<delete dir='@{dir}' />
-			<mkdir dir='@{dir}' />
-		</sequential>
-	</macrodef>
-
 	<macrodef name='grails'>
 		<attribute name='action' />
 		<attribute name='environment' default='dev' />
@@ -66,24 +58,8 @@
 		<mkdir dir='grails-app/conf/spring'/>
 	</target>
 
-	<target name='grailsDoc' description='Generates Grails docs'>
-		<grails action='doc' />
-	</target>
-
 	<target name='test' description='Run unit tests' depends='clean'>
 		<grails action='test-app' environment='test' />
-	</target>
-
-	<target name='console' description='Launch the swing console'>
-		<grails action='console' />
-	</target>
-
-	<target name='run' description='Runs the web app' depends='clean'>
-		<grails action='run-app' />
-	</target>
-
-	<target name='debug' description='Runs the web app in debug mode' depends='clean'>
-		<grails-debug action='run-app' />
 	</target>
 
 	<target name='package' description='Package the plugin' depends='test'>
@@ -94,7 +70,6 @@
 		<delete dir='test/reports' />
 		<delete dir='grails-app/conf/hibernate'/>
 		<delete dir='grails-app/conf/spring'/>
-		<delete dir='grails-app/domain'/>
 		<delete dir='grails-app/i18n'/>
 		<delete dir='grails-app/utils'/>
 		<delete dir='grails-app/views'/>
@@ -103,6 +78,7 @@
 		<delete dir='web-app/js'/>
 		<delete dir='web-app/META-INF'/>
 		<delete dir='web-app/plugins'/>
+		<delete dir='web-app/WEB-INF'/>
 		<delete dir='docs'/>
 	</target>
 

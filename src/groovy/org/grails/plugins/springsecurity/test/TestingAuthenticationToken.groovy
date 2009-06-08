@@ -22,7 +22,7 @@ import org.springframework.security.util.AuthorityUtils
  * Replacement for the version from Spring Security that was moved from
  * the source tree to the test tree.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 class TestingAuthenticationToken extends AbstractAuthenticationToken {
 

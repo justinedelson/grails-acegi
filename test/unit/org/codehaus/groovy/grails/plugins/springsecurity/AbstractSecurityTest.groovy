@@ -14,16 +14,19 @@
  */
 package org.codehaus.groovy.grails.plugins.springsecurity
 
+import java.lang.reflect.Modifier
+
 import org.grails.plugins.springsecurity.test.TestingAuthenticationToken
 
 import org.springframework.security.Authentication
 import org.springframework.security.GrantedAuthority
+import org.springframework.security.GrantedAuthorityImpl
 import org.springframework.security.context.SecurityContextHolder as SCH
 
 /**
  * Abstract base class for security unit tests.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 abstract class AbstractSecurityTest extends GroovyTestCase {
 
@@ -61,6 +64,17 @@ abstract class AbstractSecurityTest extends GroovyTestCase {
 	}
 
 	/**
+	 * Register a currently authenticated user.
+	 *
+	 * @param roleNames  role names
+	 * @return  the authentication
+	 */
+	protected Authentication authenticate(roleNames) {
+		def authorities = roleNames.collect { new GrantedAuthorityImpl(it) }
+		return authenticate(null, null, authorities as GrantedAuthority[])
+	}
+
+	/**
 	 * Remove overridden/added metaclass methods between tests.
 	 * @param classes  the classes to clean up
 	 */
@@ -76,5 +90,14 @@ abstract class AbstractSecurityTest extends GroovyTestCase {
 		instance.class.metaClass.class.simpleName
 		ExpandoMetaClass.enableGlobally()
 		instance.metaClass = null
+	}
+
+	protected void testPrivateConstructor(Class clazz) {
+		assertEquals 1, clazz.declaredConstructors.length
+		def constructor = clazz.getDeclaredConstructor()
+		assertTrue Modifier.isPrivate(constructor.modifiers)
+		assertFalse constructor.accessible
+		constructor.accessible = true
+		constructor.newInstance()
 	}
 }

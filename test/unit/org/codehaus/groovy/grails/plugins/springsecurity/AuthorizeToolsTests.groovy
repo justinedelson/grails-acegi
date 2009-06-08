@@ -26,7 +26,7 @@ import org.springframework.security.util.PortResolverImpl
 /**
  * Unit tests for AuthorizeTools.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 class AuthorizeToolsTests extends AbstractSecurityTest {
 
@@ -170,6 +170,33 @@ class AuthorizeToolsTests extends AbstractSecurityTest {
 		request.session.setAttribute(APF.SPRING_SECURITY_SAVED_REQUEST_KEY, savedRequest)
 
 		assertTrue AuthorizeTools.isAjax(request)
+	}
+
+	void testIfAllGranted() {
+		authenticate(['ROLE_1', 'ROLE_2'])
+		assertTrue AuthorizeTools.ifAllGranted('ROLE_1')
+		assertTrue AuthorizeTools.ifAllGranted('ROLE_2')
+		assertTrue AuthorizeTools.ifAllGranted('ROLE_1,ROLE_2')
+		assertFalse AuthorizeTools.ifAllGranted('ROLE_1,ROLE_2,ROLE_3')
+		assertFalse AuthorizeTools.ifAllGranted('ROLE_3')
+	}
+
+	void testIfNotGranted() {
+		authenticate(['ROLE_1', 'ROLE_2'])
+		assertFalse AuthorizeTools.ifNotGranted('ROLE_1')
+		assertFalse AuthorizeTools.ifNotGranted('ROLE_2')
+		assertFalse AuthorizeTools.ifNotGranted('ROLE_1,ROLE_2')
+		assertFalse AuthorizeTools.ifNotGranted('ROLE_1,ROLE_2,ROLE_3')
+		assertTrue AuthorizeTools.ifNotGranted('ROLE_3')
+	}
+
+	void testIfAnyGranted() {
+		authenticate(['ROLE_1', 'ROLE_2'])
+		assertTrue AuthorizeTools.ifAnyGranted('ROLE_1')
+		assertTrue AuthorizeTools.ifAnyGranted('ROLE_2')
+		assertTrue AuthorizeTools.ifAnyGranted('ROLE_1,ROLE_2')
+		assertTrue AuthorizeTools.ifAnyGranted('ROLE_1,ROLE_2,ROLE_3')
+		assertFalse AuthorizeTools.ifAnyGranted('ROLE_3')
 	}
 
 	/**

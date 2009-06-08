@@ -31,7 +31,7 @@ import org.springframework.security.ui.AbstractProcessingFilter as APF
 /**
  * Unit tests for AuthenticateService.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 class AuthenticateServiceTests extends AbstractSecurityTest {
 
@@ -222,7 +222,7 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 		assertTrue _service.isAjax(request)
 	}
 
-	private void authenticate(roles) {
+	protected Authentication authenticate(roles) {
 		GrantedAuthority[] authorities = AT.parseAuthoritiesString(roles) as GrantedAuthority[]
 		def principal = new GrailsUserImpl(
 				'username', 'password', true, true, true,
@@ -231,6 +231,7 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 				principal, null, authorities)
 		authentication.authenticated = true
 		SCH.context.authentication = authentication
+		return authentication
 	}
 
 	/**

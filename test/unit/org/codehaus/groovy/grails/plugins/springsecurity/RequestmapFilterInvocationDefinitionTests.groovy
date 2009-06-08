@@ -24,7 +24,7 @@ import org.springframework.security.util.AntUrlPathMatcher
 /**
  * Unit tests for RequestmapFilterInvocationDefinition.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 class RequestmapFilterInvocationDefinitionTests extends AbstractSecurityTest {
 
@@ -159,6 +159,14 @@ class RequestmapFilterInvocationDefinitionTests extends AbstractSecurityTest {
 
 		request.requestURI = '/context/fOo/Bar?x=1&y=2'
 		assertEquals '/foo/bar', _fid.determineUrl(new FilterInvocation(request, response, chain))
+	}
+
+	void testSupports() {
+		assertTrue _fid.supports(FilterInvocation)
+	}
+
+	void testGetConfigAttributeDefinitions() {
+		assertNull _fid.configAttributeDefinitions
 	}
 }
 
