@@ -20,7 +20,7 @@ import org.springframework.mock.web.MockHttpServletResponse
 /**
  * Unit tests for GrailsNtlmProcessingFilterEntryPoint.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 class GrailsNtlmProcessingFilterEntryPointTests extends AbstractSecurityTest {
 

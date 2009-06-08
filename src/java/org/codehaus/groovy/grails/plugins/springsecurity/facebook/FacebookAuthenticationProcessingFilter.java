@@ -33,7 +33,7 @@ import com.google.code.facebookapi.FacebookWebappHelper;
 /**
  * Intercepts j_spring_facebook_security_check to trigger Facebook login.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 public class FacebookAuthenticationProcessingFilter extends AbstractProcessingFilter {
 

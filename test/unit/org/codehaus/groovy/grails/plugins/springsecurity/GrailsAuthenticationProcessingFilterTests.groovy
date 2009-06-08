@@ -30,7 +30,7 @@ import org.springframework.security.ui.webapp.AuthenticationProcessingFilter
 /**
  * Unit tests for GrailsAuthenticationProcessingFilter.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 class GrailsAuthenticationProcessingFilterTests extends AbstractSecurityTest {
 

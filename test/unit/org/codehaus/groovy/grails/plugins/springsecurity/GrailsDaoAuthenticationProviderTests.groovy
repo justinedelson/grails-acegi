@@ -26,7 +26,7 @@ import org.springframework.util.ReflectionUtils
 /**
  * Unit tests for GrailsAuthenticationProcessingFilter.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 class GrailsDaoAuthenticationProviderTests extends AbstractSecurityTest {
 

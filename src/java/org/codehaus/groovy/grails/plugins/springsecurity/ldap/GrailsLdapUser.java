@@ -24,7 +24,7 @@ import org.springframework.security.userdetails.ldap.LdapUserDetails;
 /**
  * A {@link GrailsUser} for use in LDAP authentication.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 public class GrailsLdapUser extends GrailsUserImpl implements GrailsUser, LdapUserDetails {
 

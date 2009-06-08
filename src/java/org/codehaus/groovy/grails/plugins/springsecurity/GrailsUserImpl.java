@@ -23,7 +23,7 @@ import org.springframework.security.userdetails.User;
  * to load auth class from context.
  *
  * @author T.Yamamoto
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 public class GrailsUserImpl extends User implements GrailsUser {
 

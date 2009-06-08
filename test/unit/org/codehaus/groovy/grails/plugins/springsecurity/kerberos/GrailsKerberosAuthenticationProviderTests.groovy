@@ -34,7 +34,7 @@ import org.springframework.security.userdetails.UserDetails
 /**
  * Unit tests for <code>GrailsKerberosAuthenticationProvider</code>.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 class GrailsKerberosAuthenticationProviderTests extends AbstractSecurityTest {
 

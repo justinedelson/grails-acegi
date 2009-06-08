@@ -40,7 +40,7 @@ import org.springframework.util.StringUtils;
  * Supports either Ant-style patterns (e.g. 10.**) or masked patterns
  * (e.g. 192.168.1.0/24 or 202.24.0.0/14).
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 public class IpAddressFilter extends SpringSecurityFilter implements InitializingBean {
 

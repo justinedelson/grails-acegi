@@ -19,7 +19,7 @@ import org.springframework.security.annotation.Secured
 /**
  * Unit tests for SecurityAnnotationAttributes.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 class SecurityAnnotationAttributesTests extends AbstractSecurityTest {
 

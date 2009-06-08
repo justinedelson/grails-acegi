@@ -27,7 +27,7 @@ import org.springframework.util.StringUtils;
 /**
  * Removes cookies at logout.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 public class FacebookLogoutHandler implements LogoutHandler, InitializingBean {
 

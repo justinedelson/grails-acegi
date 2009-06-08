@@ -26,7 +26,7 @@ import org.springframework.web.servlet.LocaleResolver
 /**
  * Unit tests for AuthBase.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 class AuthBaseTests extends AbstractSecurityTest {
 
@@ -186,7 +186,7 @@ class AuthBaseTests extends AbstractSecurityTest {
 		_authBase.metaClass.getResponse = { -> _response }
 	}
 
-	private Authentication authenticate(roles) {
+	protected Authentication authenticate(roles) {
 		def principal = new Expando()
 		principal.domainClass = new Expando()
 		return authenticate(principal, null,

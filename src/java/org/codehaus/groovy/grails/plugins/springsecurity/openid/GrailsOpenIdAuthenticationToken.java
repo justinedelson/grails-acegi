@@ -21,7 +21,7 @@ import org.springframework.security.userdetails.UserDetails;
 /**
  * Subclass that holds the user domain instance.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 public class GrailsOpenIdAuthenticationToken extends OpenIDAuthenticationToken {
 

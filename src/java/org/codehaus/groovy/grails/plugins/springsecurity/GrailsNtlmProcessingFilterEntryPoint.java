@@ -33,7 +33,7 @@ import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Martin Vlcek
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 public class GrailsNtlmProcessingFilterEntryPoint extends NtlmProcessingFilterEntryPoint {
 

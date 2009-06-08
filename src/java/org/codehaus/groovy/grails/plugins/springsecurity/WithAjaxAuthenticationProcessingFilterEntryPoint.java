@@ -25,7 +25,7 @@ import org.springframework.security.ui.webapp.AuthenticationProcessingFilterEntr
  * Method Access is denied returns <code>null</code>.
  *
  * @author T.Yamamoto
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 public class WithAjaxAuthenticationProcessingFilterEntryPoint extends AuthenticationProcessingFilterEntryPoint {
 

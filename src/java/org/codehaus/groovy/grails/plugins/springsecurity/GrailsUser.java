@@ -20,7 +20,7 @@ import org.springframework.security.userdetails.UserDetails;
  * Extends Spring Security's {@link UserDetails} interface to set Grails Domain
  * Class at login, to load auth class from context.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 public interface GrailsUser extends UserDetails {
 

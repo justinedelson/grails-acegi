@@ -53,7 +53,7 @@ import org.springframework.security.event.authorization.AbstractAuthorizationEve
  * The event and the Spring context are provided in case you need to look up a Spring bean,
  * e.g. the Hibernate SessionFactory.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 public class SecurityEventListener implements ApplicationListener, ApplicationContextAware {
 

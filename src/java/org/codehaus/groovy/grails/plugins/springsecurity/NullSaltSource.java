@@ -21,7 +21,7 @@ import org.springframework.security.userdetails.UserDetails;
  * Dummy salt source that's used as the default salt source in the Spring config. Allows
  * users to easily replace in resources.groovy.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 public class NullSaltSource implements SaltSource {
 

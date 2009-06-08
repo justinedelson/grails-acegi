@@ -26,7 +26,7 @@ import org.springframework.security.event.authorization.AbstractAuthorizationEve
 /**
  * Unit tests for SecurityEventListener.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 class SecurityEventListenerTests extends AbstractSecurityTest {
 

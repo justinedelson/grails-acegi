@@ -32,7 +32,7 @@ import org.springframework.util.Assert;
  * Extends the default to return a {@link GrailsLdapUser} implementing
  * both {@link GrailsUser} and {@link LdapUserDetails}.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 public class GrailsLdapUserDetailsMapper extends LdapUserDetailsMapper implements InitializingBean {
 

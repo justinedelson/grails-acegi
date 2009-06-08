@@ -18,7 +18,7 @@
  *
  * @author Haotian Sun
  * @author Tsuyoshi Yamamoto
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 
 includeTargets << new File("$acegiPluginDir/scripts/_SecurityTargets.groovy")

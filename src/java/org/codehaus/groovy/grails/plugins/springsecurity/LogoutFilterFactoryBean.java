@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
 /**
  * Configures a {@link LogoutFilter} given a list of {@link LogoutHandler}s.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 public class LogoutFilterFactoryBean implements FactoryBean, InitializingBean {
 

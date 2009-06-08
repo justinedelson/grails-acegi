@@ -22,7 +22,7 @@ import org.springframework.security.AuthenticationException
 /**
  * Unit tests for WithAjaxAuthenticationProcessingFilterEntryPoint.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 class WithAjaxAuthenticationProcessingFilterEntryPointTests extends AbstractSecurityTest {
 

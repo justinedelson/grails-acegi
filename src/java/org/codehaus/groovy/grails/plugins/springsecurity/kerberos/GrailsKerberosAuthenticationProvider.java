@@ -31,7 +31,7 @@ import org.springframework.security.userdetails.UserDetails;
 * Kerberos {@link AuthenticationProvider}.
 *
 * @author <a href='mailto:mmornati@byte-code.com'>Marco Mornati</a>
-* @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+* @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
 */
 public class GrailsKerberosAuthenticationProvider extends JaasAuthenticationProvider {
 

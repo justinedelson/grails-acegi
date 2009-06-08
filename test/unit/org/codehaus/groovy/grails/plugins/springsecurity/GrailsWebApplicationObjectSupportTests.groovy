@@ -24,7 +24,7 @@ import org.springframework.web.context.WebApplicationContext
 /**
  * Unit tests for GrailsWebApplicationObjectSupport.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 class GrailsWebApplicationObjectSupportTests extends GroovyTestCase {
 

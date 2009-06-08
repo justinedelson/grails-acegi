@@ -20,7 +20,7 @@ import org.springframework.security.GrantedAuthorityImpl
 /**
  * Unit tests for <code>NullSaltSource</code>.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 class NullSaltSourceTests extends AbstractSecurityTest {
 

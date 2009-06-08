@@ -24,7 +24,7 @@ import org.springframework.mock.web.MockHttpServletResponse
 /**
  * Unit tests for FacebookAuthenticationProvider.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 class FacebookLogoutHandlerTests extends AbstractSecurityTest {
 

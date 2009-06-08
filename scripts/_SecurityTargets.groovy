@@ -16,7 +16,7 @@
 /**
  * Shared methods/closures and initialization.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 
 import groovy.text.SimpleTemplateEngine

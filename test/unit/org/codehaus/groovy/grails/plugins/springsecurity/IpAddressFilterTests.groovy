@@ -22,7 +22,7 @@ import org.springframework.security.AccessDeniedException
 /**
  * Unit tests for <code>IpAddressFilter</code>.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 class IpAddressFilterTests extends GroovyTestCase {
 

@@ -29,7 +29,7 @@ import org.springframework.security.ui.logout.LogoutHandler
 /**
  * Unit tests for <code>LogoutFilterFactoryBean</code>.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 class LogoutFilterFactoryBeanTests extends AbstractSecurityTest {
 

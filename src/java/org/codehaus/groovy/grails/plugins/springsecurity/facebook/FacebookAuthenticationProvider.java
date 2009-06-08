@@ -27,7 +27,7 @@ import org.springframework.util.Assert;
 /**
  * Finalizes the authentication process by populating the local authorities for the authenticated user.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 public class FacebookAuthenticationProvider implements AuthenticationProvider, InitializingBean {
 

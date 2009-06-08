@@ -28,7 +28,7 @@ import org.springframework.security.vote.AuthenticatedVoter;
 * an authenticated voter to 'veto' access. This allows specification of roles and
 * <code>IS_AUTHENTICATED_FULLY</code> on one line in SecurityConfig.groovy.
 *
-* @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+* @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
 */
 public class AuthenticatedVetoableDecisionManager extends AbstractAccessDecisionManager {
 

@@ -36,7 +36,7 @@ import org.springframework.util.Assert;
  * {@link AccessDeniedHandler} for redirect to errorPage (not RequestDispatcher#forward).
  *
  * @author T.Yamamoto
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 public class GrailsAccessDeniedHandlerImpl implements AccessDeniedHandler, InitializingBean {
 

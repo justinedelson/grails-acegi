@@ -26,7 +26,7 @@ import org.springframework.web.context.support.WebApplicationObjectSupport;
  * Grails Web Application Object Support.
  *
  * @author T.Yamamoto
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 public abstract class GrailsWebApplicationObjectSupport extends WebApplicationObjectSupport {
 

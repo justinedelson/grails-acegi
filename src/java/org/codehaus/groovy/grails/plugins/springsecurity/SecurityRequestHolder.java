@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Uses a {@link ThreadLocal} to store the current request and response.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 public final class SecurityRequestHolder {
 

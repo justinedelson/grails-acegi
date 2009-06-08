@@ -29,7 +29,7 @@ import org.springframework.security.util.UrlMatcher;
 import org.springframework.util.Assert;
 
 /**
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 public abstract class AbstractFilterInvocationDefinition
        implements FilterInvocationDefinitionSource, InitializingBean {
