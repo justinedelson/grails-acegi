@@ -48,7 +48,7 @@ import org.springframework.util.StringUtils;
  * combined with static rules defined in <code>SecurityConfig.groovy</code>, e.g. for js, images, css
  * or for rules that cannot be expressed in a controller like '/**'.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 public class AnnotationFilterInvocationDefinition extends AbstractFilterInvocationDefinition {
 
@@ -187,6 +187,10 @@ public class AnnotationFilterInvocationDefinition extends AbstractFilterInvocati
 				String actionName = actionEntry.getKey();
 				Set<String> roles = actionEntry.getValue();
 				storeMapping(controllerName, actionName, roles, false);
+				if (actionName.endsWith("Flow")) {
+					// WebFlow actions end in Flow but are accessed without the suffix, so guard both
+					storeMapping(controllerName, actionName.substring(0, actionName.length() - 4), roles, false);
+				}
 			}
 		}
 	}
