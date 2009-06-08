@@ -30,7 +30,7 @@ import org.springframework.security.userdetails.User
 /**
  * Integration tests for <code>AuthorizeTagLib</code>.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 class AuthorizeTagLibTests extends GroovyPagesTestCase {
 
@@ -131,6 +131,23 @@ class AuthorizeTagLibTests extends GroovyPagesTestCase {
 	}
 
 	/**
+	 * Test loggedInUserInfo() with a nested property.
+	 */
+	void testLoggedInUserInfoNested() {
+		String fullName = 'First Last'
+		_user.foo = [bar: [fullName: fullName]]
+
+		assertOutputEquals '', "<g:loggedInUserInfo field='foo.bar.fullName'/>"
+
+		def principal = new HasDomainClass('username', 'fullName', 'role1', _user)
+		authenticate principal, 'role1'
+
+		assertOutputEquals fullName, "<g:loggedInUserInfo field='foo.bar.fullName'/>"
+
+		assertOutputEquals '', "<g:loggedInUserInfo field='foo.fullName'/>"
+	}
+
+	/**
 	 * Test loggedInUserInfo() for a principal that doesn't have a 'domainClass' property.
 	 */
 	void testLoggedInUserInfoWithoutDomainClass() {
@@ -205,7 +222,7 @@ class HasDomainClass extends GrailsUserImpl {
 		super(username, 'password', true, true, true, true,
 				AuthorizeTools.parseAuthoritiesString(roles) as GrantedAuthority[],
 				domainClass)
-				_fullName = fullName
+		_fullName = fullName
 	}
 
 	String getFullName() {

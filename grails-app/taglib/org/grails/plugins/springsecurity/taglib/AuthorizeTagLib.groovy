@@ -65,9 +65,19 @@ class AuthorizeTagLib {
 	 * <g:loggedInUserInfo field="userRealName">Guest User</g:loggedInUserInfo>
 	 */
 	def loggedInUserInfo = { attrs, body ->
+		def source
 		if (authenticateService.isLoggedIn()) {
-			def source = determineSource()
-			out << source."$attrs.field"
+			source = determineSource()
+			for (pathElement in attrs.field.split('\\.')) {
+				source = source."$pathElement"
+				if (source == null) {
+					break
+				}
+			}
+		}
+
+		if (source) {
+			out << source
 		}
 		else {
 			out << body()
