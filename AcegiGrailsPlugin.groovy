@@ -490,8 +490,12 @@ class AcegiGrailsPlugin {
 	}
 
 	private def configureCAS = { conf ->
+	    // host:port
 		String casHost = conf.cas.casServer ?: 'localhost'
-		int casPort = (conf.cas.casServerPort ?: '443').toInteger()
+		String casPort = conf.cas.casServerPort ?: ''
+		casPort = ('80'.equals(casPort) ? '' : casPort)
+		String casHostWithPort = casPort ? "$casHost:$casPort" : "$casHost"
+		// filter
 		String casFilterProcessesUrl = conf.cas.filterProcessesUrl ?: '/j_spring_cas_security_check'
 		boolean sendRenew = Boolean.valueOf(conf.cas.sendRenew ?: false)
 		String proxyReceptorUrl = conf.cas.proxyReceptorUrl ?: '/secure/receptor'
@@ -517,13 +521,13 @@ class AcegiGrailsPlugin {
 			sendRenew = sendRenew
 		}
 
-		String casLoginURL = conf.cas.fullLoginURL ?: "$casHttp://$casHost:$casPort/cas/login"
+		String casLoginURL = conf.cas.fullLoginURL ?: "$casHttp://$casHostWithPort/cas/login"
 		authenticationEntryPoint(org.springframework.security.ui.cas.CasProcessingFilterEntryPoint) {
 			loginUrl = casLoginURL
 			serviceProperties = casServiceProperties
 		}
 
-		String casServiceURL = conf.cas.fullServiceURL ?: "$casHttp://$casHost:$casPort/cas"
+		String casServiceURL = conf.cas.fullServiceURL ?: "$casHttp://$casHostWithPort/cas"
 		cas20ServiceTicketValidator(org.jasig.cas.client.validation.Cas20ServiceTicketValidator, casServiceURL) {
 			proxyGrantingTicketStorage = proxyGrantingTicketStorage
 			proxyCallbackUrl = "$localHttp://$applicationHost:$applicationPort/$appName$proxyReceptorUrl"
