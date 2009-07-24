@@ -19,8 +19,12 @@ import groovy.lang.GroovyClassLoader;
 import groovy.util.ConfigObject;
 import groovy.util.ConfigSlurper;
 
+import java.io.File;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,9 +32,16 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
+import org.codehaus.groovy.grails.commons.ConfigurationHolder;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.security.ui.AbstractProcessingFilter;
 import org.springframework.security.ui.savedrequest.SavedRequest;
 
@@ -43,9 +54,11 @@ import org.springframework.util.StringUtils;
 /**
  * Helper methods.
  * @author Tsuyoshi Yamamoto
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 public final class AuthorizeTools {
+
+	private static final Logger LOG = Logger.getLogger(AuthorizeTools.class);
 
 	private static String _ajaxHeaderName;
 
@@ -159,31 +172,95 @@ public final class AuthorizeTools {
 	 * Parse and load the security configuration.
 	 * @return  the configuration
 	 * @throws ClassNotFoundException  if DefaultSecurityConfig.groovy isn't found
+	 * @throws MalformedURLException 
 	 */
-	@SuppressWarnings("unchecked")
-	public static ConfigObject getSecurityConfig() throws ClassNotFoundException {
+	public static ConfigObject getSecurityConfig() throws ClassNotFoundException, MalformedURLException {
 
 		GroovyClassLoader classLoader = new GroovyClassLoader(AuthorizeTools.class.getClassLoader());
 
 		ConfigSlurper slurper = new ConfigSlurper(GrailsUtil.getEnvironment());
+
+		List<ConfigObject> configs = new ArrayList<ConfigObject>();
+
 		ConfigObject userConfig = null;
 		try {
 			userConfig = slurper.parse(classLoader.loadClass("SecurityConfig"));
+			configs.add(userConfig);
 		}
 		catch (Exception e) {
 			// ignored, use defaults
 		}
 
-		ConfigObject config;
-		ConfigObject defaultConfig = slurper.parse(classLoader.loadClass("DefaultSecurityConfig"));
-		if (userConfig != null) {
-			config = new ConfigObject();
-			config.putAll(defaultConfig.merge(userConfig));
-		}
-		else {
-			config = defaultConfig;
+		String extSecurityConfig = System.getProperty("securityconfig.path");
+		if (extSecurityConfig != null) {
+			File file = new File(extSecurityConfig);
+			if (file.exists()) {
+				configs.add(slurper.parse(file.toURI().toURL()));
+			}
+			else {
+				LOG.warn("specified security config '" + extSecurityConfig  + "' not found");
+			}
 		}
 
+		ConfigObject config = slurper.parse(classLoader.loadClass("DefaultSecurityConfig"));
+
+		loadExternalConfigs(configs, config);
+
+		for (ConfigObject c : configs) {
+			config = mergeConfig(config, c);
+		}
+
+		return config;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static void loadExternalConfigs(final List<ConfigObject> configs, final ConfigObject config) {
+		PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+		List<String> locations = (List<String>)ConfigurationHolder.getFlatConfig().get(
+				"springsecurity.config.locations");
+		if (locations != null) {
+			for (String location : locations) {
+				if (StringUtils.hasLength(location)) {
+					try {
+						Resource resource = resolver.getResource(location);
+						InputStream stream = null;
+						try {
+							stream = resource.getInputStream();
+							ConfigSlurper configSlurper = new ConfigSlurper(GrailsUtil.getEnvironment());
+							configSlurper.setBinding(config); 
+							if (resource.getFilename().endsWith(".groovy")) {
+								configs.add(configSlurper.parse(IOUtils.toString(stream)));
+							}
+							else if (resource.getFilename().endsWith(".properties")) {
+								Properties props = new Properties();
+								props.load(stream);
+								configs.add(configSlurper.parse(props));
+							}
+						}
+						finally {
+							if (stream != null) {
+								stream.close();
+							}
+						}
+					}
+					catch (Exception e) {
+						LOG.warn("Unable to load specified config location $location : ${e.message}");
+						LOG.debug("Unable to load specified config location $location : ${e.message}", e);
+					}
+				}
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private static ConfigObject mergeConfig(final ConfigObject current, final ConfigObject extra) {
+		ConfigObject config = new ConfigObject();
+		if (extra == null) {
+			config.putAll(current);
+		}
+		else {
+			config.putAll(current.merge(extra));
+		}
 		return config;
 	}
 
