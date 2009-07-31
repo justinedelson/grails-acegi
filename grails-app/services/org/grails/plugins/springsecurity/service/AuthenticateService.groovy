@@ -138,10 +138,11 @@ class AuthenticateService {
 	void deleteRole(role) {
 		def conf = getSecurityConfig().security
 		String configAttributeName = conf.requestMapConfigAttributeField
+		String authorityFieldName = conf.authorityField
 
 		role.getClass().withTransaction { status ->
 			if (conf.useRequestMapDomainClass) {
-				String roleName = role.authority
+				String roleName = role."$authorityFieldName"
 				def requestmaps = findRequestmapsByRole(roleName, role.getClass(), conf)
 				requestmaps.each { rm ->
 					String configAttribute = rm."$configAttributeName"
@@ -170,14 +171,21 @@ class AuthenticateService {
 	 */
 	boolean updateRole(role, newProperties) {
 
-		String oldRoleName = role.authority
-		role.properties = newProperties
-
 		def conf = getSecurityConfig().security
 
 		String configAttributeName = conf.requestMapConfigAttributeField
+		String authorityFieldName = conf.authorityField
+
+		String oldRoleName = role."$authorityFieldName"
+		role.properties = newProperties
+
+		role.save()
+		if (role.hasErrors()) {
+			return false
+		}
+
 		if (conf.useRequestMapDomainClass) {
-			String newRoleName = role.authority
+			String newRoleName = role."$authorityFieldName"
 			if (newRoleName != oldRoleName) {
 				def requestmaps = findRequestmapsByRole(oldRoleName, role.getClass(), conf)
 				requestmaps.each { rm ->
@@ -187,8 +195,7 @@ class AuthenticateService {
 			clearCachedRequestmaps()
 		}
 
-		role.save()
-		return !role.hasErrors()
+		return true
 	}
 
 	private List findRequestmapsByRole(String roleName, domainClass, conf) {

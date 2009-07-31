@@ -161,6 +161,7 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 		role.authority = 'ROLE_ADMIN'
 
 		def conf = [security: [requestMapConfigAttributeField: 'configAttribute',
+							   authorityField: 'authority',
 		                       useRequestMapDomainClass: true]]
 		_service.metaClass.getSecurityConfig = { -> conf }
 
@@ -194,6 +195,7 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 		role.authority = 'ROLE_ADMIN'
 
 		def conf = [security: [requestMapConfigAttributeField: 'configAttribute',
+							   authorityField: 'authority',
 		                       useRequestMapDomainClass: true]]
 		_service.metaClass.getSecurityConfig = { -> conf }
 

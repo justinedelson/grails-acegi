@@ -1,5 +1,8 @@
 package test
 
+/**
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
+ */
 class TestRequestmap {
 
 	String url
