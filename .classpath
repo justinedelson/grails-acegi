@@ -10,7 +10,7 @@
 	<classpathentry kind="src" path="test/integration"/>
 	<classpathentry kind="src" path="test/unit"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="bin-groovy"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/grails"/>
 	<classpathentry kind="lib" path="lib/commons-codec-1.3.jar"/>
 	<classpathentry kind="lib" path="lib/easymock.jar"/>
 	<classpathentry kind="lib" path="lib/facebook-java-api-2.0.4.jar"/>
@@ -21,6 +21,5 @@
 	<classpathentry kind="lib" path="lib/spring-security-core-tiger-2.0.5.RELEASE.jar"/>
 	<classpathentry kind="lib" path="lib/spring-security-ntlm-2.0.5.RELEASE.jar"/>
 	<classpathentry kind="lib" path="lib/spring-security-openid-2.0.5.RELEASE.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/grails1.2"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>
