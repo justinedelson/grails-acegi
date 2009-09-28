@@ -42,13 +42,13 @@ import org.apache.log4j.Logger;
 import org.codehaus.groovy.grails.commons.ConfigurationHolder;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.security.ui.AbstractProcessingFilter;
-import org.springframework.security.ui.savedrequest.SavedRequest;
-
 import org.springframework.security.Authentication;
 import org.springframework.security.GrantedAuthority;
 import org.springframework.security.GrantedAuthorityImpl;
 import org.springframework.security.context.SecurityContextHolder;
+import org.springframework.security.ui.AbstractProcessingFilter;
+import org.springframework.security.ui.savedrequest.SavedRequest;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -280,20 +280,18 @@ public final class AuthorizeTools {
 		catch (InvocationTargetException e) {
 			throw new RuntimeException(e);
 		}
-		catch (NoSuchMethodException e) {
-			throw new RuntimeException(e);
-		}
 	}
 
-	private static synchronized Method findMethod(final Class<?> clazz) throws SecurityException, NoSuchMethodException {
+	private static synchronized Method findMethod(final Class<?> clazz) throws SecurityException {
 		Method method = CACHED_METHODS.get(clazz);
 		if (method == null) {
-			method = clazz.getDeclaredMethod("getAuthority");
+			method = ReflectionUtils.findMethod(clazz, "getAuthority");
 			CACHED_METHODS.put(clazz, method);
 		}
 		return method;
 	}
 
+	@SuppressWarnings("unchecked")
 	private static Collection<?> asList(final Object authorities) {
 		if (authorities == null) {
 			return Collections.emptyList();
