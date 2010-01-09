@@ -22,14 +22,13 @@ import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.security.BadCredentialsException
 import org.springframework.security.MockAuthenticationManager
 
-import org.codehaus.groovy.grails.plugins.springsecurity.AbstractSecurityTest
 import org.codehaus.groovy.grails.plugins.springsecurity.SecurityRequestHolder
 /**
  * Unit tests for FacebookAuthenticationProcessingFilter.
  *
  * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-class FacebookAuthenticationProcessingFilterTests extends AbstractSecurityTest {
+class FacebookAuthenticationProcessingFilterTests extends GroovyTestCase {
 
 	private _filter = new TestFacebookAuthenticationProcessingFilter()
 

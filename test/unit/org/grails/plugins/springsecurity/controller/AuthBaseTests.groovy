@@ -14,8 +14,10 @@
  */
 package org.grails.plugins.springsecurity.controller
 
-import org.codehaus.groovy.grails.plugins.springsecurity.AbstractSecurityTest
+import grails.test.ControllerUnitTestCase
+
 import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools
+import org.codehaus.groovy.grails.plugins.springsecurity.SecurityTestUtils
 import org.grails.plugins.springsecurity.service.AuthenticateService
 import org.easymock.EasyMock
 import org.springframework.mock.web.MockHttpServletRequestimport org.springframework.mock.web.MockHttpServletResponseimport org.springframework.security.Authentication
@@ -28,114 +30,99 @@ import org.springframework.web.servlet.LocaleResolver
  *
  * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-class AuthBaseTests extends AbstractSecurityTest {
+class AuthBaseTests extends ControllerUnitTestCase {
 
-	private final AuthBase _authBase = new AuthBase()
 	private final AuthenticateService _service = new AuthenticateService()
 
-	private final Map _redirectParams = [:]
-	private final Map _params = [:]
-	private final Map _session = [:]
-	private final MockHttpServletRequest _request = new MockHttpServletRequest()
-	private final MockHttpServletResponse _response = new MockHttpServletResponse()
+	AuthBaseTests() {
+		super(AuthBase)
+	}
 
 	/**
 	 * Test beforeInterceptor when not authenticated.
 	 */
 	void testBeforeInterceptorNotAuthenticated() {
-		_authBase.requestAllowed = 'role1,role2'
+		controller.requestAllowed = 'role1,role2'
 
-		def redirectParams = [:]
-		_authBase.metaClass.redirect = { Map m -> redirectParams = m }
+		controller.beforeInterceptor()
 
-		_authBase.beforeInterceptor()
-
-		assertEquals '/', redirectParams.uri
+		assertEquals '/', redirectArgs.uri
 	}
 
 	/**
 	 * Test beforeInterceptor when authenticated but insufficient roles.
 	 */
 	void testBeforeInterceptorMissingRole() {
-		_authBase.requestAllowed = 'role1,role2'
-
-		def redirectParams = [:]
-		_authBase.metaClass.redirect = { Map m -> redirectParams = m }
+		controller.requestAllowed = 'role1,role2'
 
 		authenticate('role3')
 
-		_authBase.beforeInterceptor()
+		controller.beforeInterceptor()
 
-		assertEquals '/', redirectParams.uri
+		assertEquals '/', redirectArgs.uri
 	}
 
 	/**
 	 * Test beforeInterceptor when authenticated and with correct roles.
 	 */
 	void testBeforeInterceptorCorrectRoles() {
-		_authBase.requestAllowed = 'role1,role2'
+		controller.requestAllowed = 'role1,role2'
 
 		def authentication = authenticate('role1,role2')
 
-		wireUpMetaClassMethods()
+		controller.beforeInterceptor()
 
-		_authBase.beforeInterceptor()
+		assertEquals 'not redirected', 0, redirectArgs.size()
+		assertTrue controller.logon
+		assertFalse controller.isAdmin
+		assertEquals authentication.principal, controller.authPrincipal
+		assertEquals authentication.principal.domainClass, controller.loginUser
 
-		assertEquals 'not redirected', 0, _redirectParams.size()
-		assertTrue _authBase.logon
-		assertFalse _authBase.isAdmin
-		assertEquals authentication.principal, _authBase.authPrincipal
-		assertEquals authentication.principal.domainClass, _authBase.loginUser
-
-		assertEquals(-1, _response.getHeader('Expires'))
-		assertEquals 0, _response.getHeader('max-age')
-		assertEquals 'no-cache', _response.getHeader('Cache-Control')
-		assertEquals Locale.ENGLISH, _authBase.locale
+		assertEquals(-1, mockResponse.getHeader('Expires'))
+		assertEquals 0, mockResponse.getHeader('max-age')
+		assertEquals 'no-cache', mockResponse.getHeader('Cache-Control')
+		assertEquals Locale.ENGLISH, controller.locale
 	}
 
 	/**
 	 * Test beforeInterceptor when authenticated as admin.
 	 */
 	void testBeforeInterceptorAsAdmin() {
-		_authBase.requestAllowed = 'role1,role2'
+		controller.requestAllowed = 'role1,role2'
 
 		def authentication = authenticate('role1,role2,ROLE_SUPERVISOR')
 
-		wireUpMetaClassMethods()
+		controller.beforeInterceptor()
 
-		_authBase.beforeInterceptor()
-
-		assertEquals 'not redirected', 0, _redirectParams.size()
-		assertTrue _authBase.logon
-		assertTrue _authBase.isAdmin
-		assertEquals authentication.principal, _authBase.authPrincipal
-		assertEquals authentication.principal.domainClass, _authBase.loginUser
+		assertEquals 'not redirected', 0, redirectArgs.size()
+		assertTrue controller.logon
+		assertTrue controller.isAdmin
+		assertEquals authentication.principal, controller.authPrincipal
+		assertEquals authentication.principal.domainClass, controller.loginUser
 	}
 
 	/**
 	 * Test beforeInterceptor when authenticated and with a Locale param.
 	 */
 	void testBeforeInterceptorLocaleParam() {
-		_authBase.requestAllowed = 'role1,role2'
+		controller.requestAllowed = 'role1,role2'
 
 		def authentication = authenticate('role1,role2')
 
-		wireUpMetaClassMethods()
-
 		String localeName = 'foo'
-		_params.lang = localeName
+		mockParams.lang = localeName
 
 		LocaleResolver localeResolver = EasyMock.createMock(LocaleResolver)
-		_request.setAttribute(DispatcherServlet.LOCALE_RESOLVER_ATTRIBUTE, localeResolver)
-		localeResolver.setLocale(EasyMock.eq(_request), EasyMock.eq(_response), EasyMock.eq(new Locale(localeName)))
+		mockRequest.setAttribute(DispatcherServlet.LOCALE_RESOLVER_ATTRIBUTE, localeResolver)
+		localeResolver.setLocale(EasyMock.eq(mockRequest), EasyMock.eq(mockResponse), EasyMock.eq(new Locale(localeName)))
 		EasyMock.expectLastCall().times(2)
 		EasyMock.replay(localeResolver)
 
-		_authBase.beforeInterceptor()
+		controller.beforeInterceptor()
 
-		assertEquals 'not redirected', 0, _redirectParams.size()
-		assertTrue _authBase.logon
-		assertEquals localeName, _session.lang
+		assertEquals 'not redirected', 0, redirectArgs.size()
+		assertTrue controller.logon
+		assertEquals localeName, mockSession.lang
 
 		EasyMock.verify(localeResolver)
 	}
@@ -144,26 +131,24 @@ class AuthBaseTests extends AbstractSecurityTest {
 	 * Test beforeInterceptor when authenticated and with a session Locale name.
 	 */
 	void testBeforeInterceptorSessionLocale() {
-		_authBase.requestAllowed = 'role1,role2'
+		controller.requestAllowed = 'role1,role2'
 
 		def authentication = authenticate('role1,role2')
 
-		wireUpMetaClassMethods()
-
 		String localeName = 'foo'
-		_session.lang = localeName
+		mockSession.lang = localeName
 
 		LocaleResolver localeResolver = EasyMock.createMock(LocaleResolver)
-		_request.setAttribute(DispatcherServlet.LOCALE_RESOLVER_ATTRIBUTE, localeResolver)
-		localeResolver.setLocale(EasyMock.eq(_request), EasyMock.eq(_response), EasyMock.eq(new Locale(localeName)))
+		mockRequest.setAttribute(DispatcherServlet.LOCALE_RESOLVER_ATTRIBUTE, localeResolver)
+		localeResolver.setLocale(EasyMock.eq(mockRequest), EasyMock.eq(mockResponse), EasyMock.eq(new Locale(localeName)))
 		EasyMock.expectLastCall()
 		EasyMock.replay(localeResolver)
 
-		_authBase.beforeInterceptor()
+		controller.beforeInterceptor()
 
-		assertEquals 'not redirected', 0, _redirectParams.size()
-		assertTrue _authBase.logon
-		assertEquals localeName, _session.lang
+		assertEquals 'not redirected', 0, redirectArgs.size()
+		assertTrue controller.logon
+		assertEquals localeName, mockSession.lang
 
 		EasyMock.verify(localeResolver)
 	}
@@ -175,22 +160,7 @@ class AuthBaseTests extends AbstractSecurityTest {
 	@Override
 	protected void setUp() {
 		super.setUp()
-		_authBase.authenticateService = _service
-	}
-
-	private void wireUpMetaClassMethods() {
-		_authBase.metaClass.redirect = { Map m -> _redirectParams = m }
-		_authBase.metaClass.getParams = { -> _params }
-		_authBase.metaClass.getSession = { -> _session }
-		_authBase.metaClass.getRequest = { -> _request }
-		_authBase.metaClass.getResponse = { -> _response }
-	}
-
-	protected Authentication authenticate(roles) {
-		def principal = new Expando()
-		principal.domainClass = new Expando()
-		return authenticate(principal, null,
-			AuthorizeTools.parseAuthoritiesString(roles) as GrantedAuthority[])
+		controller.authenticateService = _service
 	}
 
 	/**
@@ -200,6 +170,13 @@ class AuthBaseTests extends AbstractSecurityTest {
 	@Override
 	protected void tearDown() {
 		super.tearDown()
-		removeMetaClassMethods(AuthBase)
+		SecurityTestUtils.logout()
+	}
+
+	private Authentication authenticate(roles) {
+		def principal = new Expando()
+		principal.domainClass = new Expando()
+		return SecurityTestUtils.authenticate(principal, null,
+			AuthorizeTools.parseAuthoritiesString(roles) as GrantedAuthority[])
 	}
 }

@@ -16,8 +16,6 @@ package org.codehaus.groovy.grails.plugins.springsecurity.ldap
 
 import javax.naming.directory.Attributes
 
-import org.codehaus.groovy.grails.plugins.springsecurity.AbstractSecurityTest
-
 import org.springframework.security.GrantedAuthority
 import org.springframework.security.GrantedAuthorityImpl
 import org.springframework.security.userdetails.ldap.LdapUserDetails
@@ -27,7 +25,7 @@ import org.springframework.security.userdetails.ldap.LdapUserDetails
  *
  * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-class GrailsLdapUserTests extends AbstractSecurityTest {
+class GrailsLdapUserTests extends GroovyTestCase {
 
 	private String dn = 'dn'
 	private GrantedAuthority[] authorities =

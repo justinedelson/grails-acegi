@@ -22,7 +22,7 @@ import org.springframework.mock.web.MockHttpServletResponse
  *
  * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-class GrailsNtlmProcessingFilterEntryPointTests extends AbstractSecurityTest {
+class GrailsNtlmProcessingFilterEntryPointTests extends GroovyTestCase {
 
 	private final _entryPoint = new GrailsNtlmProcessingFilterEntryPoint()
 	private final _request = new MockHttpServletRequest('GET', '/foo/bar')

@@ -54,7 +54,7 @@
 	<target name='clean' description='Cleans a Grails application'>
 		<grails action='clean' />
 		<delete><fileset dir='.' includes='*.log*' /></delete>
-
+		<delete file='cobertura.ser' />
 		<mkdir dir='grails-app/conf/spring'/>
 	</target>
 

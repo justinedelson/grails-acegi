@@ -14,6 +14,8 @@
  */
 package org.codehaus.groovy.grails.plugins.springsecurity
 
+import grails.test.GrailsUnitTestCase
+
 import javax.servlet.FilterChain
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -32,11 +34,16 @@ import org.springframework.security.ui.webapp.AuthenticationProcessingFilter
  *
  * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-class GrailsAuthenticationProcessingFilterTests extends AbstractSecurityTest {
+class GrailsAuthenticationProcessingFilterTests extends GrailsUnitTestCase {
 
 	private final _filter = new GrailsAuthenticationProcessingFilter()
 	private final _request = new MockHttpServletRequest('GET', '/foo/bar')
 	private final _response = new MockHttpServletResponse()
+
+	protected void setUp() {
+		super.setUp()
+		registerMetaClass SecurityRequestHolder
+	}
 
 	/**
 	 * Test sendRedirect().
@@ -102,15 +109,5 @@ class GrailsAuthenticationProcessingFilterTests extends AbstractSecurityTest {
 
 		assertEquals authenticationFailureUrl, _filter.determineFailureUrl(
 				_request, new AuthenticationCredentialsNotFoundException(''))
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * @see junit.framework.TestCase#tearDown()
-	 */
-	@Override
-	protected void tearDown() {
-		super.tearDown()
-		removeMetaClassMethods AuthenticationProcessingFilter, SecurityRequestHolder
 	}
 }

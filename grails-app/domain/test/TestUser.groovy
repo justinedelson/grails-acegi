@@ -5,18 +5,20 @@ package test
  */
 class TestUser {
 
-	static transients = ['pass']
-	static hasMany = [authorities: TestRole]
+	static transients = ['pass', 'roleNames']
+	static hasMany = [roles: TestRole]
 	static belongsTo = TestRole
 
-	String username
-	String passwd
-	boolean enabled
+	String loginName
+	String passwrrd
+	boolean enabld
 
 	String pass = '[secret]'
 
+	Collection<String> getRoleNames() { roles ? roles*.auth : [] }
+
 	static constraints = {
-		username(blank: false, unique: true)
-		passwd(blank: false)
+		loginName blank: false, unique: true
+		passwrrd blank: false
 	}
 }

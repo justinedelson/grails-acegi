@@ -46,40 +46,36 @@ public class GrailsOpenIdAuthenticationProvider extends OpenIDAuthenticationProv
 			return null;
 		}
 
-		if (authentication instanceof OpenIDAuthenticationToken) {
-			OpenIDAuthenticationToken response = (OpenIDAuthenticationToken)authentication;
-			OpenIDAuthenticationStatus status = response.getStatus();
+		OpenIDAuthenticationToken response = (OpenIDAuthenticationToken)authentication;
+		OpenIDAuthenticationStatus status = response.getStatus();
 
-			// handle the various possibilites
-			if (status == OpenIDAuthenticationStatus.SUCCESS) {
-				// Lookup user details
-				UserDetails userDetails = _userDetailsService.loadUserByUsername(
-						response.getIdentityUrl());
-				return new GrailsOpenIdAuthenticationToken(
-						userDetails, response.getStatus(), response.getIdentityUrl());
-			}
-
-			if (status == OpenIDAuthenticationStatus.CANCELLED) {
-				throw new AuthenticationCancelledException("Log in cancelled");
-			}
-
-			if (status == OpenIDAuthenticationStatus.ERROR) {
-				throw new AuthenticationServiceException("Error message from server: " + response.getMessage());
-			}
-
-			if (status == OpenIDAuthenticationStatus.FAILURE) {
-				throw new BadCredentialsException("Log in failed - identity could not be verified");
-			}
-
-			if (status == OpenIDAuthenticationStatus.SETUP_NEEDED) {
-				throw new AuthenticationServiceException(
-						"The server responded setup was needed, which shouldn't happen");
-			}
-
-			throw new AuthenticationServiceException("Unrecognized return value " + status);
+		// handle the various possibilites
+		if (status == OpenIDAuthenticationStatus.SUCCESS) {
+			// Lookup user details
+			UserDetails userDetails = _userDetailsService.loadUserByUsername(
+					response.getIdentityUrl());
+			return new GrailsOpenIdAuthenticationToken(
+					userDetails, response.getStatus(), response.getIdentityUrl());
 		}
 
-		return null;
+		if (status == OpenIDAuthenticationStatus.CANCELLED) {
+			throw new AuthenticationCancelledException("Log in cancelled");
+		}
+
+		if (status == OpenIDAuthenticationStatus.ERROR) {
+			throw new AuthenticationServiceException("Error message from server: " + response.getMessage());
+		}
+
+		if (status == OpenIDAuthenticationStatus.FAILURE) {
+			throw new BadCredentialsException("Log in failed - identity could not be verified");
+		}
+
+		if (status == OpenIDAuthenticationStatus.SETUP_NEEDED) {
+			throw new AuthenticationServiceException(
+					"The server responded setup was needed, which shouldn't happen");
+		}
+
+		throw new AuthenticationServiceException("Unrecognized return value " + status);
 	}
 
 	/**

@@ -28,7 +28,7 @@ import org.springframework.security.intercept.method.MethodDefinitionSource
  *
  * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-class QuietMethodSecurityInterceptorTests extends AbstractSecurityTest {
+class QuietMethodSecurityInterceptorTests extends GroovyTestCase {
 
 	private final _interceptor = new QuietMethodSecurityInterceptor()
 
@@ -175,7 +175,7 @@ class QuietMethodSecurityInterceptorTests extends AbstractSecurityTest {
 		EasyMock.expect(mds.getAttributes(mi)).andReturn(attributes)
 
 		AfterInvocationManager afterInvocationManager = EasyMock.createMock(AfterInvocationManager)
-		_interceptor.afterInvocationManager = afterInvocationManager;
+		_interceptor.afterInvocationManager = afterInvocationManager
 
 		// let beforeInvocation proceed
 		AccessDecisionManager accessDecisionManager = EasyMock.createMock(AccessDecisionManager)
@@ -215,7 +215,7 @@ class QuietMethodSecurityInterceptorTests extends AbstractSecurityTest {
 		EasyMock.expect(mds.getAttributes(mi)).andReturn(attributes)
 
 		AfterInvocationManager afterInvocationManager = EasyMock.createMock(AfterInvocationManager)
-		_interceptor.afterInvocationManager = afterInvocationManager;
+		_interceptor.afterInvocationManager = afterInvocationManager
 
 		// let beforeInvocation proceed
 		AccessDecisionManager accessDecisionManager = EasyMock.createMock(AccessDecisionManager)
@@ -247,7 +247,17 @@ class QuietMethodSecurityInterceptorTests extends AbstractSecurityTest {
 	@Override
 	protected void setUp() {
 		super.setUp()
-		_authentication = authenticate()
+		_authentication = SecurityTestUtils.authenticate()
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * @see junit.framework.TestCase#tearDown()
+	 */
+	@Override
+	protected void tearDown() {
+		super.tearDown()
+		SecurityTestUtils.logout()
 	}
 }
 

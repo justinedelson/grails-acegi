@@ -26,12 +26,12 @@ import org.springframework.security.util.AntUrlPathMatcher
  *
  * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-class RequestmapFilterInvocationDefinitionTests extends AbstractSecurityTest {
+class RequestmapFilterInvocationDefinitionTests extends GroovyTestCase {
 
 	private _fid = new RequestmapFilterInvocationDefinition()
 
 	void testSplit() {
-		assertArrayEquals(['a', 'b', 'c', 'd', 'e'] as String[], _fid.split('a, b,,,c ,d,e')) 
+		assertArrayEquals(['a', 'b', 'c', 'd', 'e'] as String[], _fid.split('a, b,,,c ,d,e'))
 	}
 
 	void testLoadRequestmaps() {

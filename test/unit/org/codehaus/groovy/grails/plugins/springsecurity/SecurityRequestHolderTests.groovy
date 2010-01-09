@@ -19,9 +19,9 @@ import org.springframework.mock.web.MockHttpServletResponse
 /**
  * Unit tests for <code>SecurityRequestHolder</code>.
  *
- * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
+ * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
-class SecurityRequestHolderTests extends AbstractSecurityTest {
+class SecurityRequestHolderTests extends GroovyTestCase {
 
 	void testSetAndGet() {
 		def request = new MockHttpServletRequest()
@@ -55,7 +55,7 @@ class SecurityRequestHolderTests extends AbstractSecurityTest {
 	}
 
 	void testPrivateConstructor() {
-		testPrivateConstructor SecurityRequestHolder
+		SecurityTestUtils.testPrivateConstructor SecurityRequestHolder
 	}
 
 	/**

@@ -24,7 +24,7 @@ import org.springframework.security.AuthenticationException
  *
  * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-class WithAjaxAuthenticationProcessingFilterEntryPointTests extends AbstractSecurityTest {
+class WithAjaxAuthenticationProcessingFilterEntryPointTests extends GroovyTestCase {
 
 	private final _entryPoint = new WithAjaxAuthenticationProcessingFilterEntryPoint()
 

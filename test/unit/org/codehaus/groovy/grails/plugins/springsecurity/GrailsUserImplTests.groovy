@@ -23,7 +23,7 @@ import org.springframework.security.GrantedAuthorityImpl
  *
  * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-class GrailsUserImplTests extends AbstractSecurityTest {
+class GrailsUserImplTests extends GroovyTestCase {
 
 	/**
 	 * Simple test of the constructor.

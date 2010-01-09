@@ -22,7 +22,7 @@ import org.springframework.security.GrantedAuthorityImpl
  *
  * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-class NullSaltSourceTests extends AbstractSecurityTest {
+class NullSaltSourceTests extends GroovyTestCase {
 
 	void testGetSalt() {
 		def authorities = [new GrantedAuthorityImpl('ROLE_USER')] as GrantedAuthority[]

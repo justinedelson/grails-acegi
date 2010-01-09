@@ -172,7 +172,7 @@ public final class AuthorizeTools {
 	 * Parse and load the security configuration.
 	 * @return  the configuration
 	 * @throws ClassNotFoundException  if DefaultSecurityConfig.groovy isn't found
-	 * @throws MalformedURLException 
+	 * @throws MalformedURLException
 	 */
 	public static ConfigObject getSecurityConfig() throws ClassNotFoundException, MalformedURLException {
 
@@ -227,7 +227,7 @@ public final class AuthorizeTools {
 						try {
 							stream = resource.getInputStream();
 							ConfigSlurper configSlurper = new ConfigSlurper(GrailsUtil.getEnvironment());
-							configSlurper.setBinding(config); 
+							configSlurper.setBinding(config);
 							if (resource.getFilename().endsWith(".groovy")) {
 								configs.add(configSlurper.parse(IOUtils.toString(stream)));
 							}

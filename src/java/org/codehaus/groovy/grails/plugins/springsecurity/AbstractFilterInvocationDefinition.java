@@ -16,7 +16,7 @@ package org.codehaus.groovy.grails.plugins.springsecurity;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -42,7 +42,7 @@ public abstract class AbstractFilterInvocationDefinition
 		new ConfigAttributeDefinition(Collections.emptyList());
 
 	protected final Map<Object, ConfigAttributeDefinition> _compiled =
-		new HashMap<Object, ConfigAttributeDefinition>();
+		new LinkedHashMap<Object, ConfigAttributeDefinition>();
 
 	protected final Logger _log = Logger.getLogger(getClass());
 
@@ -84,7 +84,7 @@ public abstract class AbstractFilterInvocationDefinition
 
 	protected abstract String determineUrl(FilterInvocation filterInvocation);
 
-	private ConfigAttributeDefinition findConfigAttribute(final String url) throws Exception {
+	/*package*/ ConfigAttributeDefinition findConfigAttribute(final String url) throws Exception {
 
 		initialize();
 

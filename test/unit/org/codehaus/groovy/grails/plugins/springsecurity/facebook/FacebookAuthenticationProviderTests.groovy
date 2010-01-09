@@ -22,7 +22,6 @@ import org.springframework.security.providers.rememberme.RememberMeAuthenticatio
 import org.springframework.security.userdetails.UserDetails
 import org.springframework.security.userdetails.UserDetailsService
 
-import org.codehaus.groovy.grails.plugins.springsecurity.AbstractSecurityTest
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsDaoImpl
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsUserImpl
 
@@ -31,7 +30,7 @@ import org.codehaus.groovy.grails.plugins.springsecurity.GrailsUserImpl
  *
  * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-class FacebookAuthenticationProviderTests extends AbstractSecurityTest {
+class FacebookAuthenticationProviderTests extends GroovyTestCase {
 
 	private _provider = new FacebookAuthenticationProvider()
 

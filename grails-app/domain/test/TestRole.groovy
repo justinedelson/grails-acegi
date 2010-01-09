@@ -8,10 +8,9 @@ class TestRole {
 	static hasMany = [people: TestUser]
 
 	String description
-	String authority
+	String auth
 
 	static constraints = {
-		authority(blank: false, unique: true)
-		description()
+		auth blank: false, unique: true
 	}
 }

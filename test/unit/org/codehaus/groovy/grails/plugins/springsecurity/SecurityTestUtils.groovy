@@ -20,31 +20,21 @@ import org.grails.plugins.springsecurity.test.TestingAuthenticationToken
 
 import org.springframework.security.Authentication
 import org.springframework.security.GrantedAuthority
-import org.springframework.security.GrantedAuthorityImpl
+import org.springframework.security.GrantedAuthorityImpl;
 import org.springframework.security.context.SecurityContextHolder as SCH
 
 /**
- * Abstract base class for security unit tests.
+ * Utility methods for security unit tests.
  *
  * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-abstract class AbstractSecurityTest extends GroovyTestCase {
-
-	/**
-	 * {@inheritDoc}
-	 * @see junit.framework.TestCase#tearDown()
-	 */
-	@Override
-	protected void tearDown() {
-		super.tearDown()
-		SCH.context.authentication = null
-	}
+class SecurityTestUtils extends GroovyTestCase {
 
 	/**
 	 * Register a currently authenticated user.
 	 * @return  the authentication
 	 */
-	protected Authentication authenticate() {
+	static Authentication authenticate() {
 		return authenticate(null, null, null)
 	}
 
@@ -56,43 +46,26 @@ abstract class AbstractSecurityTest extends GroovyTestCase {
 	 * @param authorities  the roles
 	 * @return  the authentication
 	 */
-	protected Authentication authenticate(Object principal, Object credentials, GrantedAuthority[] authorities) {
+	static Authentication authenticate(Object principal, Object credentials, GrantedAuthority[] authorities) {
 		Authentication authentication = new TestingAuthenticationToken(principal, credentials, authorities)
 		authentication.authenticated = true
 		SCH.context.authentication = authentication
 		return authentication
 	}
 
-	/**
-	 * Register a currently authenticated user.
-	 *
-	 * @param roleNames  role names
-	 * @return  the authentication
-	 */
-	protected Authentication authenticate(roleNames) {
+	static Authentication authenticate(roleNames) {
 		def authorities = roleNames.collect { new GrantedAuthorityImpl(it) }
 		return authenticate(null, null, authorities as GrantedAuthority[])
 	}
 
 	/**
-	 * Remove overridden/added metaclass methods between tests.
-	 * @param classes  the classes to clean up
+	 * De-register the currently authenticated user.
 	 */
-	protected void removeMetaClassMethods(Class<?>... classes) {
-		classes.each { clazz ->
-			def emc = new ExpandoMetaClass(clazz, true, true)
-			emc.initialize()
-			GroovySystem.metaClassRegistry.setMetaClass(clazz, emc)
-		}
+	static void logout() {
+		SCH.clearContext()
 	}
 
-	protected void fixMetaClass(instance) {
-		instance.class.metaClass.class.simpleName
-		ExpandoMetaClass.enableGlobally()
-		instance.metaClass = null
-	}
-
-	protected void testPrivateConstructor(Class clazz) {
+	static void testPrivateConstructor(Class clazz) {
 		assertEquals 1, clazz.declaredConstructors.length
 		def constructor = clazz.getDeclaredConstructor()
 		assertTrue Modifier.isPrivate(constructor.modifiers)

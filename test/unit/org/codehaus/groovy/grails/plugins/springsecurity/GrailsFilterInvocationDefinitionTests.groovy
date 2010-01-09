@@ -27,9 +27,9 @@ import org.springframework.mock.web.MockHttpServletResponse
 /**
  * Unit tests for GrailsUserImpl.
  *
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-class GrailsFilterInvocationDefinitionTests extends AbstractSecurityTest {
+class GrailsFilterInvocationDefinitionTests extends SecurityTestUtils {
 
 //	private final GrailsFilterInvocationDefinition _definition = new GrailsFilterInvocationDefinition()
 

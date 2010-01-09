@@ -5,11 +5,11 @@ package test
  */
 class TestRequestmap {
 
-	String url
-	String configAttribute
+	String urlPattern
+	String rolePattern
 
 	static constraints = {
-		url(blank: false, unique: true)
-		configAttribute(blank: false)
+		urlPattern blank: false, unique: true
+		rolePattern blank: false
 	}
 }

@@ -28,7 +28,7 @@ import org.springframework.security.util.PortResolverImpl
  *
  * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-class AuthorizeToolsTests extends AbstractSecurityTest {
+class AuthorizeToolsTests extends GroovyTestCase {
 
 	/**
 	 * {@inheritDoc}
@@ -85,7 +85,7 @@ class AuthorizeToolsTests extends AbstractSecurityTest {
 	 * Test getPrincipalAuthorities() when not authenticated.
 	 */
 	void testGetPrincipalAuthoritiesNoRoles() {
-		authenticate()
+		SecurityTestUtils.authenticate()
 		assertTrue AuthorizeTools.getPrincipalAuthorities().empty
 	}
 
@@ -98,7 +98,7 @@ class AuthorizeToolsTests extends AbstractSecurityTest {
 			authorities << new GrantedAuthorityImpl("role${i}")
 		}
 
-		authenticate(null, null, authorities as GrantedAuthority[])
+		SecurityTestUtils.authenticate(null, null, authorities as GrantedAuthority[])
 
 		assertEquals authorities, AuthorizeTools.getPrincipalAuthorities()
 	}
@@ -173,7 +173,7 @@ class AuthorizeToolsTests extends AbstractSecurityTest {
 	}
 
 	void testIfAllGranted() {
-		authenticate(['ROLE_1', 'ROLE_2'])
+		SecurityTestUtils.authenticate(['ROLE_1', 'ROLE_2'])
 		assertTrue AuthorizeTools.ifAllGranted('ROLE_1')
 		assertTrue AuthorizeTools.ifAllGranted('ROLE_2')
 		assertTrue AuthorizeTools.ifAllGranted('ROLE_1,ROLE_2')
@@ -182,7 +182,7 @@ class AuthorizeToolsTests extends AbstractSecurityTest {
 	}
 
 	void testIfNotGranted() {
-		authenticate(['ROLE_1', 'ROLE_2'])
+		SecurityTestUtils.authenticate(['ROLE_1', 'ROLE_2'])
 		assertFalse AuthorizeTools.ifNotGranted('ROLE_1')
 		assertFalse AuthorizeTools.ifNotGranted('ROLE_2')
 		assertFalse AuthorizeTools.ifNotGranted('ROLE_1,ROLE_2')
@@ -191,12 +191,16 @@ class AuthorizeToolsTests extends AbstractSecurityTest {
 	}
 
 	void testIfAnyGranted() {
-		authenticate(['ROLE_1', 'ROLE_2'])
+		SecurityTestUtils.authenticate(['ROLE_1', 'ROLE_2'])
 		assertTrue AuthorizeTools.ifAnyGranted('ROLE_1')
 		assertTrue AuthorizeTools.ifAnyGranted('ROLE_2')
 		assertTrue AuthorizeTools.ifAnyGranted('ROLE_1,ROLE_2')
 		assertTrue AuthorizeTools.ifAnyGranted('ROLE_1,ROLE_2,ROLE_3')
 		assertFalse AuthorizeTools.ifAnyGranted('ROLE_3')
+	}
+
+	void testPrivateConstructor() {
+		SecurityTestUtils.testPrivateConstructor AuthorizeTools
 	}
 
 	/**
@@ -205,5 +209,15 @@ class AuthorizeToolsTests extends AbstractSecurityTest {
 	private void assertSameContents(c1, c2) {
 		assertEquals c1.size(), c2.size()
 		assertTrue c1.containsAll(c2)
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * @see junit.framework.TestCase#tearDown()
+	 */
+	@Override
+	protected void tearDown() {
+		super.tearDown()
+		SecurityTestUtils.logout()
 	}
 }

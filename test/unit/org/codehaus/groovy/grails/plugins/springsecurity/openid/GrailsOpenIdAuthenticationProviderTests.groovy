@@ -14,8 +14,9 @@
  */
 package org.codehaus.groovy.grails.plugins.springsecurity.openid
 
-import org.codehaus.groovy.grails.plugins.springsecurity.AbstractSecurityTest
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsUserImpl
+import org.codehaus.groovy.grails.plugins.springsecurity.SecurityTestUtils
+
 import org.grails.plugins.springsecurity.test.TestingAuthenticationToken
 
 import org.springframework.security.AuthenticationServiceException
@@ -31,12 +32,11 @@ import org.springframework.security.userdetails.UserDetailsService
  *
  * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-class GrailsOpenIdAuthenticationProviderTests extends AbstractSecurityTest {
+class GrailsOpenIdAuthenticationProviderTests extends GroovyTestCase {
 
-	private _provider = new GrailsOpenIdAuthenticationProvider()
+	private final _provider = new GrailsOpenIdAuthenticationProvider()
 
 	void testAuthenticateNotSupported() {
-
 		def authentication = new TestingAuthenticationToken()
 		assertNull _provider.authenticate(authentication)
 	}
@@ -93,5 +93,15 @@ class GrailsOpenIdAuthenticationProviderTests extends AbstractSecurityTest {
 		assertSame details, token.principal
 		assertEquals url, token.identityUrl
 		assertEquals OpenIDAuthenticationStatus.SUCCESS, token.getStatus()
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * @see junit.framework.TestCase#tearDown()
+	 */
+	@Override
+	protected void tearDown() {
+		super.tearDown()
+		SecurityTestUtils.logout()
 	}
 }

@@ -29,7 +29,7 @@ import org.grails.plugins.springsecurity.test.TestingAuthenticationToken
  *
  * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-class AuthenticatedVetoableDecisionManagerTests extends AbstractSecurityTest {
+class AuthenticatedVetoableDecisionManagerTests extends GroovyTestCase {
 
 	private _manager
 

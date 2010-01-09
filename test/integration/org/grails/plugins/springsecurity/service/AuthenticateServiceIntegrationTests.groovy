@@ -14,8 +14,6 @@
 */
 package org.grails.plugins.springsecurity.service
 
-import org.codehaus.groovy.grails.plugins.springsecurity.AbstractSecurityTest
-
 import test.TestRequestmap
 import test.TestRole
 import test.TestRole2
@@ -25,7 +23,7 @@ import test.TestRole2
  *
  * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-class AuthenticateServiceIntegrationTests extends AbstractSecurityTest {
+class AuthenticateServiceIntegrationTests extends GroovyTestCase {
 
 	def authenticateService
 	def sessionFactory
@@ -50,57 +48,23 @@ class AuthenticateServiceIntegrationTests extends AbstractSecurityTest {
 		createTestRequestmaps()
 
 		def conf = [requestMapClass: 'test.TestRequestmap',
-		            requestMapConfigAttributeField: 'configAttribute']
+		            requestMapConfigAttributeField: 'rolePattern']
 		def results = authenticateService.findRequestmapsByRole('ROLE_ADMIN', TestRequestmap, conf)
 		assertEquals 3, results.size()
-		assertEquals(['/admin/role/**', '/admin/person/**', '/admin/foo/**'] as Set, results*.url as Set)
+		assertEquals(['/admin/role/**', '/admin/person/**', '/admin/foo/**'] as Set, results*.urlPattern as Set)
 	}
 
 	void testUpdateRole() {
-		
-		def conf = [security: [requestMapClass: 'test.TestRequestmap',
-							   requestMapConfigAttributeField: 'configAttribute',
-							   authorityField: 'authority']]
-		authenticateService.@securityConfig = conf
 
 		createTestRequestmaps()
 
 		String description = 'description'
 		String authority = 'ROLE_ADMIN'
-		def role = new TestRole(description: description, authority: authority).save(flush: true)
+		def role = new TestRole(description: description, auth: authority).save(flush: true)
 
 		sessionFactory.currentSession.clear()
 
 		role = TestRole.list()[0]
-		assertEquals description, role.description
-		assertEquals authority, role.authority
-
-		String newDescription = 'new description'
-		String newAuthority = ''
-		assertFalse authenticateService.updateRole(role, [description: newDescription, authority: newAuthority])
-
-		newAuthority = 'new authority'
-		assertTrue authenticateService.updateRole(role, [description: newDescription, authority: newAuthority])
-		assertEquals newDescription, role.description
-		assertEquals newAuthority, role.authority
-	}
-
-	void testUpdateRoleNonstandardName() {
-
-		def conf = [security: [requestMapClass: 'test.TestRequestmap',
-							   requestMapConfigAttributeField: 'configAttribute',
-							   authorityField: 'auth']]
-		authenticateService.@securityConfig = conf
-
-		createTestRequestmaps()
-
-		String description = 'description'
-		String authority = 'ROLE_ADMIN'
-		def role = new TestRole2(description: description, auth: authority).save(flush: true)
-
-		sessionFactory.currentSession.clear()
-
-		role = TestRole2.list()[0]
 		assertEquals description, role.description
 		assertEquals authority, role.auth
 
@@ -115,11 +79,12 @@ class AuthenticateServiceIntegrationTests extends AbstractSecurityTest {
 	}
 
 	private void createTestRequestmaps() {
-		new TestRequestmap(url: '/admin/role/**', configAttribute: 'ROLE_ADMIN').save()
-		new TestRequestmap(url: '/admin/person/**', configAttribute: 'ROLE_ADMIN,ROLE_FOO').save()
-		new TestRequestmap(url: '/admin/foo/**', configAttribute: 'ROLE_BAR,ROLE_ADMIN,ROLE_FOO').save()
-		new TestRequestmap(url: '/admin/super/**', configAttribute: 'ROLE_SUPERUSER').save()
-		new TestRequestmap(url: '/user/**', configAttribute: 'ROLE_USER').save(flush: true)
+		new TestRequestmap(urlPattern: '/admin/role/**', rolePattern: 'ROLE_ADMIN').save()
+		new TestRequestmap(urlPattern: '/admin/person/**', rolePattern: 'ROLE_ADMIN,ROLE_FOO').save()
+		new TestRequestmap(urlPattern: '/admin/foo/**', rolePattern: 'ROLE_BAR,ROLE_ADMIN,ROLE_FOO').save()
+		new TestRequestmap(urlPattern: '/admin/super/**', rolePattern: 'ROLE_SUPERUSER').save()
+		new TestRequestmap(urlPattern: '/user/**', rolePattern: 'ROLE_USER').save(flush: true)
+		assertEquals 5, TestRequestmap.count()
 	}
 
 	/**

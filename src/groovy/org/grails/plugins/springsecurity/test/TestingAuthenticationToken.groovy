@@ -28,24 +28,20 @@ class TestingAuthenticationToken extends AbstractAuthenticationToken {
 
 	private static final long serialVersionUID = 1L
 
-	private final def _credentials
-	private final def _principal
+	private final _credentials
+	private final _principal
 
 	TestingAuthenticationToken() {
 		this(null, null, null)
 	}
 
-	TestingAuthenticationToken(Object principal, Object credentials, GrantedAuthority[] authorities) {
+	TestingAuthenticationToken(principal, credentials, GrantedAuthority[] authorities) {
 		super(authorities)
 		_credentials = credentials
 		_principal = principal
 	}
 
-	Object getCredentials() {
-		return _credentials
-	}
+	Object getCredentials() { _credentials }
 
-	Object getPrincipal() {
-		return _principal
-	}
+	Object getPrincipal() { _principal }
 }

@@ -31,7 +31,7 @@ import org.springframework.security.ui.logout.LogoutHandler
  *
  * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-class LogoutFilterFactoryBeanTests extends AbstractSecurityTest {
+class LogoutFilterFactoryBeanTests extends GroovyTestCase {
 
 	private final LogoutFilterFactoryBean _factory = new LogoutFilterFactoryBean()
 
@@ -49,7 +49,7 @@ class LogoutFilterFactoryBeanTests extends AbstractSecurityTest {
 		String url = '/after_logout'
 		String filterProcessesUrl = '/j_spring_security_logout'
 
-		Authentication authentication = authenticate()
+		Authentication authentication = SecurityTestUtils.authenticate()
 
 		def request1 = new MockHttpServletRequest('GET', '/foo/bar')
 		def response1 = new MockHttpServletResponse()
@@ -94,5 +94,15 @@ class LogoutFilterFactoryBeanTests extends AbstractSecurityTest {
 
 		EasyMock.verify(handlers as Object[])
 		EasyMock.verify(chain1, chain2)
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * @see junit.framework.TestCase#tearDown()
+	 */
+	@Override
+	protected void tearDown() {
+		super.tearDown()
+		SecurityTestUtils.logout()
 	}
 }

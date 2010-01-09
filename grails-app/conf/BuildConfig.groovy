@@ -5,7 +5,10 @@ grails.project.plugins.dir = 'plugins'
 coverage.enabledByDefault = true
 
 coverage.exclusionListOverride = [
-	'AcegiGrailsPlugin*',
+	'*GrailsPlugin*',
+	'DataSource*',
 	'BuildConfig*',
-	'DefaultSecurityConfig*'
+	'DefaultSecurityConfig*',
+	'SecurityConfig*',
+	'test/**'
 ]

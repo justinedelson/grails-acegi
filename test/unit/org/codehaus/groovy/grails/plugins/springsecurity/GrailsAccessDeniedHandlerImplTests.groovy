@@ -26,13 +26,13 @@ import org.springframework.security.util.PortResolverImpl
  *
  * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-class GrailsAccessDeniedHandlerImplTests extends AbstractSecurityTest {
+class GrailsAccessDeniedHandlerImplTests extends GroovyTestCase {
 
-	private _handler = new GrailsAccessDeniedHandlerImpl()
-	private _request = new MockHttpServletRequest('GET', '/foo/bar')
-	private _response = new MockHttpServletResponse()
-	private String _message = 'denied'
-	private _e = new AccessDeniedException(_message)
+	private final _handler = new GrailsAccessDeniedHandlerImpl()
+	private final _request = new MockHttpServletRequest('GET', '/foo/bar')
+	private final _response = new MockHttpServletResponse()
+	private final String _message = 'denied'
+	private final _e = new AccessDeniedException(_message)
 
 	/**
 	 * {@inheritDoc}
@@ -170,7 +170,7 @@ class GrailsAccessDeniedHandlerImplTests extends AbstractSecurityTest {
 	void testIsLoggedIn() {
 		assertFalse _handler.isLoggedIn()
 
-		authenticate()
+		SecurityTestUtils.authenticate()
 
 		_handler.authenticationTrustResolver = new AuthenticationTrustResolverImpl()
 		assertTrue _handler.isLoggedIn()

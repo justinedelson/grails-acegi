@@ -14,26 +14,30 @@
  */
 package org.grails.plugins.springsecurity.service
 
+import grails.test.GrailsUnitTestCase
 import groovy.util.Expando
 
-import org.codehaus.groovy.grails.plugins.springsecurity.AbstractSecurityTest
 import org.codehaus.groovy.grails.plugins.springsecurity.AuthorizeTools as AT
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsUserImpl
+import org.codehaus.groovy.grails.plugins.springsecurity.SecurityTestUtils
 
 import org.grails.plugins.springsecurity.test.TestingAuthenticationToken
 
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.security.Authentication
+import org.springframework.security.AuthenticationTrustResolverImpl
 import org.springframework.security.GrantedAuthority
 import org.springframework.security.context.SecurityContextHolder as SCH
 import org.springframework.security.ui.AbstractProcessingFilter as APF
+import org.springframework.security.ui.savedrequest.SavedRequest
+import org.springframework.security.util.PortResolverImpl
 
 /**
  * Unit tests for AuthenticateService.
  *
- * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
+ * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
  */
-class AuthenticateServiceTests extends AbstractSecurityTest {
+class AuthenticateServiceTests extends GrailsUnitTestCase {
 
 	private _service
 	private final _user = new Object() // domain class instance
@@ -47,8 +51,10 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 	@Override
 	protected void setUp() {
 		super.setUp()
+		registerMetaClass AuthenticateService
 		_service = new AuthenticateService()
-		_service.metaClass.getRequest = { -> _request }
+		AuthenticateService.metaClass.getRequest = { -> _request }
+		AT.ajaxHeaderName = 'X-Requested-With'
 	}
 
 	/**
@@ -118,7 +124,7 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 	 */
 	void testUserDomainAuthenticated() {
 		authenticate('role1')
-		_service.authenticationTrustResolver = [isAnonymous: { auth -> false }]
+		_service.authenticationTrustResolver = new AuthenticationTrustResolverImpl()
 		assertEquals _user, _service.userDomain()
 	}
 
@@ -138,6 +144,47 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 		assertEquals 'passw0rd_encoded', _service.passwordEncoder('passw0rd')
 	}
 
+	void testIsAjaxUsingParameterFalse() {
+		assertFalse _service.isAjax(_request)
+	}
+
+	void testIsAjaxUsingParameterTrue() {
+
+		_request.setParameter('ajax', 'true')
+
+		assertTrue _service.isAjax(_request)
+	}
+
+	void testIsAjaxUsingHeaderFalse() {
+		assertFalse _service.isAjax(_request)
+	}
+
+//	void testIsAjaxUsingHeaderTrue() {
+//
+//		AuthenticateService.metaClass.getSecurityConfig = { -> [security: [ajaxHeader: 'ajaxHeader']] }
+//		_request.addHeader('ajaxHeader', 'foo')
+//
+//		assertTrue _service.isAjax(_request)
+//	}
+
+	void testIsAjaxUsingSavedRequestFalse() {
+		def request = new MockHttpServletRequest()
+		SavedRequest savedRequest = new SavedRequest(request, new PortResolverImpl())
+		_request.session.setAttribute(APF.SPRING_SECURITY_SAVED_REQUEST_KEY, savedRequest)
+
+		assertFalse _service.isAjax(_request)
+	}
+
+	void testIsAjaxUsingSavedRequestTrue() {
+
+		def request = new MockHttpServletRequest()
+		request.addHeader AT.@_ajaxHeaderName, 'true'
+		SavedRequest savedRequest = new SavedRequest(request, new PortResolverImpl())
+		_request.session.setAttribute(APF.SPRING_SECURITY_SAVED_REQUEST_KEY, savedRequest)
+
+		assertTrue _service.isAjax(_request)
+	}
+
 	void testClearCachedRequestmaps() {
 		boolean resetCalled = false
 		_service.objectDefinitionSource = [reset: { -> resetCalled = true }]
@@ -155,27 +202,27 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 		                   new TestRequestmap('ROLE_USER,ROLE_ADMIN,ROLE_FOO'),
 		                   new TestRequestmap('ROLE_USER,ROLE_ADMIN,ROLE_FOO'),
 		                   new TestRequestmap('ROLE_ADMIN,ROLE_FOO')]
-		_service.metaClass.findRequestmapsByRole = { String roleName, domainClass, conf -> requestmaps }
+		AuthenticateService.metaClass.findRequestmapsByRole = { String roleName, domainClass, conf -> requestmaps }
 
 		def role = new TestRole()
-		role.authority = 'ROLE_ADMIN'
+		role.auth = 'ROLE_ADMIN'
 
-		def conf = [security: [requestMapConfigAttributeField: 'configAttribute',
-							   authorityField: 'authority',
-		                       useRequestMapDomainClass: true]]
-		_service.metaClass.getSecurityConfig = { -> conf }
+		def conf = [security: [requestMapConfigAttributeField: 'rolePattern',
+		                       useRequestMapDomainClass: true,
+		                       authorityField: 'auth']]
+		AuthenticateService.metaClass.getSecurityConfig = { -> conf }
 
 		boolean clearCachedRequestmapsCalled = false
-		_service.metaClass.clearCachedRequestmaps = { -> clearCachedRequestmapsCalled = true }
+		AuthenticateService.metaClass.clearCachedRequestmaps = { -> clearCachedRequestmapsCalled = true }
 
 		_service.deleteRole role
 
-		assertEquals 'ROLE_USER', requestmaps[0].configAttribute
+		assertEquals 'ROLE_USER', requestmaps[0].rolePattern
 		assertTrue requestmaps[1].deleted
-		assertEquals 'ROLE_FOO', requestmaps[2].configAttribute
-		assertEquals 'ROLE_USER,ROLE_FOO', requestmaps[3].configAttribute
-		assertEquals 'ROLE_USER,ROLE_FOO', requestmaps[4].configAttribute
-		assertEquals 'ROLE_FOO', requestmaps[5].configAttribute
+		assertEquals 'ROLE_FOO', requestmaps[2].rolePattern
+		assertEquals 'ROLE_USER,ROLE_FOO', requestmaps[3].rolePattern
+		assertEquals 'ROLE_USER,ROLE_FOO', requestmaps[4].rolePattern
+		assertEquals 'ROLE_FOO', requestmaps[5].rolePattern
 
 		assertTrue clearCachedRequestmapsCalled
 		assertTrue role.deleted
@@ -189,42 +236,33 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 		                   new TestRequestmap('ROLE_USER,ROLE_ADMIN,ROLE_FOO'),
 		                   new TestRequestmap('ROLE_USER,ROLE_ADMIN,ROLE_FOO'),
 		                   new TestRequestmap('ROLE_ADMIN,ROLE_FOO')]
-		_service.metaClass.findRequestmapsByRole = { String roleName, domainClass, conf -> requestmaps }
+		AuthenticateService.metaClass.findRequestmapsByRole = { String roleName, domainClass, conf -> requestmaps }
 
 		def role = new TestRole()
-		role.authority = 'ROLE_ADMIN'
+		role.auth = 'ROLE_ADMIN'
 
-		def conf = [security: [requestMapConfigAttributeField: 'configAttribute',
-							   authorityField: 'authority',
-		                       useRequestMapDomainClass: true]]
-		_service.metaClass.getSecurityConfig = { -> conf }
+		def conf = [security: [requestMapConfigAttributeField: 'rolePattern',
+		                       useRequestMapDomainClass: true,
+		                       authorityField: 'auth']]
+		AuthenticateService.metaClass.getSecurityConfig = { -> conf }
 
 		boolean clearCachedRequestmapsCalled = false
-		_service.metaClass.clearCachedRequestmaps = { -> clearCachedRequestmapsCalled = true }
+		AuthenticateService.metaClass.clearCachedRequestmaps = { -> clearCachedRequestmapsCalled = true }
 
-		assertTrue _service.updateRole(role, [authority: 'ROLE_SUPERADMIN'])
+		assertTrue _service.updateRole(role, [auth: 'ROLE_SUPERADMIN'])
 
-		assertEquals 'ROLE_USER', requestmaps[0].configAttribute
-		assertEquals 'ROLE_SUPERADMIN', requestmaps[1].configAttribute
-		assertEquals 'ROLE_SUPERADMIN,ROLE_FOO', requestmaps[2].configAttribute
-		assertEquals 'ROLE_USER,ROLE_SUPERADMIN,ROLE_FOO', requestmaps[3].configAttribute
-		assertEquals 'ROLE_USER,ROLE_SUPERADMIN,ROLE_FOO', requestmaps[4].configAttribute
-		assertEquals 'ROLE_SUPERADMIN,ROLE_FOO', requestmaps[5].configAttribute
+		assertEquals 'ROLE_USER', requestmaps[0].rolePattern
+		assertEquals 'ROLE_SUPERADMIN', requestmaps[1].rolePattern
+		assertEquals 'ROLE_SUPERADMIN,ROLE_FOO', requestmaps[2].rolePattern
+		assertEquals 'ROLE_USER,ROLE_SUPERADMIN,ROLE_FOO', requestmaps[3].rolePattern
+		assertEquals 'ROLE_USER,ROLE_SUPERADMIN,ROLE_FOO', requestmaps[4].rolePattern
+		assertEquals 'ROLE_SUPERADMIN,ROLE_FOO', requestmaps[5].rolePattern
 
 		assertTrue clearCachedRequestmapsCalled
 		assertTrue role.saveCalled
 	}
 
-	void testIsAjax() {
-		def request = new MockHttpServletRequest()
-
-		assertFalse _service.isAjax(request)
-
-		request.addHeader('ajaxHeader', 'foo')
-		assertTrue _service.isAjax(request)
-	}
-
-	protected Authentication authenticate(roles) {
+	private void authenticate(roles) {
 		GrantedAuthority[] authorities = AT.parseAuthoritiesString(roles) as GrantedAuthority[]
 		def principal = new GrailsUserImpl(
 				'username', 'password', true, true, true,
@@ -233,7 +271,6 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 				principal, null, authorities)
 		authentication.authenticated = true
 		SCH.context.authentication = authentication
-		return authentication
 	}
 
 	/**
@@ -243,15 +280,14 @@ class AuthenticateServiceTests extends AbstractSecurityTest {
 	@Override
 	protected void tearDown() {
 		super.tearDown()
-		removeMetaClassMethods AuthenticateService
-		fixMetaClass _service
+		SecurityTestUtils.logout()
 	}
 }
 
 class TestRole {
 
 	boolean saveCalled
-	String authority
+	String auth
 	boolean deleted
 
 	void save() {
@@ -263,7 +299,7 @@ class TestRole {
 	}
 
 	void setProperties(Map properties) {
-		authority = properties.authority
+		auth = properties.auth
 	}
 
 	void delete() {
@@ -277,11 +313,11 @@ class TestRole {
 
 class TestRequestmap {
 
-	String configAttribute
+	String rolePattern
 	boolean deleted
 
-	TestRequestmap(String configAttribute) {
-		this.configAttribute = configAttribute
+	TestRequestmap(String rolePattern) {
+		this.rolePattern = rolePattern
 	}
 
 	void delete() {

@@ -16,8 +16,6 @@ package org.codehaus.groovy.grails.plugins.springsecurity.facebook
 
 import javax.servlet.http.Cookie
 
-import org.codehaus.groovy.grails.plugins.springsecurity.AbstractSecurityTest
-
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
 
@@ -26,7 +24,7 @@ import org.springframework.mock.web.MockHttpServletResponse
  *
  * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-class FacebookLogoutHandlerTests extends AbstractSecurityTest {
+class FacebookLogoutHandlerTests extends GroovyTestCase {
 
 	private _handler = new FacebookLogoutHandler()
 

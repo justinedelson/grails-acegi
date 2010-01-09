@@ -19,7 +19,6 @@ import java.security.Security
 import javax.security.auth.login.AppConfigurationEntry
 import javax.security.auth.login.Configuration
 
-import org.codehaus.groovy.grails.plugins.springsecurity.AbstractSecurityTest
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsDaoImpl
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsUserImpl
 
@@ -27,7 +26,6 @@ import org.springframework.security.Authentication
 import org.springframework.security.AuthenticationException
 import org.springframework.security.GrantedAuthority
 import org.springframework.security.GrantedAuthorityImpl
-import org.springframework.security.providers.jaas.JaasAuthenticationProvider
 import org.springframework.security.providers.jaas.JaasAuthenticationToken
 import org.springframework.security.userdetails.UserDetails
 
@@ -36,7 +34,7 @@ import org.springframework.security.userdetails.UserDetails
  *
  * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-class GrailsKerberosAuthenticationProviderTests extends AbstractSecurityTest {
+class GrailsKerberosAuthenticationProviderTests extends GroovyTestCase {
 
 	private _provider = new GrailsKerberosAuthenticationProvider()
 
@@ -72,16 +70,6 @@ class GrailsKerberosAuthenticationProviderTests extends AbstractSecurityTest {
 		assertEquals username, jaasToken.principal.username
 		assertEquals password, jaasToken.credentials
 		assertEquals 4, jaasToken.authorities.length
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * @see junit.framework.TestCase#tearDown()
-	 */
-	@Override
-	protected void tearDown() {
-		super.tearDown()
-		removeMetaClassMethods JaasAuthenticationProvider
 	}
 }
 

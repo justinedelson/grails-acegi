@@ -21,7 +21,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -58,16 +57,26 @@ public class AnnotationFilterInvocationDefinition extends AbstractFilterInvocati
 	protected String determineUrl(final FilterInvocation filterInvocation) {
 		HttpServletRequest request = filterInvocation.getHttpRequest();
 		HttpServletResponse response = filterInvocation.getHttpResponse();
-		ServletContext servletContext = ServletContextHolder.getServletContext();
-		GrailsApplication application = ApplicationHolder.getApplication();
+		String requestUrl = request.getRequestURI().substring(request.getContextPath().length());
+		String url = findGrailsUrl(request, response, requestUrl);
 
+		if (!StringUtils.hasLength(url)) {
+			// probably css/js/image
+			url = requestUrl;
+		}
+
+		return lowercaseAndStripQuerystring(url);
+	}
+
+	protected String findGrailsUrl(final HttpServletRequest request, final HttpServletResponse response,
+			final String requestUrl) {
+
+		GrailsApplication application = ApplicationHolder.getApplication();
 		GrailsWebRequest existingRequest = WebUtils.retrieveGrailsWebRequest();
 
-		String requestUrl = request.getRequestURI().substring(request.getContextPath().length());
-
-		String url = null;
 		try {
-			GrailsWebRequest grailsRequest = new GrailsWebRequest(request, response, servletContext);
+			GrailsWebRequest grailsRequest = new GrailsWebRequest(
+					request, response, ServletContextHolder.getServletContext());
 			WebUtils.storeGrailsWebRequest(grailsRequest);
 
 			Map<String, Object> savedParams = copyParams(grailsRequest);
@@ -75,9 +84,9 @@ public class AnnotationFilterInvocationDefinition extends AbstractFilterInvocati
 			for (UrlMappingInfo mapping : _urlMappingsHolder.matchAll(requestUrl)) {
 				configureMapping(mapping, grailsRequest, savedParams);
 
-				url = findGrailsUrl(mapping, application);
+				String url = findGrailsUrl(mapping, application);
 				if (url != null) {
-					break;
+					return url;
 				}
 			}
 		}
@@ -90,12 +99,7 @@ public class AnnotationFilterInvocationDefinition extends AbstractFilterInvocati
 			}
 		}
 
-		if (!StringUtils.hasLength(url)) {
-			// probably css/js/image
-			url = requestUrl;
-		}
-
-		return lowercaseAndStripQuerystring(url);
+		return null;
 	}
 
 	private String findGrailsUrl(final UrlMappingInfo mapping, final GrailsApplication application) {

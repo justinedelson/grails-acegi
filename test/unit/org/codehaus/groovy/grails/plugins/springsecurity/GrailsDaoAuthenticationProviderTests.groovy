@@ -28,7 +28,7 @@ import org.springframework.util.ReflectionUtils
  *
  * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-class GrailsDaoAuthenticationProviderTests extends AbstractSecurityTest {
+class GrailsDaoAuthenticationProviderTests extends GroovyTestCase {
 
 	private _provider = new GrailsDaoAuthenticationProvider()
 

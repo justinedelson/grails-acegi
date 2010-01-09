@@ -14,6 +14,7 @@
  */
 package org.codehaus.groovy.grails.plugins.springsecurity
 
+import org.codehaus.groovy.grails.plugins.springsecurity.GrailsUserImpl
 import org.grails.plugins.springsecurity.test.TestingAuthenticationToken
 
 import org.springframework.security.BadCredentialsException
@@ -28,7 +29,7 @@ import org.springframework.security.event.authorization.AbstractAuthorizationEve
  *
  * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
-class SecurityEventListenerTests extends AbstractSecurityTest {
+class SecurityEventListenerTests extends GroovyTestCase {
 
 	private _listener
 	private _closures
@@ -96,6 +97,23 @@ class SecurityEventListenerTests extends AbstractSecurityTest {
 		_closures.onAuthorizationEvent = { e, appCtx -> called = true }
 
 		_listener.onApplicationEvent(new TestAuthorizationEvent())
+
+		assertTrue called
+	}
+
+	/**
+	 * Test handling <code>AuthenticationSwitchUserEvent</code>.
+	 */
+	void testAuthenticationSwitchUserEvent() {
+
+		boolean called = false
+		_closures.onAuthenticationSwitchUserEvent = { e, appCtx -> called = true }
+
+		def authentication = SecurityTestUtils.authenticate(['ROLE_FOO'])
+		def targetUser = new GrailsUserImpl('username', 'password', true, true, true,
+				true, authentication.authorities, null)
+
+		_listener.onApplicationEvent(new AuthenticationSwitchUserEvent(authentication, targetUser))
 
 		assertTrue called
 	}
