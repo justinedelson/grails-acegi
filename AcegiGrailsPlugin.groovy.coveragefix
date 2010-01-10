@@ -1,0 +1,33 @@
+/*
+ * For some reason having the real descriptor available breaks code coverage. So this is here to use during
+ * testing and packaging. The version, author, etc. fields will be read from here to generate plugin.xml
+ * but the real file is bundled in the zip.
+ * 
+ * Make sure the data in this file stay in sync with the real file and that when changed you recompile it
+ * and rename that class file to AcegiGrailsPlugin.class.coveragefix for use by the _Events.groovy script.
+ */
+class AcegiGrailsPlugin {
+
+	String version = '0.6'
+	String author = 'Tsuyoshi Yamamoto'
+	String authorEmail = 'tyama@xmldo.jp'
+	String title = 'Grails Spring Security 2.0 Plugin'
+	String description = 'Plugin to use Grails domain class and secure your applications with Spring Security filters.'
+	String documentation = 'http://grails.org/plugin/acegi'
+	List observe = ['controllers']
+	List loadAfter = ['controllers', 'services', 'hibernate']
+	List watchedResources = [
+		'file:./grails-app/controllers/**/*Controller.groovy',
+		'file:./plugins/*/grails-app/controllers/**/*Controller.groovy',
+		'file:./grails-app/conf/SecurityConfig.groovy'
+	]
+	Map dependsOn = [:]
+	List pluginExcludes = [
+		'lib/ant-contrib*.jar',
+		'lib/easymock*.jar',
+		'grails-app/conf/SecurityConfig.groovy',
+		'grails-app/domain/**',
+		'grails-app/services/**/Test*Service.groovy',
+		'scripts/_Events.groovy'
+	]
+}

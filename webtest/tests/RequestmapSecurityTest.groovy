@@ -1,8 +1,4 @@
-import grails.util.WebTest
-
-class SecurityTest extends WebTest {
-
-	private static final String ROW_COUNT_XPATH = "count(//div[@class='list']//tbody/tr)"
+class RequestmapSecurityTest extends AbstractSecurityWebTest {
 
 	/**
 	 * The test suite.
@@ -12,8 +8,6 @@ class SecurityTest extends WebTest {
 	}
 
 	void testUserListNewDelete() {
-
-		checkAnnotatedServiceInaccessibleWithoutRole()
 
 		checkSecurePageVisibleWithoutRequestmap()
 
@@ -74,16 +68,6 @@ class SecurityTest extends WebTest {
 		}
 	}
 
-	private void checkAnnotatedServiceInaccessibleWithoutRole() {
-		webtest('Check that without being logged in, serviceAnnotationTest/admin is inaccessible') {
-			invoke      (url: 'serviceAnnotationTest')
-			verifyText  (text:'anyone can see this')
-
-			invoke      (url: 'serviceAnnotationTest/admin')
-			verifyText  (text:'Access is denied')
-		}
-	}
-
 	private void checkSecurePageVisibleWithoutRequestmap() {
 		webtest('Check that without a requestmap, /secure is accessible') {
 			invoke      (url: 'secure')
@@ -130,20 +114,9 @@ class SecurityTest extends WebTest {
 			setCheckbox(name: '_spring_security_remember_me')
 			clickButton (label:'Login')
 
-			// Check that after login, serviceAnnotationTest/admin is accessible
-			invoke      (url: 'serviceAnnotationTest/admin')
-			verifyText  (text:'secure only')
-
 			// Check that with a requestmap, /secure is accessible after login
 			invoke      (url: 'secure')
 			verifyText  (text:'SECURE')
-		}
-	}
-
-	private void verifyListSize(int size) {
-		ant.group(description: "verify list view with $size row(s)") {
-			verifyText  (text: 'List')
-			verifyXPath (xpath: ROW_COUNT_XPATH, text: size, description: "$size row(s) of data expected")
 		}
 	}
 }

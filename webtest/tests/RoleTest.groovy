@@ -1,8 +1,4 @@
-import grails.util.WebTest
-
-class RoleTest extends WebTest {
-
-	private static final String ROW_COUNT_XPATH = "count(//div[@class='list']//tbody/tr)"
+class RoleTest extends AbstractSecurityWebTest {
 
 	/**
 	 * The test suite.
@@ -52,13 +48,6 @@ class RoleTest extends WebTest {
 			}
 
 			verifyListSize 0
-		}
-	}
-
-	private void verifyListSize(int size) {
-		ant.group(description:"verify TestRole list view with $size row(s)") {
-			verifyText  (text:'TestRole List')
-			verifyXPath (xpath:ROW_COUNT_XPATH, text:size, description:"$size row(s) of data expected")
 		}
 	}
 

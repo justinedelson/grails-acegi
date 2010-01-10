@@ -1,4 +1,4 @@
-<project name='acegi-webtest' default='create-test-project'>
+<project name='acegi-webtest'>
 
 	<!-- Properties -->
 
@@ -61,33 +61,54 @@
 
 	<!-- Targets -->
 
-	<target name='create-test-project' description='Builds a test project for running WebTest'>
-
-		<fail unless='testproject'>Set the 'testproject' property in build.properties </fail>
+	<target name='prereqs'>
 		<fail unless='version.plugin'>Set the 'version.plugin' property in build.properties </fail>
 		<fail unless='version.webtest'>Set the 'version.webtest' property in build.properties </fail>
 
 		<!-- if the version.plugin property is set incorrectly it'll start doing a remote install -->
 		<available file='${basedir}/../grails-acegi-${version.plugin}.zip' property='plugin-exists'/>
 		<fail unless='plugin-exists'>${basedir}/../grails-acegi-${version.plugin}.zip not found - check version.plugin: ${version.plugin}</fail>
+	</target>
 
-		<property name='testprojectRoot' value='../../${testproject}' />
+	<target name='prereqs-104'>
+		<fail unless='testproject104'>Set the 'testproject104' property in build.properties </fail>
+		<property name='testproject' value='${testproject104}' />
+		<property name='testprojectRoot' value='../../${testproject104}' />
+		<property name='projectFileDir' value='projectFiles/104' />
+	</target>
 
+	<target name='postsetup-104'>
+		<!-- setup bin-groovy -->
+		<mkdir dir='${testprojectRoot}/.settings' />
+		<def.copy file='${projectFileDir}/org.codehaus.groovy.eclipse.preferences.prefs'
+			todir='${testprojectRoot}/.settings'
+		/>
+	</target>
+
+	<target name='prereqs-111'>
+		<fail unless='testproject111'>Set the 'testproject111' property in build.properties </fail>
+		<property name='testproject' value='${testproject111}' />
+		<property name='testprojectRoot' value='../../${testproject111}' />
+		<property name='projectFileDir' value='projectFiles/111' />
+	</target>
+
+	<target name='prereqs-120'>
+		<fail unless='testproject120'>Set the 'testproject120' property in build.properties </fail>
+		<property name='testproject' value='${testproject120}' />
+		<property name='testprojectRoot' value='../../${testproject120}' />
+		<property name='projectFileDir' value='projectFiles/120' />
+	</target>
+
+	<target name='create-test-project-core'>
 		<!-- create the app -->
 		<delete dir='${testprojectRoot}' />
 		<grails action='create-app' dir='../..'>
 			<args><arg value='${testproject}'/></args>
 		</grails>
 
-		<!-- setup bin-groovy -->
-		<mkdir dir='${testprojectRoot}/.settings' />
-		<def.copy file='org.codehaus.groovy.eclipse.preferences.prefs'
-			todir='${testprojectRoot}/.settings'
-		/>
-
 		<!-- install plugins -->
 
-		<def.copy file='BuildConfig.groovy'
+		<def.copy file='projectFiles/BuildConfig.groovy'
 			todir='${testprojectRoot}/grails-app/conf'
 		/>
 
@@ -95,6 +116,10 @@
 		<grails action='install-plugin'>
 			<args><arg value='${basedir}/grails-webtest-${version.webtest}.zip'/></args>
 		</grails>
+		<!-- overwrite 2 files to support named suites -->
+		<def.copy file='projectFiles/call-webtest.xml' todir='${testprojectRoot}/plugins/webtest-${version.webtest}/scripts' />
+		<def.copy file='projectFiles/RunWebtest.groovy' todir='${testprojectRoot}/plugins/webtest-${version.webtest}/scripts' />
+
 		<grails action='install-plugin'>
 			<args><arg value='${basedir}/../grails-acegi-${version.plugin}.zip'/></args>
 		</grails>
@@ -119,7 +144,7 @@
 		<replace file='${testprojectRoot}/classpath' token='&lt;/classpath&gt;' />
 
 		<!-- add in plugin source folders and bin-groovy -->
-		<add-classpath-entry kind='lib' path='bin-groovy' />
+		<!--add-classpath-entry kind='lib' path='bin-groovy' /-->
 		<add-classpath-entry kind='src' path='webtest/tests' />
 		<add-classpath-entry kind='src' path='plugins/webtest-${version.webtest}/src/groovy' />
 		<add-classpath-entry kind='src' path='plugins/acegi-${version.plugin}/grails-app/controllers' />
@@ -164,27 +189,53 @@
 		<mkdir dir='${testprojectRoot}/webtest/tests' />
 
 		<def.copy todir='${testprojectRoot}/grails-app/controllers'>
-			<fileset dir='.'><include name='*Controller.groovy'/></fileset>
+			<fileset dir='projectFiles'><include name='*Controller.groovy'/></fileset>
 		</def.copy>
 		<def.copy todir='${testprojectRoot}/grails-app/services'>
-			<fileset dir='.'><include name='*Service.groovy'/></fileset>
-		</def.copy>
-		<def.copy todir='${testprojectRoot}/webtest/tests'>
-			<fileset dir='.'><include name='*Test.groovy'/></fileset>
+			<fileset dir='projectFiles'><include name='*Service.groovy'/></fileset>
 		</def.copy>
 
 		<mkdir dir='${testprojectRoot}/web-app/js/admin' />
-		<def.copy file='admin.js' todir='${testprojectRoot}/web-app/js/admin' />
+		<def.copy file='projectFiles/admin.js' todir='${testprojectRoot}/web-app/js/admin' />
 
-		<def.copy file='TestSuite.groovy' todir='${testprojectRoot}/webtest/tests' />
-		<def.copy file='webtest.properties' todir='${testprojectRoot}/webtest/conf' />
-		<def.copy file='accessDenied.gsp' todir='${testprojectRoot}/grails-app/views' />
-		<def.copy file='BootStrap.groovy' todir='${testprojectRoot}/grails-app/conf' />
-		<def.copy file='UrlMappings.groovy' todir='${testprojectRoot}/grails-app/conf' />
+		<def.copy file='projectFiles/webtest.properties' todir='${testprojectRoot}/webtest/conf' />
+		<def.copy file='projectFiles/accessDenied.gsp' todir='${testprojectRoot}/grails-app/views' />
+
+		<def.copy file='projectFiles/testproject-build.xml' tofile='${testprojectRoot}/build.xml' />
+
+		<def.copy todir='${testprojectRoot}/grails-app/conf'>
+			<fileset dir='projectFiles'><include name='SecurityConfig-*_groovy'/></fileset>
+		</def.copy>
+
+		<!-- copy the tests -->
+		<def.copy todir='${testprojectRoot}/webtest/tests'>
+			<fileset dir='tests'>
+				<include name='*Test.groovy'/>
+				<include name='*Suite.groovy'/>
+			</fileset>
+		</def.copy>
+
+		<!-- copy ant-contrib jar -->
+		<def.copy file='../lib/ant-contrib-1.0b3.jar' todir='${testprojectRoot}/lib' />
 
 		<echo>
-		Now run 'cd ${testprojectRoot}' and then run 'grails run-webtest' to execute WebTests.
+		Now run 'cd ${testprojectRoot}' and then run 'ant webtest' to execute WebTests.
 		</echo>
 	</target>
+
+	<target name='create-test-project-104'
+	        depends='prereqs, prereqs-104, create-test-project-core, postsetup-104'
+	        description='Builds a 1.0.4 test project for running WebTest'
+	/>
+
+	<target name='create-test-project-111'
+	        depends='prereqs, prereqs-111, create-test-project-core'
+	        description='Builds a 1.1.1 test project for running WebTest'
+	/>
+
+	<target name='create-test-project-120'
+	        depends='prereqs, prereqs-120, create-test-project-core'
+	        description='Builds a 1.2.0 test project for running WebTest'
+	/>
 
 </project>
