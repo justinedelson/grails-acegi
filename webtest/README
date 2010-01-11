@@ -1,17 +1,25 @@
-To run the WebTest functional tests, cd into this directory and run "ant" - the default build.xml target will create a test Grails application, install the plugin into it, run the scripts to create Role and User classes, etc.
+To run the functional tests, cd into this directory and use build.xml to create a test Grails application, install the plugin into it, run the scripts to create Role and User classes, etc.
 
-You'll need to create a file named build.properties with three properties, 'testproject', 'version.plugin', and 'version.webtest', e.g.
+You'll need to create a file named build.properties these properties:
 
-   testproject=AcegiTestApp
-   version.plugin=0.3-20080422-SNAPSHOT
-   version.webtest=0.4
+   testproject104=AcegiTestApp104
+   testproject111=AcegiTestApp111
+   testproject120=AcegiTestApp120
+   version.plugin=0.6
+   version.webtest=0.5.1
 
-- 'testproject' is the name of the Grails test application. Make sure there's not already a project with that name in your workspace since it will be deleted and replaced.
+- 'testprojectXXX' are the names of the Grails test applications. Make sure there's not already a project with that name in your workspace since it will be deleted and replaced.
 - 'version.plugin' is the version of the Acegi plugin (the same value as the 'version' variable in AcegiGrailsPlugin.groovy)
-- 'version.webtest' is the version of the bundled WebTest plugin (currently 0.4).
+- 'version.webtest' is the version of the bundled WebTest plugin (currently 0.5.1).
 
-Once you've created build.properties, run "ant" and it will create the test application and artifacts and copy tests and other resources.
+Once you've created build.properties, run 'ant create-test-project-104', 'ant create-test-project-111', or 'ant create-test-project-120' to create a test application and artifacts and copy tests and other resources.
 
-cd into the project's directory and run 'grails run-webtest' to execute the tests. On Windows a browser will open with the HTML report when the tests are finished, on another OS you'll need to manually open webtest/reports/WebTestResults.html.
+cd into the project's directory and run one of the test targets to execute the tests:
+
+	ant test-static
+	ant test-requestmap
+	ant test-annotation
+	ant test-basic
+	ant test-register
 
 Note that after the tests are finished, the application can be run using 'grails run-app' for manual testing.

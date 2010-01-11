@@ -1,10 +1,4 @@
-<project name='acegitest' default='test'>
-
-	<taskdef resource='net/sf/antcontrib/antlib.xml'>
-		<classpath>
-			<pathelement location='lib/ant-contrib-1.0b3.jar'/>
-		</classpath>
-	</taskdef>
+<project name='acegitest'>
 
 	<condition property='grails' value='grails.bat'>
 		<os family='windows'/>
@@ -19,42 +13,54 @@
 		<exec executable='${grails}' failonerror='true'><arg value='war'/></exec>
 	</target>
 
-	<target name='webtest' description='Run webtests' depends='clean'>
+	<target name='test-static' description='Run Static tests' depends='clean'>
 
-		<trycatch>
-			<try>
-				<copy file='grails-app/conf/SecurityConfig-annotation_groovy' tofile='grails-app/conf/SecurityConfig.groovy' overwrite='true' />
-				<exec executable='${grails}' failonerror='true'>
-					<arg value='run-webtest'/>
-					<arg value='AnnotationSuite'/>
-				</exec>
-			</try>
-			<catch />
-		</trycatch>
+		<copy file='grails-app/conf/SecurityConfig-static_groovy' tofile='grails-app/conf/SecurityConfig.groovy' overwrite='true' />
+		<exec executable='${grails}' failonerror='true'>
+			<arg value='func-test'/>
+			<arg value='StaticSuite'/>
+		</exec>
 
-		<trycatch>
-			<try>
-				<copy file='grails-app/conf/SecurityConfig-requestmap_groovy' tofile='grails-app/conf/SecurityConfig.groovy' overwrite='true' />
-				<exec executable='${grails}' failonerror='true'>
-					<arg value='run-webtest'/>
-					<arg value='RequestmapSuite'/>
-				</exec>
-			</try>
-			<catch />
-		</trycatch>
+	</target>
 
-		<trycatch>
-			<try>
-				<copy file='grails-app/conf/SecurityConfig-static_groovy' tofile='grails-app/conf/SecurityConfig.groovy' overwrite='true' />
-				<exec executable='${grails}' failonerror='true'>
-					<arg value='run-webtest'/>
-					<arg value='StaticSuite'/>
-				</exec>
-			</try>
-			<catch />
-		</trycatch>
+	<target name='test-annotation' description='Run Annotation tests' depends='clean'>
+
+		<copy file='grails-app/conf/SecurityConfig-annotation_groovy' tofile='grails-app/conf/SecurityConfig.groovy' overwrite='true' />
+		<exec executable='${grails}' failonerror='true'>
+			<arg value='func-test'/>
+			<arg value='AnnotationSuite'/>
+		</exec>
+
+	</target>
+
+	<target name='test-requestmap' description='Run Requestmap tests' depends='clean'>
+
+		<copy file='grails-app/conf/SecurityConfig-requestmap_groovy' tofile='grails-app/conf/SecurityConfig.groovy' overwrite='true' />
+		<exec executable='${grails}' failonerror='true'>
+			<arg value='func-test'/>
+			<arg value='RequestmapSuite'/>
+		</exec>
+
+	</target>
+
+	<target name='test-basic' description='Run BasicAuth tests' depends='clean'>
+
+		<copy file='grails-app/conf/SecurityConfig-basic_groovy' tofile='grails-app/conf/SecurityConfig.groovy' overwrite='true' />
+		<exec executable='${grails}' failonerror='true'>
+			<arg value='func-test'/>
+			<arg value='BasicAuthSuite'/>
+		</exec>
+
+	</target>
+
+	<target name='test-register' description='Run register tests' depends='clean'>
+
+		<copy file='grails-app/conf/SecurityConfig-register_groovy' tofile='grails-app/conf/SecurityConfig.groovy' overwrite='true' />
+		<exec executable='${grails}' failonerror='true'>
+			<arg value='func-test'/>
+			<arg value='RegisterSuite'/>
+		</exec>
 
 	</target>
 
 </project>
-

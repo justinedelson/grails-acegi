@@ -15,7 +15,6 @@ import org.codehaus.groovy.grails.plugins.springsecurity.NullSaltSource
 import org.codehaus.groovy.grails.plugins.springsecurity.QuietMethodSecurityInterceptor
 import org.codehaus.groovy.grails.plugins.springsecurity.RequestmapFilterInvocationDefinition
 import org.codehaus.groovy.grails.plugins.springsecurity.Secured as SecuredController
-import org.codehaus.groovy.grails.plugins.springsecurity.SecurityAnnotationAttributes
 import org.codehaus.groovy.grails.plugins.springsecurity.SecurityEventListener
 import org.codehaus.groovy.grails.plugins.springsecurity.WithAjaxAuthenticationProcessingFilterEntryPoint
 
@@ -73,7 +72,7 @@ import org.springframework.web.filter.DelegatingFilterProxy
  *
  * @author T.Yamamoto
  * @author Haotian Sun
- * @author <a href='mailto:beckwithb@studentsonly.com'>Burt Beckwith</a>
+ * @author <a href='mailto:burt@burtbeckwith.com'>Burt Beckwith</a>
  */
 class AcegiGrailsPlugin {
 
@@ -81,20 +80,29 @@ class AcegiGrailsPlugin {
 		'CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON\n' +
 		'PATTERN_TYPE_APACHE_ANT\n'
 
-	String version = '0.6-SNAPSHOT'
+	String version = '0.6'
+	String grailsVersion = '1.0 > *'
 	String author = 'Tsuyoshi Yamamoto'
 	String authorEmail = 'tyama@xmldo.jp'
 	String title = 'Grails Spring Security 2.0 Plugin'
 	String description = 'Plugin to use Grails domain class and secure your applications with Spring Security filters.'
-	String documentation = 'http://grails.org/AcegiSecurity+Plugin'
+	String documentation = 'http://grails.org/plugin/acegi'
 	List observe = ['controllers']
-	List loadAfter = ['controllers']
+	List loadAfter = ['controllers', 'services', 'hibernate']
 	List watchedResources = [
 		'file:./grails-app/controllers/**/*Controller.groovy',
 		'file:./plugins/*/grails-app/controllers/**/*Controller.groovy',
 		'file:./grails-app/conf/SecurityConfig.groovy'
 	]
 	Map dependsOn = [:]
+	List pluginExcludes = [
+		'lib/ant-contrib*.jar',
+		'lib/easymock*.jar',
+		'grails-app/conf/SecurityConfig.groovy',
+		'grails-app/domain/**',
+		'grails-app/services/**/Test*Service.groovy',
+		'scripts/_Events.groovy'
+	]
 
 	def doWithSpring = {
 
@@ -336,7 +344,6 @@ class AcegiGrailsPlugin {
 			loginUserDomainClass = conf.loginUserDomainClass
 			relationalAuthoritiesField = conf.relationalAuthorities
 			authoritiesMethodName = conf.getAuthoritiesMethod
-			roleDomainClass = conf.authorityDomainClass
 			useNtlm = conf.useNtlm
 			sessionFactory = ref('sessionFactory')
 		}
@@ -355,10 +362,6 @@ class AcegiGrailsPlugin {
 		}
 
 		daacc(DefaultAdvisorAutoProxyCreator)
-
-		// experiment on Annotation and MethodSecurityInterceptor for secure services
-		configureAnnotatedServices.delegate = delegate
-		configureAnnotatedServices conf
 
 		// simple email service
 		configureMail.delegate = delegate
@@ -419,11 +422,11 @@ class AcegiGrailsPlugin {
 	}
 
 	private boolean useSecureChannel(conf) {
-		return conf.secureChannelDefinitionSource || conf.channelConfig.secure || conf.channelConfig.insecure
+		conf.secureChannelDefinitionSource || conf.channelConfig.secure || conf.channelConfig.insecure
 	}
 
 	// OpenID
-	private def configureOpenId = { conf ->
+	private configureOpenId = { conf ->
 		openIDAuthProvider(org.codehaus.groovy.grails.plugins.springsecurity.openid.GrailsOpenIdAuthenticationProvider) {
 			userDetailsService = ref('userDetailsService')
 		}
@@ -444,7 +447,7 @@ class AcegiGrailsPlugin {
 	}
 
 	// Facebook
-	private def configureFacebook = { conf ->
+	private configureFacebook = { conf ->
 		facebookAuthProvider(org.codehaus.groovy.grails.plugins.springsecurity.facebook.FacebookAuthenticationProvider) {
 			userDetailsService = ref('userDetailsService')
 		}
@@ -464,7 +467,7 @@ class AcegiGrailsPlugin {
 	}
 
 	// X509
-	private def configureX509 = { conf ->
+	private configureX509 = { conf ->
 
 		x509ProcessingFilter(org.springframework.security.ui.preauth.x509.X509PreAuthenticatedProcessingFilter) {
 			principalExtractor = ref('x509PrincipalExtractor')
@@ -489,13 +492,9 @@ class AcegiGrailsPlugin {
 		authenticationEntryPoint(org.springframework.security.ui.preauth.PreAuthenticatedProcessingFilterEntryPoint)
 	}
 
-	private def configureCAS = { conf ->
-	    // host:port
+	private configureCAS = { conf ->
 		String casHost = conf.cas.casServer ?: 'localhost'
-		String casPort = conf.cas.casServerPort ?: ''
-		casPort = ('80'.equals(casPort) ? '' : casPort)
-		String casHostWithPort = casPort ? "$casHost:$casPort" : "$casHost"
-		// filter
+		int casPort = (conf.cas.casServerPort ?: '443').toInteger()
 		String casFilterProcessesUrl = conf.cas.filterProcessesUrl ?: '/j_spring_cas_security_check'
 		boolean sendRenew = Boolean.valueOf(conf.cas.sendRenew ?: false)
 		String proxyReceptorUrl = conf.cas.proxyReceptorUrl ?: '/secure/receptor'
@@ -521,13 +520,13 @@ class AcegiGrailsPlugin {
 			sendRenew = sendRenew
 		}
 
-		String casLoginURL = conf.cas.fullLoginURL ?: "$casHttp://$casHostWithPort/cas/login"
+		String casLoginURL = conf.cas.fullLoginURL ?: "$casHttp://$casHost:$casPort/cas/login"
 		authenticationEntryPoint(org.springframework.security.ui.cas.CasProcessingFilterEntryPoint) {
 			loginUrl = casLoginURL
 			serviceProperties = casServiceProperties
 		}
 
-		String casServiceURL = conf.cas.fullServiceURL ?: "$casHttp://$casHostWithPort/cas"
+		String casServiceURL = conf.cas.fullServiceURL ?: "$casHttp://$casHost:$casPort/cas"
 		cas20ServiceTicketValidator(org.jasig.cas.client.validation.Cas20ServiceTicketValidator, casServiceURL) {
 			proxyGrantingTicketStorage = proxyGrantingTicketStorage
 			proxyCallbackUrl = "$localHttp://$applicationHost:$applicationPort/$appName$proxyReceptorUrl"
@@ -544,7 +543,7 @@ class AcegiGrailsPlugin {
 		}
 	}
 
-	private def configureLogout = { conf ->
+	private configureLogout = { conf ->
 
 		securityContextLogoutHandler(SecurityContextLogoutHandler)
 		def logoutHandlerNames = conf.logoutHandlerNames
@@ -569,18 +568,19 @@ class AcegiGrailsPlugin {
 		}
 	}
 
-	private def configureBasicAuth = { conf ->
+	private configureBasicAuth = { conf ->
 
 		authenticationEntryPoint(BasicProcessingFilterEntryPoint) {
 			realmName = conf.realmName // 'Grails Realm'
 		}
+
 		basicProcessingFilter(BasicProcessingFilter) {
 			authenticationManager = ref('authenticationManager')
 			authenticationEntryPoint = ref('authenticationEntryPoint')
 		}
 	}
 
-	private def configureVoters = { conf ->
+	private configureVoters = { conf ->
 
 		roleVoter(RoleVoter)
 
@@ -600,7 +600,7 @@ class AcegiGrailsPlugin {
 		}
 	}
 
-	private def configureAuthenticationManager = { conf ->
+	private configureAuthenticationManager = { conf ->
 
 		def providerNames = conf.providerNames
 		if (!providerNames) {
@@ -620,12 +620,12 @@ class AcegiGrailsPlugin {
 			if (conf.useX509) {
 				providerNames << 'x509AuthenticationProvider'
 			}
+			if (conf.useOpenId) {
+				providerNames << 'openIDAuthProvider'
+			}
 
-			if (providerNames.empty) {
+			if (providerNames.empty || conf.useDaoAuthenticationProviderWithCustomProviders) {
 				providerNames << 'daoAuthenticationProvider'
-				if (conf.useOpenId) {
-					providerNames << 'openIDAuthProvider'
-				}
 			}
 
 			providerNames << 'anonymousAuthenticationProvider'
@@ -639,36 +639,7 @@ class AcegiGrailsPlugin {
 		}
 	}
 
-	private def configureAnnotatedServices = { conf ->
-
-		serviceSecureAnnotation(SecurityAnnotationAttributes)
-
-		serviceSecureAnnotationODS(MethodDefinitionAttributes) {
-			attributes = serviceSecureAnnotation
-		}
-
-		/** securityInteceptor */
-		securityInteceptor(QuietMethodSecurityInterceptor) {
-			validateConfigAttributes = false
-			authenticationManager = ref('authenticationManager')
-			accessDecisionManager = ref('accessDecisionManager')
-			objectDefinitionSource = serviceSecureAnnotationODS
-			throwException = true
-		}
-
-		// load Services which have Annotations
-		application.serviceClasses.each { serviceClass ->
-			if (hasAnnotation(serviceClass.clazz)) {
-				"${serviceClass.propertyName}Sec"(BeanNameAutoProxyCreator) {
-					beanNames = serviceClass.propertyName
-					interceptorNames = ['securityInteceptor']
-					proxyTargetClass = true
-				}
-			}
-		}
-	}
-
-	private def configureMail = { conf ->
+	private configureMail = { conf ->
 
 		if (conf.useMail) {
 			mailSender(org.springframework.mail.javamail.JavaMailSenderImpl) {
@@ -688,7 +659,7 @@ class AcegiGrailsPlugin {
 		}
 	}
 
-	private def configureLdap = { conf ->
+	private configureLdap = { conf ->
 
 		contextSource(org.springframework.security.ldap.DefaultSpringSecurityContextSource, conf.ldapServer) {
 			userDn = conf.ldapManagerDn
@@ -733,7 +704,7 @@ class AcegiGrailsPlugin {
 		}
 	}
 
-	private def configureKerberos = { conf ->
+	private configureKerberos = { conf ->
 
 		jaasNameCallbackHandler(org.springframework.security.providers.jaas.JaasNameCallbackHandler)
 
@@ -744,7 +715,7 @@ class AcegiGrailsPlugin {
 			loginContextName = 'KrbAuthentication'
 			callbackHandlers = [jaasNameCallbackHandler, jaasPasswordCallbackHandler]
 			authorityGranters = []
-			
+
 			userDetailsService = ref('userDetailsService')
 			retrieveDatabaseRoles = conf.kerberosRetrieveDatabaseRoles
 		}
@@ -754,7 +725,7 @@ class AcegiGrailsPlugin {
 		System.setProperty('java.security.krb5.kdc', conf.kerberosKdc)
 	}
 
-	private def configureNtlm = { conf ->
+	private configureNtlm = { conf ->
 
 		ntlmFilter(org.springframework.security.ui.ntlm.NtlmProcessingFilter) {
 			stripDomain = conf.ntlm.stripDomain // true
@@ -770,7 +741,7 @@ class AcegiGrailsPlugin {
 		}
 	}
 
-	private def configureFilterChain = { conf ->
+	private configureFilterChain = { conf ->
 
 		def filterNames = conf.filterNames
 		if (!filterNames) {
@@ -812,7 +783,7 @@ class AcegiGrailsPlugin {
 
 			// LOGIN_PAGE_FILTER
 
-			if (conf.basicProcessingFilter) {
+			if (conf.useBasicAuth) {
 				filterNames << 'basicProcessingFilter' // BASIC_PROCESSING_FILTER
 			}
 
@@ -867,7 +838,7 @@ class AcegiGrailsPlugin {
 		}
 	}
 
-	private def configureChannelProcessingFilter = { conf ->
+	private configureChannelProcessingFilter = { conf ->
 
 		retryWithHttpEntryPoint(RetryWithHttpEntryPoint) {
 			portMapper = ref('portMapper')
@@ -911,7 +882,7 @@ class AcegiGrailsPlugin {
 		}
 	}
 
-	private def configureIpFilter = { conf ->
+	private configureIpFilter = { conf ->
 		ipAddressFilter(IpAddressFilter) {
 			ipRestrictions = conf.ipRestrictions
 		}
@@ -959,7 +930,7 @@ class AcegiGrailsPlugin {
 		}
 	}
 
-	private def findMappingLocation = { xml ->
+	private findMappingLocation = { xml ->
 
 		// find the location to insert the filter-mapping; needs to be after the 'charEncodingFilter'
 		// which may not exist. should also be before the sitemesh filter.
@@ -1018,7 +989,7 @@ class AcegiGrailsPlugin {
 		}
 
 		def ctx = event.ctx
-		if (event.source && ctx && event.application) {
+		if (event.source instanceof Class && ctx && event.application) {
 			boolean isControllerClass = application.isControllerClass(event.source)
 			boolean configChanged = 'SecurityConfig'.equals(event.source.name)
 			if (configChanged || isControllerClass) {
@@ -1034,6 +1005,9 @@ class AcegiGrailsPlugin {
 	}
 
 	def onApplicationChange = { event ->
+		// nothing to do
+	}
+	def onConfigChange = { event ->
 		// nothing to do
 	}
 
@@ -1057,17 +1031,5 @@ class AcegiGrailsPlugin {
 		}
 	}
 
-	private boolean hasAnnotation(serviceClass) {
-		for (method in serviceClass.methods) {
-			if (method.isAnnotationPresent(SecuredService)) {
-				return true
-			}
-		}
-
-		return false
-	}
-
-	private def createRefList = { names ->
-		names.collect { name -> ref(name) }
-	}
+	private createRefList = { names -> names.collect { name -> ref(name) } }
 }

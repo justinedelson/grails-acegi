@@ -1,57 +1,45 @@
 class RoleTest extends AbstractSecurityWebTest {
 
-	/**
-	 * The test suite.
-	 */
-	void suite() {
-		testRoleListNewDelete()
-	}
-
 	void testRoleListNewDelete() {
-		webtest('Role basic operations: view list, create new entry, view, edit, delete, view') {
-			invoke      (url: 'testRole')
-			verifyText  (text:'Home')
 
-			verifyListSize 0
+		get '/testRole'
+		assertContentContains 'Home'
 
-			clickLink   (label:'New TestRole')
-			verifyText  (text: 'Create TestRole')
+		verifyListSize 0
 
-			setInputField(name: 'authority', value: 'test')
-			setInputField(name: 'description', value: 'test role')
-			clickButton (label:'Create')
+		click 'New TestRole'
+		assertContentContains 'Create TestRole'
 
-			verifyText  (text: 'Show TestRole', description:'Detail page')
-			clickLink   (label:'List', description:'Back to list view')
-
-			verifyListSize 1
-
-			group(description:'edit the one element') {
-				showFirstElementDetails()
-				clickButton (label:'Edit')
-				verifyText  (text: 'Edit TestRole')
-
-				setInputField(name: 'authority', value: 'test_new')
-				setInputField(name: 'description', value: 'test role 2')
-				clickButton (label:'Update')
-
-				verifyText  (text: 'Show TestRole')
-				clickLink   (label:'List', description:'Back to list view')
-			}
-
-			verifyListSize 1
-
-			group(description:'delete the only element') {
-				showFirstElementDetails()
-				clickButton (label:'Delete')
-				verifyXPath (xpath:"//div[@class='message']", text: /.*TestRole.*deleted.*/, regex: true)
-			}
-
-			verifyListSize 0
+		form {
+			authority = 'test'
+			description = 'test role'
 		}
-	}
+		clickButton 'Create'
 
-	private void showFirstElementDetails() {
-		ant.clickLink(href: '/testRole/show/1', description: 'go to detail view')
+		assertContentContains 'Show TestRole'
+		click 'TestRole List'
+
+		verifyListSize 1
+
+		get '/testRole/show/1'
+		clickButton 'Edit'
+		assertContentContains 'Edit TestRole'
+
+		form {
+			authority = 'test_new'
+			description = 'test role 2'
+		}
+		clickButton 'Update'
+
+		assertContentContains 'Show TestRole'
+		click 'TestRole List'
+
+		verifyListSize 1
+
+		get '/testRole/show/1'
+		clickButton 'Delete'
+		verifyXPath "//div[@class='message']", ".*TestRole.*deleted.*", true
+
+		verifyListSize 0
 	}
 }

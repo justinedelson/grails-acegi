@@ -63,7 +63,7 @@
 
 	<target name='prereqs'>
 		<fail unless='version.plugin'>Set the 'version.plugin' property in build.properties </fail>
-		<fail unless='version.webtest'>Set the 'version.webtest' property in build.properties </fail>
+		<fail unless='version.gfunc'>Set the 'version.gfunc' property in build.properties </fail>
 
 		<!-- if the version.plugin property is set incorrectly it'll start doing a remote install -->
 		<available file='${basedir}/../grails-acegi-${version.plugin}.zip' property='plugin-exists'/>
@@ -114,11 +114,8 @@
 
 		<mkdir dir='${testprojectRoot}/plugins' />
 		<grails action='install-plugin'>
-			<args><arg value='${basedir}/grails-webtest-${version.webtest}.zip'/></args>
+			<args><arg value='${basedir}/grails-functional-test-${version.gfunc}.zip'/></args>
 		</grails>
-		<!-- overwrite 2 files to support named suites -->
-		<def.copy file='projectFiles/call-webtest.xml' todir='${testprojectRoot}/plugins/webtest-${version.webtest}/scripts' />
-		<def.copy file='projectFiles/RunWebtest.groovy' todir='${testprojectRoot}/plugins/webtest-${version.webtest}/scripts' />
 
 		<grails action='install-plugin'>
 			<args><arg value='${basedir}/../grails-acegi-${version.plugin}.zip'/></args>
@@ -145,8 +142,8 @@
 
 		<!-- add in plugin source folders and bin-groovy -->
 		<!--add-classpath-entry kind='lib' path='bin-groovy' /-->
-		<add-classpath-entry kind='src' path='webtest/tests' />
-		<add-classpath-entry kind='src' path='plugins/webtest-${version.webtest}/src/groovy' />
+		<add-classpath-entry kind='src' path='test/functional' />
+		<add-classpath-entry kind='src' path='plugins/functional-test-${version.gfunc}/src/groovy' />
 		<add-classpath-entry kind='src' path='plugins/acegi-${version.plugin}/grails-app/controllers' />
 		<add-classpath-entry kind='src' path='plugins/acegi-${version.plugin}/grails-app/services' />
 		<add-classpath-entry kind='src' path='plugins/acegi-${version.plugin}/grails-app/taglib' />
@@ -184,9 +181,6 @@
 		<move file='${testprojectRoot}/classpath' tofile='${testprojectRoot}/.classpath' />
 
 		<!-- copy the sample files -->
-		<mkdir dir='${testprojectRoot}/webtest/conf' />
-		<mkdir dir='${testprojectRoot}/webtest/reports' />
-		<mkdir dir='${testprojectRoot}/webtest/tests' />
 
 		<def.copy todir='${testprojectRoot}/grails-app/controllers'>
 			<fileset dir='projectFiles'><include name='*Controller.groovy'/></fileset>
@@ -198,9 +192,6 @@
 		<mkdir dir='${testprojectRoot}/web-app/js/admin' />
 		<def.copy file='projectFiles/admin.js' todir='${testprojectRoot}/web-app/js/admin' />
 
-		<def.copy file='projectFiles/webtest.properties' todir='${testprojectRoot}/webtest/conf' />
-		<def.copy file='projectFiles/accessDenied.gsp' todir='${testprojectRoot}/grails-app/views' />
-
 		<def.copy file='projectFiles/testproject-build.xml' tofile='${testprojectRoot}/build.xml' />
 
 		<def.copy todir='${testprojectRoot}/grails-app/conf'>
@@ -208,34 +199,32 @@
 		</def.copy>
 
 		<!-- copy the tests -->
-		<def.copy todir='${testprojectRoot}/webtest/tests'>
-			<fileset dir='tests'>
-				<include name='*Test.groovy'/>
-				<include name='*Suite.groovy'/>
-			</fileset>
+		<def.copy todir='${testprojectRoot}/test/functional'>
+			<fileset dir='tests' />
 		</def.copy>
 
-		<!-- copy ant-contrib jar -->
-		<def.copy file='../lib/ant-contrib-1.0b3.jar' todir='${testprojectRoot}/lib' />
+		<def.copy file='projectFiles/FuncTest.groovy' todir='${testprojectRoot}/scripts' />
+
+		<def.copy file='projectFiles/HackController.groovy' todir='${testprojectRoot}/grails-app/controllers' />
 
 		<echo>
-		Now run 'cd ${testprojectRoot}' and then run 'ant webtest' to execute WebTests.
+		Now run 'cd ${testprojectRoot}' and then run all of the test targets to execute functional tests.
 		</echo>
 	</target>
 
 	<target name='create-test-project-104'
 	        depends='prereqs, prereqs-104, create-test-project-core, postsetup-104'
-	        description='Builds a 1.0.4 test project for running WebTest'
+	        description='Builds a 1.0.4 test project for running functional tests'
 	/>
 
 	<target name='create-test-project-111'
 	        depends='prereqs, prereqs-111, create-test-project-core'
-	        description='Builds a 1.1.1 test project for running WebTest'
+	        description='Builds a 1.1.1 test project for running functional tests'
 	/>
 
 	<target name='create-test-project-120'
 	        depends='prereqs, prereqs-120, create-test-project-core'
-	        description='Builds a 1.2.0 test project for running WebTest'
+	        description='Builds a 1.2.0 test project for running functional tests'
 	/>
 
 </project>

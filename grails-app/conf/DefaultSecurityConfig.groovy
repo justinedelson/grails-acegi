@@ -114,8 +114,6 @@ security {
 	useBasicAuth = false
 	realmName = 'Grails Realm'
 
-	/** use basicProcessingFilter */
-	basicProcessingFilter = false
 	/** use switchUserProcessingFilter */
 	switchUserProcessingFilter = false
 	swswitchUserUrl = '/j_spring_security_switch_user'
@@ -220,4 +218,7 @@ security {
 	// authenticationTrustResolver
 	atr.anonymousClass = org.springframework.security.providers.anonymous.AnonymousAuthenticationToken
 	atr.rememberMeClass = org.springframework.security.providers.rememberme.RememberMeAuthenticationToken
+
+	// misc
+	useDaoAuthenticationProviderWithCustomProviders = false
 }

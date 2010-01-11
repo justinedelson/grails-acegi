@@ -1,13 +1,6 @@
 class StaticSecurityTest extends AbstractSecurityWebTest {
 
-	/**
-	 * The test suite.
-	 */
-	void suite() {
-		testUserListNewDelete()
-	}
-
-	void testUserListNewDelete() {
+	void testStaticSecurity() {
 		createRoles()
 		createUsers()
 		checkSecuredUrlsNotVisibleWithoutLogin()
@@ -15,179 +8,182 @@ class StaticSecurityTest extends AbstractSecurityWebTest {
 	}
 
 	private void createRoles() {
-		webtest('Create the admin roles') {
-			invoke      (url: 'testRole')
-			verifyText  (text:'Home')
+		get '/testRole'
+		assertContentContains 'Home'
 
-			verifyListSize 0
+		verifyListSize 0
 
-			clickLink   (label:'New TestRole')
-			verifyText  (text: 'Create TestRole')
+		click 'New TestRole'
+		assertContentContains 'Create TestRole'
 
-			setInputField(name: 'authority', value: 'ROLE_ADMIN')
-			setInputField(name: 'description', value: 'admin role')
-			clickButton (label:'Create')
-
-			verifyText  (text: 'Show TestRole', description:'Detail page')
-			clickLink   (label:'List', description:'Back to list view')
-
-			verifyListSize 1
-
-			clickLink   (label:'New TestRole')
-			verifyText  (text: 'Create TestRole')
-
-			setInputField(name: 'authority', value: 'ROLE_ADMIN2')
-			setInputField(name: 'description', value: 'admin role 2')
-			clickButton (label:'Create')
-
-			verifyText  (text: 'Show TestRole', description:'Detail page')
-			clickLink   (label:'List', description:'Back to list view')
-
-			verifyListSize 2
+		form {
+			authority = 'ROLE_ADMIN'
+			description = 'admin role'
+			clickButton 'Create'
 		}
+
+		assertContentContains 'Show TestRole'
+		click 'TestRole List'
+
+		verifyListSize 1
+
+		click 'New TestRole'
+		assertContentContains 'Create TestRole'
+
+		form {
+			authority = 'ROLE_ADMIN2'
+			description = 'admin role 2'
+			clickButton 'Create'
+		}
+
+		assertContentContains 'Show TestRole'
+		click 'TestRole List'
+
+		verifyListSize 2
 	}
 
 	private void createUsers() {
-		webtest('Create the test user') {
-			invoke      (url: 'testUser')
-			verifyText  (text:'Home')
+		get '/testUser'
+		assertContentContains 'Home'
 
-			verifyListSize 0
+		verifyListSize 0
 
-			clickLink   (label:'New TestUser')
-			verifyText  (text: 'Create TestUser')
+		click 'New TestUser'
+		assertContentContains 'Create TestUser'
 
-			setInputField(name: 'username', value: 'admin1')
-			setInputField(name: 'userRealName', value: 'admin 1')
-			setInputField(name: 'passwd', value: 'password1')
-			setCheckbox(name: 'enabled')
-			setInputField(name: 'description', value: 'admin 1')
-			setInputField(name: 'email', value: 'admin1@foo.com')
-			setCheckbox(name: 'emailShow')
-			setCheckbox(name: 'ROLE_ADMIN')
-			clickButton (label:'Create')
-
-			verifyText  (text: 'Show TestUser', description:'Detail page')
-			clickLink   (label:'List', description:'Back to list view')
-
-			verifyListSize 1
-
-			clickLink   (label:'New TestUser')
-			verifyText  (text: 'Create TestUser')
-
-			setInputField(name: 'username', value: 'admin2')
-			setInputField(name: 'userRealName', value: 'admin 2')
-			setInputField(name: 'passwd', value: 'password2')
-			setCheckbox(name: 'enabled')
-			setInputField(name: 'description', value: 'admin 2')
-			setInputField(name: 'email', value: 'admin2@foo.com')
-			setCheckbox(name: 'emailShow')
-			setCheckbox(name: 'ROLE_ADMIN')
-			setCheckbox(name: 'ROLE_ADMIN2')
-			clickButton (label:'Create')
-
-			verifyText  (text: 'Show TestUser', description:'Detail page')
-			clickLink   (label:'List', description:'Back to list view')
-
-			verifyListSize 2
+		form {
+			username = 'admin1'
+			userRealName = 'admin 1'
+			passwd = 'password1'
+			enabled = true
+			description = 'admin 1'
+			email = 'admin1@foo.com'
+			emailShow = true
+			ROLE_ADMIN = true
+			clickButton 'Create'
 		}
+
+		assertContentContains 'Show TestUser'
+		click 'TestUser List'
+
+		verifyListSize 1
+
+		click 'New TestUser'
+		assertContentContains 'Create TestUser'
+
+		form {
+			username = 'admin2'
+			userRealName = 'admin 2'
+			passwd = 'password2'
+			enabled = true
+			description = 'admin 2'
+			email = 'admin2@foo.com'
+			emailShow = true
+			ROLE_ADMIN = true
+			ROLE_ADMIN2 = true
+			clickButton 'Create'
+		}
+
+		assertContentContains 'Show TestUser'
+		click 'TestUser List'
+
+		verifyListSize 2
 	}
 
 	private void checkSecuredUrlsNotVisibleWithoutLogin() {
-		webtest('Check that without being logged in, secured actions are not accessible') {
-			invoke      (url: 'logout')
-			verifyText  (text:'Welcome to Grails')
+		get '/logout'
+		assertContentContains 'Welcome to Grails'
 
-			invoke      (url: 'secureAnnotated')
-			verifyText  (text:'Please Login')
+		get '/secureAnnotated'
+		assertContentContains 'Please Login'
 
-			invoke      (url: 'secureAnnotated/index')
-			verifyText  (text:'Please Login')
+		get '/secureAnnotated/index'
+		assertContentContains 'Please Login'
 
-			invoke      (url: 'secureAnnotated/adminEither')
-			verifyText  (text:'Please Login')
+		get '/secureAnnotated/adminEither'
+		assertContentContains 'Please Login'
 
-			invoke      (url: 'secureClassAnnotated')
-			verifyText  (text:'index: you have ROLE_ADMIN')
+		get '/secureClassAnnotated'
+		assertContentContains 'index: you have ROLE_ADMIN'
 
-			invoke      (url: 'secureClassAnnotated/index')
-			verifyText  (text:'index: you have ROLE_ADMIN')
+		get '/secureClassAnnotated/index'
+		assertContentContains 'index: you have ROLE_ADMIN'
 
-			invoke      (url: 'secureClassAnnotated/otherAction')
-			verifyText  (text:'otherAction: you have ROLE_ADMIN')
+		get '/secureClassAnnotated/otherAction'
+		assertContentContains 'otherAction: you have ROLE_ADMIN'
 
-			invoke      (url: 'secureClassAnnotated/admin2')
-			verifyText  (text:'admin2: you have ROLE_ADMIN2')
-		}
+		get '/secureClassAnnotated/admin2'
+		assertContentContains 'admin2: you have ROLE_ADMIN2'
 	}
 
 	private void loginAndCheckAllAllowed() {
-		webtest('login and verify that secured pages are accessible') {
-			// login as admin1
-			invoke      (url: 'login/auth')
-			verifyText  (text:'Please Login')
+		// login as admin1
+		get '/login/auth'
+		assertContentContains 'Please Login'
 
-			setInputField(name: 'j_username', value: 'admin1')
-			setInputField(name: 'j_password', value: 'password1')
-			setCheckbox(name: '_spring_security_remember_me')
-			clickButton (label: 'Login')
-
-			// Check that after login as admin1, some @Secure actions are accessible
-			invoke      (url: 'secureAnnotated')
-			verifyText  (text:'you have ROLE_ADMIN')
-
-			invoke      (url: 'secureAnnotated/index')
-			verifyText  (text:'you have ROLE_ADMIN')
-
-			invoke      (url: 'secureAnnotated/adminEither')
-			verifyText  (text:'you have ROLE_ADMIN')
-
-			invoke      (url: 'secureClassAnnotated')
-			verifyText  (text:'you have ROLE_ADMIN')
-
-			invoke      (url: 'secureClassAnnotated/index')
-			verifyText  (text:'you have ROLE_ADMIN')
-
-			invoke      (url: 'secureClassAnnotated/otherAction')
-			verifyText  (text:'you have ROLE_ADMIN')
-
-			invoke      (url: 'secureClassAnnotated/admin2')
-			verifyText  (text:"admin2: you have ROLE_ADMIN2")
-
-			// login as admin2
-			invoke      (url: 'logout')
-			verifyText  (text:'Welcome to Grails')
-
-			invoke      (url: 'login/auth')
-			verifyText  (text:'Please Login')
-
-			setInputField(name: 'j_username', value: 'admin2')
-			setInputField(name: 'j_password', value: 'password2')
-			setCheckbox(name: '_spring_security_remember_me')
-			clickButton (label: 'Login')
-
-			// Check that after login as admin2, some @Secure actions are accessible
-			invoke      (url: 'secureAnnotated')
-			verifyText  (text:'you have ROLE_ADMIN')
-
-			invoke      (url: 'secureAnnotated/index')
-			verifyText  (text:'you have ROLE_ADMIN')
-
-			invoke      (url: 'secureAnnotated/adminEither')
-			verifyText  (text:'you have ROLE_ADMIN')
-
-			invoke      (url: 'secureClassAnnotated')
-			verifyText  (text:'index: you have ROLE_ADMIN')
-
-			invoke      (url: 'secureClassAnnotated/index')
-			verifyText  (text:'index: you have ROLE_ADMIN')
-
-			invoke      (url: 'secureClassAnnotated/otherAction')
-			verifyText  (text:'otherAction: you have ROLE_ADMIN')
-
-			invoke      (url: 'secureClassAnnotated/admin2')
-			verifyText  (text:'admin2: you have ROLE_ADMIN2')
+		form {
+			j_username = 'admin1'
+			j_password = 'password1'
+			_spring_security_remember_me = true
+			clickButton 'Login'
 		}
+
+		// Check that after login as admin1, some @Secure actions are accessible
+		get '/secureAnnotated'
+		assertContentContains 'you have ROLE_ADMIN'
+
+		get '/secureAnnotated/index'
+		assertContentContains 'you have ROLE_ADMIN'
+
+		get '/secureAnnotated/adminEither'
+		assertContentContains 'you have ROLE_ADMIN'
+
+		get '/secureClassAnnotated'
+		assertContentContains 'you have ROLE_ADMIN'
+
+		get '/secureClassAnnotated/index'
+		assertContentContains 'you have ROLE_ADMIN'
+
+		get '/secureClassAnnotated/otherAction'
+		assertContentContains 'you have ROLE_ADMIN'
+
+		get '/secureClassAnnotated/admin2'
+		assertContentContains "admin2: you have ROLE_ADMIN2"
+
+		// login as admin2
+		get '/logout'
+		assertContentContains 'Welcome to Grails'
+
+		get '/login/auth'
+		assertContentContains 'Please Login'
+
+		form {
+			j_username = 'admin2'
+			j_password = 'password2'
+			_spring_security_remember_me = true
+			clickButton 'Login'
+		}
+
+		// Check that after login as admin2, some @Secure actions are accessible
+		get '/secureAnnotated'
+		assertContentContains 'you have ROLE_ADMIN'
+
+		get '/secureAnnotated/index'
+		assertContentContains 'you have ROLE_ADMIN'
+
+		get '/secureAnnotated/adminEither'
+		assertContentContains 'you have ROLE_ADMIN'
+
+		get '/secureClassAnnotated'
+		assertContentContains 'index: you have ROLE_ADMIN'
+
+		get '/secureClassAnnotated/index'
+		assertContentContains 'index: you have ROLE_ADMIN'
+
+		get '/secureClassAnnotated/otherAction'
+		assertContentContains 'otherAction: you have ROLE_ADMIN'
+
+		get '/secureClassAnnotated/admin2'
+		assertContentContains 'admin2: you have ROLE_ADMIN2'
 	}
 }
-

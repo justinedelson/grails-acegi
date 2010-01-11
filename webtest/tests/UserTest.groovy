@@ -1,67 +1,54 @@
 class UserTest extends AbstractSecurityWebTest {
 
-	/**
-	 * The test suite.
-	 */
-	void suite() {
-		testUserListNewDelete()
-	}
-
 	void testUserListNewDelete() {
-		webtest('User basic operations: view list, create new entry, view, edit, delete, view') {
-			invoke      (url: 'testUser')
-			verifyText  (text:'Home')
+		get '/testUser'
+		assertContentContains 'Home'
 
-			verifyListSize 0
+		verifyListSize 0
 
-			clickLink   (label:'New TestUser')
-			verifyText  (text: 'Create TestUser')
+		click 'New TestUser'
+		assertContentContains 'Create TestUser'
 
-			setInputField(name: 'username', value: 'new_user')
-			setInputField(name: 'userRealName', value: 'new user')
-			setInputField(name: 'passwd', value: 'p4ssw0rd')
-			setCheckbox(name: 'enabled')
-			setInputField(name: 'description', value: 'a new user')
-			setInputField(name: 'email', value: 'new@user.com')
-			setCheckbox(name: 'emailShow')
-			clickButton (label:'Create')
-
-			verifyText  (text: 'Show TestUser', description:'Detail page')
-			clickLink   (label:'List', description:'Back to list view')
-
-			verifyListSize 1
-
-			group(description:'edit the one element') {
-				showFirstElementDetails()
-				clickButton (label:'Edit')
-				verifyText  (text: 'Edit TestUser')
-
-				setInputField(name: 'username', value: 'new_user2')
-				setInputField(name: 'userRealName', value: 'new user2')
-				setInputField(name: 'passwd', value: 'p4ssw0rd2')
-				setCheckbox(name: 'enabled', checked: false)
-				setInputField(name: 'description', value: 'a new user 2')
-				setInputField(name: 'email', value: 'new@user2.com')
-				setCheckbox(name: 'emailShow', checked: false)
-				clickButton (label:'Update')
-
-				verifyText  (text: 'Show TestUser')
-				clickLink   (label:'List', description:'Back to list view')
-			}
-
-			verifyListSize 1
-
-			group(description:'delete the only element') {
-				showFirstElementDetails()
-				clickButton (label:'Delete')
-				verifyXPath (xpath:"//div[@class='message']", text:/.*TestUser.*deleted.*/, regex:true)
-			}
-
-			verifyListSize 0
+		form {
+			username = 'new_user'
+			userRealName = 'new user'
+			passwd = 'p4ssw0rd'
+			enabled = true
+			description = 'a new user'
+			email = 'new@user.com'
+			emailShow = true
 		}
-	}
+		clickButton 'Create'
 
-	private void showFirstElementDetails() {
-		ant.clickLink(href: '/testUser/show/1', description: 'go to detail view')
+		assertContentContains 'Show TestUser'
+		click 'TestUser List'
+
+		verifyListSize 1
+
+		get '/testUser/show/1'
+		clickButton 'Edit'
+		assertContentContains 'Edit TestUser'
+
+		form {
+			username = 'new_user2'
+			userRealName = 'new user2'
+			passwd = 'p4ssw0rd2'
+			enabled = false
+			description = 'a new user 2'
+			email = 'new@user2.com'
+			emailShow = false
+		}
+		clickButton 'Update'
+
+		assertContentContains 'Show TestUser'
+		click 'TestUser List'
+
+		verifyListSize 1
+
+		get '/testUser/show/1'
+		clickButton 'Delete'
+		verifyXPath "//div[@class='message']", ".*TestUser.*deleted.*", true
+
+		verifyListSize 0
 	}
 }

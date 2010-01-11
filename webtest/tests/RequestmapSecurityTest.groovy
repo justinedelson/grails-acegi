@@ -1,12 +1,5 @@
 class RequestmapSecurityTest extends AbstractSecurityWebTest {
 
-	/**
-	 * The test suite.
-	 */
-	void suite() {
-		testUserListNewDelete()
-	}
-
 	void testUserListNewDelete() {
 
 		checkSecurePageVisibleWithoutRequestmap()
@@ -21,102 +14,98 @@ class RequestmapSecurityTest extends AbstractSecurityWebTest {
 	}
 
 	private void createRole() {
-		webtest('Create the admin role') {
-			invoke      (url: 'testRole')
-			verifyText  (text:'Home')
+		get '/testRole'
+		assertContentContains 'Home'
 
-			verifyListSize 0
+		verifyListSize 0
 
-			clickLink   (label:'New TestRole')
-			verifyText  (text: 'Create TestRole')
+		click 'New TestRole'
+		assertContentContains 'Create TestRole'
 
-			setInputField(name: 'authority', value: 'ROLE_ADMIN')
-			setInputField(name: 'description', value: 'admin role')
-			clickButton (label:'Create')
-
-			verifyText  (text: 'Show TestRole', description:'Detail page')
-			clickLink   (label:'List', description:'Back to list view')
-
-			verifyListSize 1
+		form {
+			authority = 'ROLE_ADMIN'
+			description = 'admin role'
+			clickButton 'Create'
 		}
+
+		assertContentContains 'Show TestRole'
+		click 'TestRole List'
+
+		verifyListSize 1
 	}
 
 	private void createUser() {
-		webtest('Create the test user') {
-			invoke      (url: 'testUser')
-			verifyText  (text:'Home')
+		get '/testUser'
+		assertContentContains'Home'
 
-			verifyListSize 0
+		verifyListSize 0
 
-			clickLink   (label:'New TestUser')
-			verifyText  (text: 'Create TestUser')
+		click 'New TestUser'
+		assertContentContains 'Create TestUser'
 
-			setInputField(name: 'username', value: 'new_user')
-			setInputField(name: 'userRealName', value: 'new user')
-			setInputField(name: 'passwd', value: 'p4ssw0rd')
-			setCheckbox(name: 'enabled')
-			setInputField(name: 'description', value: 'a new user')
-			setInputField(name: 'email', value: 'new@user.com')
-			setCheckbox(name: 'emailShow')
-			setCheckbox(name: 'ROLE_ADMIN')
-			clickButton (label:'Create')
-
-			verifyText  (text: 'Show TestUser', description:'Detail page')
-			clickLink   (label:'List', description:'Back to list view')
-
-			verifyListSize 1
+		form {
+			username = 'new_user'
+			userRealName = 'new user'
+			passwd = 'p4ssw0rd'
+			enabled = true
+			description = 'a new user'
+			email = 'new@user.com'
+			emailShow = true
+			ROLE_ADMIN = true
+			clickButton 'Create'
 		}
+
+		assertContentContains 'Show TestUser'
+		click 'TestUser List'
+
+		verifyListSize 1
 	}
 
 	private void checkSecurePageVisibleWithoutRequestmap() {
-		webtest('Check that without a requestmap, /secure is accessible') {
-			invoke      (url: 'secure')
-			verifyText  (text:'SECURE')
-		}
+		get '/secure'
+		assertContentContains 'SECURE'
 	}
 
 	private void createRequestMap() {
-		webtest('Create a Requestmap entry for /secure') {
-			invoke      (url: 'testRequestmap')
-			verifyText  (text:'Home')
+		get '/testRequestmap'
+		assertContentContains 'Home'
 
-			verifyListSize 0
+		verifyListSize 0
 
-			clickLink   (label:'New TestRequestmap')
-			verifyText  (text: 'Create TestRequestmap')
+		click 'New TestRequestmap'
+		assertContentContains 'Create TestRequestmap'
 
-			setInputField(name: 'url', value: '/secure/**')
-			setInputField(name: 'configAttribute', value: 'ROLE_ADMIN')
-			clickButton (label:'Create')
-
-			verifyText  (text: 'Show TestRequestmap', description:'Detail page')
-			clickLink   (label:'List', description:'Back to list view')
-
-			verifyListSize 1
+		form {
+			url = '/secure/**'
+			configAttribute = 'ROLE_ADMIN'
+			clickButton 'Create'
 		}
+
+		assertContentContains 'Show TestRequestmap'
+		click 'TestRequestmap List'
+
+		verifyListSize 1
 	}
 
 	private void checkSecurePageNotVisibleWithRequestmap() {
-		webtest('Check that with a requestmap, /secure is not accessible') {
-			invoke      (url: 'secure')
-			verifyText  (text:'Please Login')
-		}
+		get '/secure'
+		assertContentContains 'Please Login'
 	}
 
 	private void loginAndCheckAllAllowed() {
-		webtest('login and verify that secured pages are accessible') {
-			// login
-			invoke      (url: 'login/auth')
-			verifyText  (text:'Please Login')
+		// login
+		get '/login/auth'
+		assertContentContains 'Please Login'
 
-			setInputField(name: 'j_username', value: 'new_user')
-			setInputField(name: 'j_password', value: 'p4ssw0rd')
-			setCheckbox(name: '_spring_security_remember_me')
-			clickButton (label:'Login')
-
-			// Check that with a requestmap, /secure is accessible after login
-			invoke      (url: 'secure')
-			verifyText  (text:'SECURE')
+		form {
+			j_username = 'new_user'
+			j_password = 'p4ssw0rd'
+			_spring_security_remember_me = true
+			clickButton 'Login'
 		}
+
+		// Check that with a requestmap, /secure is accessible after login
+		get '/secure'
+		assertContentContains 'SECURE'
 	}
 }
