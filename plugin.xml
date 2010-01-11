@@ -1,13 +1,26 @@
-<plugin name='acegi' version='0.6-SNAPSHOT'>
+<plugin name='acegi' version='0.6' grailsVersion='1.0 &gt; *'>
   <author>Tsuyoshi Yamamoto</author>
   <authorEmail>tyama@xmldo.jp</authorEmail>
   <title>Grails Spring Security 2.0 Plugin</title>
   <description>Plugin to use Grails domain class and secure your applications with Spring Security filters.</description>
-  <documentation>http://grails.org/AcegiSecurity+Plugin</documentation>
+  <documentation>http://grails.org/plugin/acegi</documentation>
   <resources>
+    <resource>BuildConfig</resource>
+    <resource>DataSource</resource>
     <resource>DefaultSecurityConfig</resource>
+    <resource>SecurityConfig</resource>
     <resource>org.grails.plugins.springsecurity.controller.AuthBase</resource>
+    <resource>test.TestRequestmap</resource>
+    <resource>test.TestRole</resource>
+    <resource>test.TestRole2</resource>
+    <resource>test.TestUser</resource>
     <resource>org.grails.plugins.springsecurity.service.AuthenticateService</resource>
     <resource>org.grails.plugins.springsecurity.taglib.AuthorizeTagLib</resource>
   </resources>
+  <dependencies>
+    <resolvers>
+      <resolver type='grailsPlugins' name='grailsPlugins' />
+    </resolvers>
+  </dependencies>
+  <behavior />
 </plugin>
