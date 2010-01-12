@@ -98,8 +98,8 @@ class AuthenticateService {
 	/**
 	 * Encode the password using the configured PasswordEncoder.
 	 */
-	String encodePassword(String passwd) {
-		return passwordEncoder.encodePassword(passwd, null)
+	String encodePassword(String passwd, salt = null) {
+		return passwordEncoder.encodePassword(passwd, salt)
 	}
 
 	/**
