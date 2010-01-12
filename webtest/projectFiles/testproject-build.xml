@@ -14,53 +14,57 @@
 	</target>
 
 	<target name='test-static' description='Run Static tests' depends='clean'>
-
+		<copy file='grails-app/controllers/TestUserController_noSalt_groovy' tofile='grails-app/controllers/TestUserController.groovy' overwrite='true' />
 		<copy file='grails-app/conf/SecurityConfig-static_groovy' tofile='grails-app/conf/SecurityConfig.groovy' overwrite='true' />
 		<exec executable='${grails}' failonerror='true'>
 			<arg value='func-test'/>
 			<arg value='StaticSuite'/>
 		</exec>
-
 	</target>
 
 	<target name='test-annotation' description='Run Annotation tests' depends='clean'>
-
+		<copy file='grails-app/controllers/TestUserController_noSalt_groovy' tofile='grails-app/controllers/TestUserController.groovy' overwrite='true' />
 		<copy file='grails-app/conf/SecurityConfig-annotation_groovy' tofile='grails-app/conf/SecurityConfig.groovy' overwrite='true' />
 		<exec executable='${grails}' failonerror='true'>
 			<arg value='func-test'/>
 			<arg value='AnnotationSuite'/>
 		</exec>
-
 	</target>
 
 	<target name='test-requestmap' description='Run Requestmap tests' depends='clean'>
-
+		<copy file='grails-app/controllers/TestUserController_noSalt_groovy' tofile='grails-app/controllers/TestUserController.groovy' overwrite='true' />
 		<copy file='grails-app/conf/SecurityConfig-requestmap_groovy' tofile='grails-app/conf/SecurityConfig.groovy' overwrite='true' />
 		<exec executable='${grails}' failonerror='true'>
 			<arg value='func-test'/>
 			<arg value='RequestmapSuite'/>
 		</exec>
-
 	</target>
 
 	<target name='test-basic' description='Run BasicAuth tests' depends='clean'>
-
+		<copy file='grails-app/controllers/TestUserController_noSalt_groovy' tofile='grails-app/controllers/TestUserController.groovy' overwrite='true' />
 		<copy file='grails-app/conf/SecurityConfig-basic_groovy' tofile='grails-app/conf/SecurityConfig.groovy' overwrite='true' />
 		<exec executable='${grails}' failonerror='true'>
 			<arg value='func-test'/>
 			<arg value='BasicAuthSuite'/>
 		</exec>
-
 	</target>
 
 	<target name='test-register' description='Run register tests' depends='clean'>
-
+		<copy file='grails-app/controllers/TestUserController_noSalt_groovy' tofile='grails-app/controllers/TestUserController.groovy' overwrite='true' />
 		<copy file='grails-app/conf/SecurityConfig-register_groovy' tofile='grails-app/conf/SecurityConfig.groovy' overwrite='true' />
 		<exec executable='${grails}' failonerror='true'>
 			<arg value='func-test'/>
 			<arg value='RegisterSuite'/>
 		</exec>
+	</target>
 
+	<target name='test-misc' description='Run misc tests' depends='clean'>
+		<copy file='grails-app/controllers/TestUserController_usingSalt_groovy' tofile='grails-app/controllers/TestUserController.groovy' overwrite='true' />
+		<copy file='grails-app/conf/SecurityConfig-misc_groovy' tofile='grails-app/conf/SecurityConfig.groovy' overwrite='true' />
+		<exec executable='${grails}' failonerror='true'>
+			<arg value='func-test'/>
+			<arg value='MiscSuite'/>
+		</exec>
 	</target>
 
 </project>

@@ -203,9 +203,12 @@
 			<fileset dir='tests' />
 		</def.copy>
 
-		<def.copy file='projectFiles/FuncTest.groovy' todir='${testprojectRoot}/scripts' />
+		<def.copy file='${projectFileDir}/FuncTest.groovy' todir='${testprojectRoot}/scripts' />
 
 		<def.copy file='projectFiles/HackController.groovy' todir='${testprojectRoot}/grails-app/controllers' />
+
+		<def.copy file='projectFiles/TestUserController_usingSalt_groovy' todir='${testprojectRoot}/grails-app/controllers' />
+		<def.copy file='projectFiles/TestUserController_noSalt_groovy' todir='${testprojectRoot}/grails-app/controllers' />
 
 		<echo>
 		Now run 'cd ${testprojectRoot}' and then run all of the test targets to execute functional tests.

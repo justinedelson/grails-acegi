@@ -24,13 +24,10 @@ class RegisterTest extends AbstractSecurityWebTest {
 	void testRegisterMismatchPassword() {
 		get '/register'
 		assertContentContains 'User Registration'
-		String cookie = response.responseHeaders.find { it.name == 'Set-Cookie' }.value
-		def parts = cookie.split(';Path=/')
-		String sessionId = parts[0] - 'JSESSIONID='
-		
+
 		// need to simulate pulling the dynamic image
 		getInNewPage '/captcha', sessionId
-		
+
 		String captchaValue = getSessionValue('captcha', sessionId)
 		form {
 			username = 'new_user'
@@ -66,9 +63,6 @@ class RegisterTest extends AbstractSecurityWebTest {
 	void testRegisterOk() {
 		get '/register'
 		assertContentContains 'User Registration'
-		String cookie = response.responseHeaders.find { it.name == 'Set-Cookie' }.value
-		def parts = cookie.split(';Path=/')
-		String sessionId = parts[0] - 'JSESSIONID='
 
 		// need to simulate pulling the dynamic image
 		getInNewPage '/captcha', sessionId

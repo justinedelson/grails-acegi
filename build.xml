@@ -67,7 +67,7 @@
 		<grails action='package-plugin' />
 
 		<!-- clean up -->
-		<delete dir='test/reports' />
+		<delete dir='target' />
 		<delete dir='grails-app/conf/hibernate'/>
 		<delete dir='grails-app/conf/spring'/>
 		<delete dir='grails-app/i18n'/>

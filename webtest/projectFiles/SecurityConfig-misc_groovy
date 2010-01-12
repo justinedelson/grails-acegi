@@ -1,0 +1,16 @@
+security {
+
+	active = true
+
+	loginUserDomainClass = 'com.testapp.TestUser'
+	authorityDomainClass = 'com.testapp.TestRole'
+
+	useRequestMapDomainClass = false
+	useControllerAnnotations = true
+
+	reflectionSaltSourceUserProperty = 'username'
+
+	roleHierarchy = 'ROLE_ADMIN > ROLE_USER'
+
+	switchUserProcessingFilter = true
+}

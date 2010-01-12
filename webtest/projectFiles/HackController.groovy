@@ -1,4 +1,8 @@
+import groovy.sql.Sql
+
 class HackController {
+	
+	def dataSource
 
 	def getSessionValue = {
 		def value = session[params.name]
@@ -6,7 +10,8 @@ class HackController {
 	}
 
 	def getSessionNames = {
-		session.nowdate = new Date()
+		session.nowdate = new Date() // to test it's working
+
 		def sb = new StringBuilder()
 		session.attributeNames.each { String name ->
 			sb.append name
@@ -14,5 +19,11 @@ class HackController {
 		}
 		render sb.toString()
 	}
-}
 
+	def executeQuery = {
+		String query = params.sql
+		Sql sql = new Sql(dataSource)
+		def result = sql.firstRow(query)[0]
+		render result ? result.toString() : ''
+	}
+}

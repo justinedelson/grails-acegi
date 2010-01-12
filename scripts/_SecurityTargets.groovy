@@ -47,7 +47,7 @@ generateFile = { String templatePath, String outputPath ->
 
 	File outFile = new File(outputPath)
 	if (outFile.exists() && !overwrite) {
-	    println "file *not* generated: $outFile.absolutePath"
+		println "file *not* generated: $outFile.absolutePath"
 		return
 	}
 
@@ -105,9 +105,9 @@ loadConfig = {
 	println "Authority domain class: $securityConfig.security.authorityDomainClass"
 	println "Request Map domain class: $securityConfig.security.requestMapClass"
 
-    // "User" field names.
-    if (securityConfig.security.userName) usernameField = securityConfig.security.userName
-    if (securityConfig.security.password) passwordField = securityConfig.security.password
+	// "User" field names.
+	if (securityConfig.security.userName) usernameField = securityConfig.security.userName
+	if (securityConfig.security.password) passwordField = securityConfig.security.password
 }
 
 splitClassName = { name ->
@@ -116,21 +116,21 @@ splitClassName = { name ->
 }
 
 splitPersonClassName = { name ->
-    if (!name) return
+	if (!name) return
 	def packageAndClass = splitClassName(name)
 	personClassName = packageAndClass[0]
 	personClassPackage = packageAndClass[1]
 }
 
 splitAuthorityClassName = { name ->
-    if (!name) return
+	if (!name) return
 	def packageAndClass = splitClassName(name)
 	authorityClassName = packageAndClass[0]
 	authorityClassPackage = packageAndClass[1]
 }
 
 splitRequestmapClassName = { name ->
-    if (!name) return
+	if (!name) return
 	def packageAndClass = splitClassName(name)
 	requestmapClassName = packageAndClass[0]
 	requestmapClassPackage = packageAndClass[1]

@@ -11,4 +11,9 @@ class SecureAnnotatedController {
 	def adminEither = {
 		render 'you have ROLE_ADMIN or ROLE_ADMIN2'
 	}
+
+	@Secured(['ROLE_USER'])
+	def userAction = {
+		render 'you have ROLE_USER'
+	}
 }

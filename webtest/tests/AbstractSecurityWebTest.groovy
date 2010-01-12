@@ -11,6 +11,14 @@ abstract class AbstractSecurityWebTest extends FunctionalTestCase {
 
 	protected static final String ROW_COUNT_XPATH = "count(//div[@class='list']//tbody/tr)"
 
+	protected String sessionId
+	
+	@Override
+	protected void tearDown() {
+		super.tearDown()
+		get '/logout'
+	}
+
 	protected void verifyListSize(int size) {
 		assertContentContainsStrict 'List'
 		int actual = page.getByXPath(ROW_COUNT_XPATH)[0]
@@ -80,11 +88,23 @@ println "\n\n verifyXPath xpath: $xpath expected $expected : $results ${results*
 		return stripWS(response.contentAsString)
 	}
 
-	protected getInNewPage(String url, String sessionId) {
+	protected getInNewPage(String url, String sessionId = null) {
 		def settings = new WebRequestSettings(makeRequestURL(page, url))
 		settings.httpMethod = HttpMethod.GET
-		settings.additionalHeaders = ['Cookie': 'JSESSIONID=' + sessionId]
+		if (sessionId) {
+			settings.additionalHeaders = ['Cookie': 'JSESSIONID=' + sessionId]
+		}
 		dumpRequestInfo(settings)
 		return client.loadWebResponse(settings)
+	}
+
+	def get(url, Closure paramSetup = null) {
+		super.get(url, paramSetup)
+		def cookie = response.responseHeaders.find { it.name == 'Set-Cookie' }
+		if (!cookie) {
+			return
+		}
+		def parts = cookie.value.split(';Path=/')
+		sessionId = parts[0] - 'JSESSIONID='
 	}
 }
