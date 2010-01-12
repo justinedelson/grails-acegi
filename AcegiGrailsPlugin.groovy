@@ -60,11 +60,12 @@ import org.springframework.security.securechannel.InsecureChannelProcessor
 import org.springframework.security.securechannel.RetryWithHttpEntryPoint
 import org.springframework.security.securechannel.RetryWithHttpsEntryPoint
 import org.springframework.security.securechannel.SecureChannelProcessor
+import org.springframework.security.userdetails.hierarchicalroles.RoleHierarchyImpl
 import org.springframework.security.util.FilterChainProxy
 import org.springframework.security.util.FilterToBeanProxy
 import org.springframework.security.vote.AuthenticatedVoter
-import org.springframework.security.vote.RoleVoter
 import org.springframework.security.wrapper.SecurityContextHolderAwareRequestFilter
+import org.springframework.security.vote.RoleHierarchyVoter
 import org.springframework.web.filter.DelegatingFilterProxy
 
 /**
@@ -582,24 +583,28 @@ class AcegiGrailsPlugin {
 
 	private configureVoters = { conf ->
 
-		roleVoter(RoleVoter)
+		roleHierarchy(RoleHierarchyImpl) {
+			hierarchy = conf.roleHierarchy
+		}
+
+		roleVoter(RoleHierarchyVoter, ref('roleHierarchy'))
 
 		authenticatedVoter(AuthenticatedVoter) {
 			authenticationTrustResolver = ref('authenticationTrustResolver')
 		}
-
+		
 		def decisionVoterNames = conf.decisionVoterNames
 		if (!decisionVoterNames) {
 			decisionVoterNames = ['authenticatedVoter', 'roleVoter']
 		}
-		def decisionVoterList = createRefList(decisionVoterNames)
+		def voters = createRefList(decisionVoterNames)
 		/** accessDecisionManager */
 		accessDecisionManager(AuthenticatedVetoableDecisionManager) {
 			allowIfAllAbstainDecisions = false
-			decisionVoters = decisionVoterList
+			decisionVoters = voters
 		}
 	}
-
+	
 	private configureAuthenticationManager = { conf ->
 
 		def providerNames = conf.providerNames

@@ -221,4 +221,7 @@ security {
 
 	// misc
 	useDaoAuthenticationProviderWithCustomProviders = false
+
+	// hierarchical roles
+	roleHierarchy = ''
 }
