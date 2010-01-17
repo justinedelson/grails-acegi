@@ -26,6 +26,7 @@ includeTargets << new File("$acegiPluginDir/scripts/_SecurityTargets.groovy")
 pluginTemplatePath = "$templateDir/manager"
 
 target('default': 'Generates user registration views and controllers') {
+	depends(configureProxy)
 
 	loadConfig()
 
