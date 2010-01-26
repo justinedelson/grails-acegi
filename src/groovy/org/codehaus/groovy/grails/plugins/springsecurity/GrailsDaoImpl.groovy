@@ -94,7 +94,7 @@ class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements UserDet
 			return createRolesByAuthoritiesMethod(user, username)
 		}
 		
-		logger.error("User [${username}] has no GrantedAuthority")
+		logger.warn("User [${username}] has no GrantedAuthority")
 		throw new UsernameNotFoundException('User has no GrantedAuthority')
 	}
 
@@ -107,7 +107,7 @@ class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements UserDet
 				.list()
 
 		if (users.empty) {
-			logger.error "User not found: $username"
+			logger.warn "User not found: $username"
 			throw new UsernameNotFoundException('User not found', username)
 		}
 
@@ -148,7 +148,7 @@ class GrailsDaoImpl extends GrailsWebApplicationObjectSupport implements UserDet
 
 	protected void assertNotEmpty(Collection<?> authorities, String username) {
 		if (!authorities) {
-			logger.error("User [${username}] has no GrantedAuthority")
+			logger.warn "User [${username}] has no GrantedAuthority"
 			throw new UsernameNotFoundException('User has no GrantedAuthority')
 		}
 	}
