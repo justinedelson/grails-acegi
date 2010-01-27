@@ -78,9 +78,6 @@ class AuthBaseTests extends ControllerUnitTestCase {
 		assertEquals authentication.principal, controller.authPrincipal
 		assertEquals authentication.principal.domainClass, controller.loginUser
 
-		assertEquals(-1, mockResponse.getHeader('Expires'))
-		assertEquals 0, mockResponse.getHeader('max-age')
-		assertEquals 'no-cache', mockResponse.getHeader('Cache-Control')
 		assertEquals Locale.ENGLISH, controller.locale
 	}
 

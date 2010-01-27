@@ -49,7 +49,7 @@ class GrailsLdapUserTests extends GroovyTestCase {
 			credentialsNonExpired: credentialsNonExpired, enabled: enabled)
 
 		def domainClass = new Expando()
-		GrailsLdapUser user = new GrailsLdapUser(details, domainClass)
+		GrailsLdapUser user = new GrailsLdapUser(details, domainClass, null)
 
 		assertEquals dn, user.dn
 		assertArrayEquals authorities, user.authorities

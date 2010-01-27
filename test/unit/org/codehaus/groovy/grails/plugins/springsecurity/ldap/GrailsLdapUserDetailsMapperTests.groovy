@@ -47,6 +47,12 @@ import org.codehaus.groovy.grails.plugins.springsecurity.GrailsUserImplclass G
 		assertEquals 'retrieveDatabaseRoles must be specified', message
 
 		_mapper.retrieveDatabaseRoles = true
+		message = shouldFail(IllegalArgumentException) {
+			_mapper.afterPropertiesSet()
+		}
+		assertEquals 'retrieveUserDomainObject must be specified', message
+
+		_mapper.retrieveUserDomainObject = true
 		_mapper.afterPropertiesSet()
 	}
 
@@ -63,6 +69,7 @@ import org.codehaus.groovy.grails.plugins.springsecurity.GrailsUserImplclass G
 
 	void testMapUserFromContextUsePasswordTrue() {
 		_mapper.retrieveDatabaseRoles = true
+		_mapper.retrieveUserDomainObject = true
 		_mapper.usePassword = true
 		_mapper.userDetailsService = new TestGrailsDaoImpl()
 
@@ -86,6 +93,7 @@ import org.codehaus.groovy.grails.plugins.springsecurity.GrailsUserImplclass G
 
 	void testMapUserFromContextUsePasswordFalse() {
 		_mapper.retrieveDatabaseRoles = true
+		_mapper.retrieveUserDomainObject = true
 		_mapper.usePassword = false
 		_mapper.userDetailsService = new TestGrailsDaoImpl()
 
