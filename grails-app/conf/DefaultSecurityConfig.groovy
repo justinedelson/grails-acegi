@@ -140,6 +140,7 @@ security {
 	useLdap = false
 	ldapRetrieveGroupRoles = true
 	ldapRetrieveDatabaseRoles = false
+	ldapRetrieveUserDomainObject = true
 	ldapSearchSubtree = true
 	ldapGroupRoleAttribute = 'cn'
 	ldapPasswordAttributeName = 'userPassword'

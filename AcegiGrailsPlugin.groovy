@@ -686,6 +686,7 @@ class AcegiGrailsPlugin {
 			passwordAttributeName = conf.ldapPasswordAttributeName // 'userPassword'
 			usePassword = conf.ldapUsePassword // true
 			retrieveDatabaseRoles = conf.ldapRetrieveDatabaseRoles // false
+			retrieveUserDomainObject = conf.ldapRetrieveUserDomainObject // true
 		}
 
 		if (conf.ldapRetrieveGroupRoles) {

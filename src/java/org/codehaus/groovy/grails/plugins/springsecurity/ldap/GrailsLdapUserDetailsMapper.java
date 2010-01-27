@@ -39,6 +39,7 @@ public class GrailsLdapUserDetailsMapper extends LdapUserDetailsMapper implement
 	private GrailsDaoImpl _userDetailsService;
 	private Boolean _usePassword;
 	private Boolean _retrieveDatabaseRoles;
+	private Boolean _retrieveUserDomainObject;
 
 	/**
 	 * {@inheritDoc}
@@ -51,19 +52,23 @@ public class GrailsLdapUserDetailsMapper extends LdapUserDetailsMapper implement
 	public UserDetails mapUserFromContext(final DirContextOperations ctx, final String username,
 			GrantedAuthority[] authorities) {
 
-		GrailsUser dbDetails = (GrailsUser)_userDetailsService.loadUserByUsername(username, _retrieveDatabaseRoles);
-		authorities = mergeDatabaseRoles(dbDetails, authorities);
+		Object databaseUser = null;
+		if (_retrieveUserDomainObject) {
+			GrailsUser dbDetails = (GrailsUser)_userDetailsService.loadUserByUsername(username, _retrieveDatabaseRoles);
+			authorities = mergeDatabaseRoles(dbDetails, authorities);
+			databaseUser = dbDetails.getDomainClass();
+		}
 
 		LdapUserDetails ldapDetails = (LdapUserDetails)super.mapUserFromContext(ctx, username, authorities);
 		if (_usePassword) {
-			return new GrailsLdapUser(ldapDetails, dbDetails.getDomainClass());
+			return new GrailsLdapUser(ldapDetails, databaseUser);
 		}
 
 		// use a dummy password to avoid an exception from the User base class
 		return new GrailsLdapUser(ldapDetails.getUsername(), "not_used", ldapDetails.isEnabled(),
 				ldapDetails.isAccountNonExpired(), ldapDetails.isCredentialsNonExpired(),
 				ldapDetails.isAccountNonLocked(), ldapDetails.getAuthorities(),
-				ldapDetails.getAttributes(), ldapDetails.getDn(), dbDetails.getDomainClass());
+				ldapDetails.getAttributes(), ldapDetails.getDn(), databaseUser);
 	}
 
 	private GrantedAuthority[] mergeDatabaseRoles(final UserDetails details, final GrantedAuthority[] authorities) {
@@ -104,6 +109,14 @@ public class GrailsLdapUserDetailsMapper extends LdapUserDetailsMapper implement
 	}
 
 	/**
+	 * Dependency injection for whether to retrieve the user from the database.
+	 * @param retrieve  if <code>true</code> then load user from database
+	 */
+	public void setRetrieveUserDomainObject(final boolean retrieve) {
+		_retrieveUserDomainObject = retrieve;
+	}
+
+	/**
 	 * {@inheritDoc}
 	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
 	 */
@@ -111,5 +124,6 @@ public class GrailsLdapUserDetailsMapper extends LdapUserDetailsMapper implement
 		Assert.notNull(_userDetailsService, "userDetailsService must be specified");
 		Assert.notNull(_usePassword, "usePassword must be specified");
 		Assert.notNull(_retrieveDatabaseRoles, "retrieveDatabaseRoles must be specified");
+		Assert.notNull(_retrieveUserDomainObject, "retrieveUserDomainObject must be specified");
 	}
 }
