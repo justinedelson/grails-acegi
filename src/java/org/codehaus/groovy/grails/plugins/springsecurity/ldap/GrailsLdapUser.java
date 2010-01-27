@@ -37,13 +37,14 @@ public class GrailsLdapUser extends GrailsUserImpl implements GrailsUser, LdapUs
 	 * Constructor from {@link LdapUserDetails}.
 	 * @param details  the original details
 	 * @param domainClass  the domain instance
+	 * @param attributes  attributes
 	 */
-	@SuppressWarnings("deprecation") // just passing along the core impl
-	public GrailsLdapUser(final LdapUserDetails details, final Object domainClass) {
+	public GrailsLdapUser(final LdapUserDetails details, final Object domainClass,
+			final  Attributes attributes) {
 		super(details.getUsername(), details.getPassword(), details.isEnabled(),
 				details.isAccountNonExpired(), details.isCredentialsNonExpired(),
 				details.isAccountNonLocked(), details.getAuthorities(), domainClass);
-		_attributes = details.getAttributes();
+		_attributes = attributes;
 		_dn = details.getDn();
 	}
 

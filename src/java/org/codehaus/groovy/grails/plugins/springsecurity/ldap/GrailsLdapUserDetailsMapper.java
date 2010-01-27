@@ -18,9 +18,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.naming.directory.Attributes;
+
+import org.apache.log4j.Logger;
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsDaoImpl;
 import org.codehaus.groovy.grails.plugins.springsecurity.GrailsUser;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.security.GrantedAuthority;
 import org.springframework.security.userdetails.UserDetails;
@@ -36,6 +40,7 @@ import org.springframework.util.Assert;
  */
 public class GrailsLdapUserDetailsMapper extends LdapUserDetailsMapper implements InitializingBean {
 
+	private Logger log = Logger.getLogger(getClass());
 	private GrailsDaoImpl _userDetailsService;
 	private Boolean _usePassword;
 	private Boolean _retrieveDatabaseRoles;
@@ -47,7 +52,6 @@ public class GrailsLdapUserDetailsMapper extends LdapUserDetailsMapper implement
 	 * 	org.springframework.ldap.core.DirContextOperations, java.lang.String,
 	 * 	org.springframework.security.GrantedAuthority[])
 	 */
-	@SuppressWarnings("deprecation")
 	@Override
 	public UserDetails mapUserFromContext(final DirContextOperations ctx, final String username,
 			GrantedAuthority[] authorities) {
@@ -59,16 +63,24 @@ public class GrailsLdapUserDetailsMapper extends LdapUserDetailsMapper implement
 			databaseUser = dbDetails.getDomainClass();
 		}
 
+		Attributes attributes = null;
+		try {
+			attributes = ((DirContextAdapter)ctx).getAttributes();
+		}
+		catch (RuntimeException e) {
+			log.warn("Unable to retrieve attributes from the DirContextOperations", e);
+		}
+
 		LdapUserDetails ldapDetails = (LdapUserDetails)super.mapUserFromContext(ctx, username, authorities);
 		if (_usePassword) {
-			return new GrailsLdapUser(ldapDetails, databaseUser);
+			return new GrailsLdapUser(ldapDetails, databaseUser, attributes);
 		}
 
 		// use a dummy password to avoid an exception from the User base class
 		return new GrailsLdapUser(ldapDetails.getUsername(), "not_used", ldapDetails.isEnabled(),
 				ldapDetails.isAccountNonExpired(), ldapDetails.isCredentialsNonExpired(),
 				ldapDetails.isAccountNonLocked(), ldapDetails.getAuthorities(),
-				ldapDetails.getAttributes(), ldapDetails.getDn(), databaseUser);
+				attributes, ldapDetails.getDn(), databaseUser);
 	}
 
 	private GrantedAuthority[] mergeDatabaseRoles(final UserDetails details, final GrantedAuthority[] authorities) {
