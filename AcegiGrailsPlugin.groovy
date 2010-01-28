@@ -666,18 +666,55 @@ class AcegiGrailsPlugin {
 
 	private configureLdap = { conf ->
 
-		contextSource(org.springframework.security.ldap.DefaultSpringSecurityContextSource, conf.ldapServer) {
-			userDn = conf.ldapManagerDn
-			password = conf.ldapManagerPassword
+		if (conf.ldapConnectionPooling) {
+			ldapDirContextValidator(org.springframework.ldap.pool.validation.DefaultDirContextValidator)
+
+			ldapContextSourceTarget(org.springframework.security.ldap.DefaultSpringSecurityContextSource, conf.ldapServer) {
+				userDn = conf.ldapManagerDn
+				password = conf.ldapManagerPassword
+				pooled = true
+				if (conf.ldapBaseEnvironmentProperties) {
+					baseEnvironmentProperties = conf.ldapBaseEnvironmentProperties
+				}
+			}
+
+			ldapContextSource(org.springframework.ldap.pool.factory.PoolingContextSource) {
+				contextSource = ref('ldapContextSourceTarget')
+				dirContextValidator = ref('ldapDirContextValidator')
+
+				def poolSettings = conf.ldapConnectionPoolSettings
+				//minIdle = poolSettings.minIdle
+				maxIdle = poolSettings.maxIdle
+				maxActive = poolSettings.maxActive
+				maxTotal = poolSettings.maxTotal
+				maxWait = poolSettings.maxWait
+				whenExhaustedAction = poolSettings.whenExhaustedAction
+				testOnBorrow = poolSettings.testOnBorrow
+				testOnReturn = poolSettings.testOnReturn
+				testWhileIdle = poolSettings.testWhileIdle
+				timeBetweenEvictionRunsMillis = poolSettings.timeBetweenEvictionRunsMillis
+				minEvictableIdleTimeMillis = poolSettings.minEvictableIdleTimeMillis
+				numTestsPerEvictionRun = poolSettings.numTestsPerEvictionRun
+			}
+		}
+		else {
+			ldapContextSource(org.springframework.security.ldap.DefaultSpringSecurityContextSource, conf.ldapServer) {
+				userDn = conf.ldapManagerDn
+				password = conf.ldapManagerPassword
+				pooled = false
+				if (conf.ldapBaseEnvironmentProperties) {
+					baseEnvironmentProperties = conf.ldapBaseEnvironmentProperties
+				}
+			}
 		}
 
 		ldapUserSearch(org.springframework.security.ldap.search.FilterBasedLdapUserSearch,
-			           conf.ldapSearchBase, conf.ldapSearchFilter, contextSource) {
+		               conf.ldapSearchBase, conf.ldapSearchFilter, ldapContextSource) {
 			searchSubtree = conf.ldapSearchSubtree
 		}
 
 		ldapAuthenticator(org.springframework.security.providers.ldap.authenticator.BindAuthenticator,
-			              contextSource) {
+		                  ldapContextSource) {
 			userSearch = ldapUserSearch
 		}
 
@@ -691,7 +728,7 @@ class AcegiGrailsPlugin {
 
 		if (conf.ldapRetrieveGroupRoles) {
 			ldapAuthoritiesPopulator(org.springframework.security.ldap.populator.DefaultLdapAuthoritiesPopulator,
-				                     contextSource, conf.ldapGroupSearchBase) {
+			                         ldapContextSource, conf.ldapGroupSearchBase) {
 				groupRoleAttribute = conf.ldapGroupRoleAttribute
 				groupSearchFilter = conf.ldapGroupSearchFilter
 				searchSubtree = conf.ldapSearchSubtree

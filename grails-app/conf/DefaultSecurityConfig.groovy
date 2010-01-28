@@ -152,6 +152,22 @@ security {
 	ldapGroupSearchBase = 'ou=groups,dc=example,dc=com'
 	ldapGroupSearchFilter = 'uniquemember={0}'
 	ldapUsePassword = true
+	ldapConnectionPooling = false
+	// properties for org.springframework.ldap.pool.factory.PoolingContextSource when ldapConnectionPooling = true
+	ldapConnectionPoolSettings {
+		//minIdle = 0
+		maxIdle = 8
+		maxActive = 8
+		maxTotal = -1
+		maxWait = -1L
+		whenExhaustedAction = org.apache.commons.pool.impl.GenericKeyedObjectPool.WHEN_EXHAUSTED_BLOCK
+		testOnBorrow = false
+		testOnReturn = false
+		testWhileIdle = false
+		timeBetweenEvictionRunsMillis = -1L
+		minEvictableIdleTimeMillis = 1000L * 60L * 30L
+		numTestsPerEvictionRun = 3
+	}
 
 	// Kerberos
 	useKerberos = false
