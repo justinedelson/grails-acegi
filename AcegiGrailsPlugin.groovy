@@ -776,7 +776,24 @@ class AcegiGrailsPlugin {
 			defaultDomain = conf.ntlm.defaultDomain
 			netbiosWINS = conf.ntlm.netbiosWINS
 			forceIdentification = conf.ntlm.forceIdentification // false
+			domainController = conf.ntlm.domainController // null
+			loadBalance = conf.ntlm.loadBalance // false
+			soTimeout = conf.ntlm.soTimeout // 300000 (5 minutes)
+			cachePolicy = conf.ntlm.cachePolicy // 1200 (20 minutes)
+
 			authenticationManager = ref('authenticationManager')
+			if (conf.ntlm.smbClientUsername) {
+				smbClientUsername = conf.ntlm.smbClientUsername
+			}
+			if (conf.ntlm.smbClientPassword) {
+				smbClientPassword = conf.ntlm.smbClientPassword
+			}
+			if (conf.ntlm.smbClientSSNLimit) {
+				smbClientSSNLimit = conf.ntlm.smbClientSSNLimit
+			}
+			if (conf.ntlm.jcifsProperties) {
+				jcifsProperties = conf.ntlm.jcifsProperties as Properties
+			}
 		}
 
 		authenticationEntryPoint(org.codehaus.groovy.grails.plugins.springsecurity.GrailsNtlmProcessingFilterEntryPoint) {

@@ -206,8 +206,12 @@ security {
 	ntlm.stripDomain = true
 	ntlm.retryOnAuthFailure = true
 	ntlm.forceIdentification = false
+	ntlm.domainController = null
 	ntlm.defaultDomain = null // set in SecurityConfig.groovy
 	ntlm.netbiosWINS = null // set in SecurityConfig.groovy
+	ntlm.loadBalance = false
+	ntlm.soTimeout = 300000 // 5 minutes
+	ntlm.cachePolicy = 1200 // 20 minutes
 
 	// port mappings
 	httpPort = 8080
